@@ -1,0 +1,48 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fyp-app
+    working_dir: /var/www/html
+    volumes:
+      - ./finalyearproject:/var/www/html
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: fyp
+      DB_USERNAME: fyp
+      DB_PASSWORD: fyp
+    depends_on:
+      - db
+
+  web:
+    image: nginx:1.27-alpine
+    container_name: fyp-web
+    ports:
+      - "8000:80"
+    volumes:
+      - ./finalyearproject:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+
+  db:
+    image: mysql:8.4
+    container_name: fyp-db
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: fyp
+      MYSQL_USER: fyp
+      MYSQL_PASSWORD: fyp
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  db-data:
