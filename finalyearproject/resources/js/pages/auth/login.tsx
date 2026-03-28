@@ -1,4 +1,6 @@
 import { Form, Head, Link } from '@inertiajs/react';
+import { Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -23,6 +25,8 @@ export default function Login({
     canResetPassword,
     canRegister,
 }: Props) {
+    const [showPassword, setShowPassword] = useState(false);
+
     return (
         <div className="flex min-h-svh items-start justify-center bg-muted px-4 pt-10 pb-8 sm:px-6">
             <Head title="Log in" />
@@ -88,15 +92,36 @@ export default function Login({
                                             <div className="flex items-center">
                                                 <Label htmlFor="password">Password</Label>
                                             </div>
-                                            <Input
-                                                id="password"
-                                                type="password"
-                                                name="password"
-                                                required
-                                                tabIndex={2}
-                                                autoComplete="current-password"
-                                                placeholder="Password"
-                                            />
+                                            <div className="relative">
+                                                <Input
+                                                    id="password"
+                                                    type={showPassword ? 'text' : 'password'}
+                                                    name="password"
+                                                    required
+                                                    tabIndex={2}
+                                                    autoComplete="current-password"
+                                                    placeholder="Password"
+                                                    className="pr-10"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setShowPassword((prev) => !prev)
+                                                    }
+                                                    className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition-colors hover:text-foreground"
+                                                    aria-label={
+                                                        showPassword
+                                                            ? 'Hide password'
+                                                            : 'Show password'
+                                                    }
+                                                >
+                                                    {showPassword ? (
+                                                        <EyeOff className="size-4" aria-hidden="true" />
+                                                    ) : (
+                                                        <Eye className="size-4" aria-hidden="true" />
+                                                    )}
+                                                </button>
+                                            </div>
                                             <InputError
                                                 message={
                                                     errors.password ===
@@ -168,7 +193,7 @@ export default function Login({
 
                     <div className="relative hidden bg-slate-100 md:block">
                         <img
-                            src="/images/login-visual.svg"
+                            src="/images/login-visual.png"
                             alt="Login illustration"
                             className="h-full w-full object-cover"
                         />

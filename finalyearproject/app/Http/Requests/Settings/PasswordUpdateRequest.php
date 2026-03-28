@@ -17,8 +17,12 @@ class PasswordUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $requiresCurrentPassword = ! $this->user()?->socialAccounts()->exists();
+
         return [
-            'current_password' => $this->currentPasswordRules(),
+            'current_password' => $requiresCurrentPassword
+                ? $this->currentPasswordRules()
+                : ['nullable', 'string', 'current_password'],
             'password' => $this->passwordRules(),
         ];
     }
