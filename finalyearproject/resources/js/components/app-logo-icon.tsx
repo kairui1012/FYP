@@ -15,7 +15,7 @@ export default function AppLogoIcon({
         <img
             src="/images/app-logo.svg"
             alt="App logo"
-            className={`h-14 w-14 object-contain ${className}`}
+            className={`object-contain ${className}`}
             style={mergedStyle}
             {...props}
         />
