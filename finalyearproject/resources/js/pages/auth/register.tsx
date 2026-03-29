@@ -143,7 +143,7 @@ export default function Register() {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
+                        <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
                             Already have an account?{' '}
                             <Button 
                                 asChild
