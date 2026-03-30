@@ -21,6 +21,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                         <SidebarMenuButton
                             asChild
                             isActive={isCurrentUrl(item.href)}
+                            className="ml-0 mr-auto h-10 w-[87.5%] text-[15px] data-[active=true]:bg-[#e36a8b] data-[active=true]:text-white"
                             tooltip={{ children: item.title }}
                         >
                             <Link href={item.href} prefetch>

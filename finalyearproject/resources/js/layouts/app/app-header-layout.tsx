@@ -18,7 +18,7 @@ export default function AppHeaderLayout({
                     <AppSidebar className="top-16" />
                     <AppContent
                         variant="sidebar"
-                        className="overflow-x-hidden md:mt-0 md:ml-[3%]"
+                        className="overflow-x-hidden md:mt-0"
                     >
                         {children}
                     </AppContent>

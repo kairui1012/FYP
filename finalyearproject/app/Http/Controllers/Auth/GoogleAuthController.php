@@ -36,7 +36,7 @@ class GoogleAuthController extends Controller
         if ($socialAccount) {
             Auth::login($socialAccount->user, true);
 
-            return redirect()->intended('/dashboard')->with('success', 'success verification');
+            return redirect()->intended('/homePage')->with('success', 'success verification');
         }
 
         if (!$email) {
@@ -69,6 +69,6 @@ class GoogleAuthController extends Controller
 
         Auth::login($user, true);
 
-        return redirect()->intended('/dashboard')->with('success', 'success verification');
+        return redirect()->intended('/homePage')->with('success', 'success verification');
     }
 }

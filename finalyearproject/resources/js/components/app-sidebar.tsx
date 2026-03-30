@@ -1,4 +1,4 @@
-import { BookOpen, ChevronLeft, ChevronRight, FolderGit2, LayoutGrid } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, Flame, FolderGit2, HomeIcon, Settings, Settings2Icon, SettingsIcon, Users } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -10,28 +10,41 @@ import {
     useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-import { dashboard } from '@/routes';
+import { homePage } from '@/routes';
+import { popularPage } from '@/routes';
+import profile from '@/routes/profile';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
+        title: 'Home',
+        href: homePage(),
+        icon: HomeIcon,
+    },
+    {
+        title: 'Popular',
+        href: popularPage(),
+        icon: Flame,
+    },
+    {
+        title: 'Following',
+        href: popularPage(),
+        icon: Users,
     },
 ];
 
+
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
+        title: 'Setting',
+        href: profile.edit(),
+        icon: Settings,
     },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
+    //   {
+    //     title: 'Language',
+    //     href: ,
+    //     icon: Icon,
+    // },
 ];
 
 type AppSidebarProps = {
@@ -153,7 +166,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 </SidebarContent>
 
                 <SidebarFooter>
-                    <NavFooter items={footerNavItems} className="mt-auto" />
+                    <NavFooter items={footerNavItems} className="mt-auto pb-[6%]" />
                     <NavUser />
                 </SidebarFooter>
             </Sidebar>

@@ -9,8 +9,13 @@ Route::inertia('/', 'welcome', [
 ])->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::inertia('homePage', 'homePage')->name('homePage');
 });
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::inertia('popularPage', 'popularPage')->name('popularPage');
+});
+
 
 Route::get('/login/google', [GoogleAuthController::class, 'redirectToProvider'])->name('login.google');
 
