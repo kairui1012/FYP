@@ -1,10 +1,20 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import {
+    Bell,
+    BookOpen,
+    Folder,
+    Languages,
+    LayoutGrid,
+    Menu,
+    Plus,
+    Search,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -72,7 +82,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     return (
         <>
             <div className="border-b border-sidebar-border/80">
-                <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
+                <div className="flex h-16 w-full items-center px-2 md:px-8">
                     {/* Mobile Menu */}
                     <div className="lg:hidden">
                         <Sheet>
@@ -137,17 +147,54 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     <Link
                         href={homePage()}
                         prefetch
-                        className="mr-auto flex min-w-0 items-center gap-2"
+                        className="flex min-w-0 items-center gap-2"
                     >
                         <AppLogo />
                     </Link>
 
-                    
+                    <div className="hidden w-full max-w-md flex-1 md:ml-[10%] md:mr-2 md:block">
+                        <div className="relative">
+                            <Search className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                            <Input
+                                type="search"
+                                placeholder="Search..."
+                                className="h-10 rounded-full border-2 border-[#f090aa] pl-9 focus-visible:border-[#ef97ad] focus-visible:ring-2 focus-visible:ring-[#e36a8b]/35 dark:border-[#F0838F] dark:focus-visible:border-[#F0838F] dark:focus-visible:ring-[#F0838F]/30"
+                                aria-label="Search"
+                            />
+                        </div>
+                    </div>
 
                     {/* Desktop Navigation */}
 
                     <div className="ml-auto flex items-center space-x-2">
-                        {/* <DropdownMenu>
+                        <Link
+                            href="/change-language-setting"
+                            className="hidden md:inline-flex"
+                            aria-label="Change language setting"
+                        >
+                            <Button variant="ghost" size="icon" className="size-9">
+                                <Languages className="h-4.5 w-4.5" />
+                            </Button>
+                        </Link>
+
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="hidden size-9 md:inline-flex"
+                            aria-label="Notifications"
+                        >
+                            <Bell className="h-4 w-4" />
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            className="hidden h-9 rounded-full bg-[#de6b89] text-white shadow-none hover:bg-[#e7849e] hover:text-white hover:shadow-none md:mr-[5%] md:inline-flex dark:bg-[#F0838F] dark:text-white dark:hover:bg-[#e07481]"
+                        >
+                            <Plus className="mr-1 h-4 w-4" />
+                            Create Post
+                        </Button>
+
+                        <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
@@ -167,7 +214,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                             <DropdownMenuContent className="w-56" align="end">
                                 <UserMenuContent user={auth.user} />
                             </DropdownMenuContent>
-                        </DropdownMenu> */}
+                        </DropdownMenu>
                     </div>
                 </div>
             </div>

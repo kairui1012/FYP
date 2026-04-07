@@ -3,6 +3,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
+import { AppHeaderForUnlogin } from '@/components/app-header-for-unlogin';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -28,36 +29,38 @@ export default function Login({
     const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <div className="flex min-h-svh items-start justify-center bg-muted px-4 pt-10 pb-8 sm:px-6">
+        <>
             <Head title="Log in" />
+            <AppHeaderForUnlogin />
 
-            <Card className="w-full max-w-4xl overflow-hidden border-0 p-0 shadow-2xl rounded-4xl">
-                <div className="grid md:grid-cols-2">
-                    <div className="bg-background p-6 sm:p-10">
-                        <div className="mb-8 space-y-2 text-left">
-                            <h1 className="text-3xl font-semibold tracking-tight">
-                                Login Page
-                            </h1>
-                            <p className="text-sm text-muted-foreground sm:text-base">
-                                Welcome to this website
-                            </p>
-                        </div>
+            <div className="flex min-h-[calc(100svh-4rem)] items-start justify-center bg-muted px-3 pt-4 pb-8 sm:px-4 sm:pt-6 lg:px-5">
+                <Card className="w-full max-w-[clamp(19rem,88vw,48rem)] overflow-hidden rounded-3xl border-0 p-0 shadow-2xl lg:rounded-[2rem]">
+                    <div className="grid md:grid-cols-2">
+                        <div className="bg-background p-3.5 sm:p-5 lg:p-6 xl:p-7">
+                            <div className="mb-6 space-y-2 text-left">
+                                <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
+                                    Login Page
+                                </h1>
+                                <p className="text-xs text-muted-foreground sm:text-sm">
+                                    Welcome to this website
+                                </p>
+                            </div>
 
-                        <Form
-                            {...store.form()}
-                            resetOnSuccess={['password']}
-                            className="flex flex-col gap-6"
-                        >
-                            {({ processing, errors }) => {
-                                const invalidCredentials =
-                                    errors.email ===
-                                        'These credentials do not match our records.' ||
-                                    errors.password ===
-                                        'These credentials do not match our records.';
+                            <Form
+                                {...store.form()}
+                                resetOnSuccess={['password']}
+                                className="flex flex-col gap-5"
+                            >
+                                {({ processing, errors }) => {
+                                    const invalidCredentials =
+                                        errors.email ===
+                                            'These credentials do not match our records.' ||
+                                        errors.password ===
+                                            'These credentials do not match our records.';
 
-                                return (
+                                    return (
                                 <>
-                                    <div className="h-11 w-full">
+                                    <div className="h-10 w-full">
                                         {invalidCredentials && (
                                             <div className="flex h-full w-full items-center rounded-lg bg-red-600 px-4 text-sm font-medium text-white">
                                                 Incorrect email or password. Unable to log in.
@@ -65,7 +68,7 @@ export default function Login({
                                         )}
                                     </div>
 
-                                    <div className="grid gap-6">
+                                    <div className="grid gap-5">
                                         <div className="grid gap-2">
                                             <Label htmlFor="email">Email address</Label>
                                             <Input
@@ -101,14 +104,14 @@ export default function Login({
                                                     tabIndex={2}
                                                     autoComplete="current-password"
                                                     placeholder="Password"
-                                                    className="pr-10"
+                                                    className="pr-9"
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() =>
                                                         setShowPassword((prev) => !prev)
                                                     }
-                                                    className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition-colors hover:text-foreground"
+                                                    className="absolute inset-y-0 right-0 flex items-center px-2.5 text-muted-foreground transition-colors hover:text-foreground"
                                                     aria-label={
                                                         showPassword
                                                             ? 'Hide password'
@@ -116,9 +119,9 @@ export default function Login({
                                                     }
                                                 >
                                                     {showPassword ? (
-                                                        <EyeOff className="size-4" aria-hidden="true" />
+                                                        <EyeOff className="size-3.5" aria-hidden="true" />
                                                     ) : (
-                                                        <Eye className="size-4" aria-hidden="true" />
+                                                        <Eye className="size-3.5" aria-hidden="true" />
                                                     )}
                                                 </button>
                                             </div>
@@ -132,7 +135,7 @@ export default function Login({
                                             />
                                         </div>
 
-                                        <div className="flex items-center space-x-3">
+                                        <div className="flex items-center space-x-2.5">
                                             <Checkbox
                                                 id="remember"
                                                 name="remember"
@@ -142,7 +145,7 @@ export default function Login({
                                             {canResetPassword && (
                                                 <TextLink
                                                     href={request()}
-                                                    className="ml-auto flex items-center gap-1 text-sm font-medium no-underline transition-all duration-200 ease-out hover:text-red-600 hover:gap-2"
+                                                    className="ml-auto flex items-center gap-1 text-xs font-medium no-underline transition-all duration-200 ease-out hover:text-red-600 hover:gap-1.5"
                                                     tabIndex={5}
                                                 >
                                                     Forgot password?
@@ -153,7 +156,7 @@ export default function Login({
 
                                         <Button
                                             type="submit"
-                                            className="mt-2 h-11 w-full"
+                                            className="mt-1.5 h-10 w-full"
                                             tabIndex={4}
                                             disabled={processing}
                                             data-test="login-button"
@@ -166,12 +169,12 @@ export default function Login({
                                     </div>
 
                                     {canRegister && (
-                                        <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
+                                        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                                             <span>Don't have an account?</span>
 
                                             <Button
                                                 asChild
-                                                className="h-8 rounded-lg bg-black px-3 text-sm font-medium text-white transition-all duration-200 hover:bg-zinc-800 hover:shadow-md"
+                                                className="h-7 rounded-lg bg-black px-2.5 text-xs font-medium text-white transition-all duration-200 hover:bg-zinc-800 hover:shadow-md"
                                             >
                                                 <Link href={register()} tabIndex={5}>
                                                     Sign up
@@ -186,20 +189,21 @@ export default function Login({
                                         </div>
                                     )}
                                 </>
-                                );
-                            }}
-                        </Form>
-                    </div>
+                                    );
+                                }}
+                            </Form>
+                        </div>
 
-                    <div className="relative hidden bg-slate-100 md:block">
-                        <img
-                            src="/images/login-visual.png"
-                            alt="Login illustration"
-                            className="h-full w-full object-cover"
-                        />
+                        <div className="relative hidden bg-slate-100 md:block">
+                            <img
+                                src="/images/login-visual.png"
+                                alt="Login illustration"
+                                className="h-full w-full object-cover"
+                            />
+                        </div>
                     </div>
-                </div>
-            </Card>
-        </div>
+                </Card>
+            </div>
+        </>
     );
 }

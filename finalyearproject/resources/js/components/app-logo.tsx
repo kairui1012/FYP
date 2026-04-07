@@ -3,7 +3,7 @@ import AppLogoIcon from '@/components/app-logo-icon';
 export default function AppLogo() {
     return (
         <>
-            <div className="flex aspect-square size-[clamp(2.25rem,1.6vw+1.5rem,2.75rem)] items-center ">
+            <div className="flex aspect-square items-center">
                 <AppLogoIcon className="size-[clamp(1.25rem,1.1vw+0.75rem,1.75rem)] fill-current " />
             </div>
             

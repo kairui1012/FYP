@@ -35,7 +35,7 @@ export function NavFooter({
                             <SidebarMenuButton
                                 asChild
                                 isActive={isCurrentUrl(item.href)}
-                                className="ml-0 mr-auto h-10 w-[85%] text-[15px] data-[active=true]:bg-[#e36a8b] data-[active=true]:text-white"
+                                className="h-10 text-[15px] data-[active=true]:bg-[#e36a8b] data-[active=true]:text-white"
                                 tooltip={{ children: item.title }}
                             >
                                 {isExternalUrl(toUrl(item.href)) ? (
@@ -48,7 +48,7 @@ export function NavFooter({
                                         <span>{item.title}</span>
                                     </a>
                                 ) : (
-                                    <Link href={item.href} prefetch>
+                                    <Link href={toUrl(item.href)} prefetch>
                                         {item.icon && <item.icon />}
                                         <span>{item.title}</span>
                                     </Link>

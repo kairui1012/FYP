@@ -14,7 +14,7 @@ export function AppContent({
 }: Props) {
     if (variant === 'sidebar') {
         return (
-            <SidebarInset className={cn('pl-[3%]', className)} {...props}>
+            <SidebarInset className={cn('md:pl-2', className)} {...props}>
                 {children}
             </SidebarInset>
         );

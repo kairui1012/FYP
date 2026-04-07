@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
+import type { ReactNode } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { homePage } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
@@ -13,13 +13,15 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function HomePage() {
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title="Home" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="relative flex-1 overflow-hidden  md:min-h-min dark:border-sidebar-border">
-                </div>
+                <div className="relative flex-1 overflow-hidden  md:min-h-min dark:border-sidebar-border" />
             </div>
-        </AppLayout>
-        // <div className="flex min-h-screen w-full flex-col">{children}</div>
+        </>
     );
 }
+
+HomePage.layout = (page: ReactNode) => (
+    <AppLayout breadcrumbs={breadcrumbs}>{page}</AppLayout>
+);

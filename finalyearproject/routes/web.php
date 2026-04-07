@@ -1,12 +1,20 @@
 <?php
 
 use App\Http\Controllers\Auth\GoogleAuthController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
-Route::inertia('/', 'welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('home');
+Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect()->route('homePage');
+    }
+
+    return Inertia::render('auth/login', [
+        'canRegister' => Features::enabled(Features::registration()),
+    ]);
+})->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('homePage', 'homePage')->name('homePage');

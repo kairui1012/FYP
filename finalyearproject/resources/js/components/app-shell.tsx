@@ -8,7 +8,18 @@ type Props = {
 };
 
 export function AppShell({ children, variant = 'header' }: Props) {
-    const isOpen = usePage().props.sidebarOpen;
+    const sidebarOpen = usePage().props.sidebarOpen;
+
+    const defaultSidebarOpen = (() => {
+        if (typeof window === 'undefined') {
+            return sidebarOpen;
+        }
+
+        const pinnedOpen = window.localStorage.getItem('layout.sidebar.pinned-open') === 'true';
+        const hoverOpen = window.sessionStorage.getItem('layout.sidebar.hover-open') === 'true';
+
+        return pinnedOpen || hoverOpen || sidebarOpen;
+    })();
 
     if (variant === 'header') {
         return (
@@ -16,5 +27,5 @@ export function AppShell({ children, variant = 'header' }: Props) {
         );
     }
 
-    return <SidebarProvider defaultOpen={isOpen}>{children}</SidebarProvider>;
+    return <SidebarProvider defaultOpen={defaultSidebarOpen}>{children}</SidebarProvider>;
 }

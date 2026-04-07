@@ -1,6 +1,7 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { AppHeaderForUnlogin } from '@/components/app-header-for-unlogin';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,26 +16,28 @@ export default function Register() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     return (
-        <AuthCardLayout title="Create an account" description="">
+        <>
             <Head title="Register" />
+            <AppHeaderForUnlogin />
 
-            <Form
-                {...store.form()}
-                resetOnSuccess={['password', 'password_confirmation']}
-                disableWhileProcessing
-                className="flex flex-col gap-6"
-            >
-                {({ processing, errors }) => (
-                    <>
-                        <div className="h-11 w-full">
-                            {Object.values(errors).find(Boolean) && (
-                                <div className="flex h-full w-full items-center rounded-lg bg-red-600 px-4 text-sm font-medium text-white">
-                                    {Object.values(errors).find(Boolean)}
-                                </div>
-                            )}
-                        </div>
+            <AuthCardLayout title="Create an account" description="">
+                <Form
+                    {...store.form()}
+                    resetOnSuccess={['password', 'password_confirmation']}
+                    disableWhileProcessing
+                    className="flex flex-col gap-4"
+                >
+                    {({ processing, errors }) => (
+                        <>
+                            <div className="h-10 w-full">
+                                {Object.values(errors).find(Boolean) && (
+                                    <div className="flex h-full w-full items-center rounded-lg bg-red-600 px-3 text-xs font-medium text-white sm:text-sm">
+                                        {Object.values(errors).find(Boolean)}
+                                    </div>
+                                )}
+                            </div>
 
-                        <div className="grid gap-6">
+                        <div className="grid gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="name">Name</Label>
                                 <Input
@@ -80,7 +83,7 @@ export default function Register() {
                                         onClick={() =>
                                             setShowPassword((prev) => !prev)
                                         }
-                                        className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition-colors hover:text-foreground"
+                                        className="absolute inset-y-0 right-0 flex items-center px-2.5 text-muted-foreground transition-colors hover:text-foreground"
                                         aria-label={
                                             showPassword
                                                 ? 'Hide password'
@@ -145,17 +148,18 @@ export default function Register() {
 
                         <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
                             Already have an account?{' '}
-                            <Button 
+                                            <Button 
                                 asChild
-                                className="h-8 rounded-lg bg-black px-3 text-sm font-medium text-white transition-all duration-200 hover:bg-zinc-800 hover:shadow-md">
+                                className="h-7 rounded-lg bg-black px-2.5 text-xs font-medium text-white transition-all duration-200 hover:bg-zinc-800 hover:shadow-md">
                                 <Link href={login()} tabIndex={6}>
                                     Login
                                 </Link>
                             </Button>
                         </div>
-                    </>
-                )}
-            </Form> 
-        </AuthCardLayout>
+                        </>
+                    )}
+                </Form>
+            </AuthCardLayout>
+        </>
     );
 }

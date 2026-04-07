@@ -1,4 +1,3 @@
-import { Link } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
 import AppLogoIcon from '@/components/app-logo-icon';
 import {
@@ -8,7 +7,6 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { home } from '@/routes';
 
 export default function AuthCardLayout({
     children,
@@ -19,25 +17,23 @@ export default function AuthCardLayout({
     title?: string;
     description?: string;
 }>) {
-    
-    return (
-        <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
-            <div className="flex w-full max-w-md flex-col gap-6">
-                
 
-                <div className="flex flex-col gap-6">
-                    <Card className="w-full max-w-4xl overflow-hidden border-0 p-0 shadow-2xl rounded-4xl">
-                        
-                        <CardHeader className="px-10 pt-8 pb-0 text-center">
-                            <CardTitle className="flex items-center justify-center gap-3 text-xl">
-                                <AppLogoIcon className="size-9 fill-current text-black dark:text-white" />
-                                <h1 className="text-2xl font-semibold tracking-tight">
+    return (
+        <div className="flex min-h-[calc(100svh-4rem)] flex-col items-center justify-center gap-2.5 bg-muted p-3 pt-4 sm:p-4 sm:pt-6 md:p-5">
+            <div className="flex w-full max-w-[clamp(17rem,82vw,23rem)] flex-col gap-2.5">
+
+                <div className="flex flex-col gap-3">
+                    <Card className="w-full overflow-hidden rounded-3xl border-0 p-0 shadow-2xl lg:rounded-4xl">
+                        <CardHeader className="px-3.5 pb-0 pt-3.5 text-center sm:px-4 md:px-4.5">
+                            <CardTitle className="flex items-center justify-center gap-2 text-sm sm:text-base">
+                                <AppLogoIcon className="size-7 fill-current text-black dark:text-white" />
+                                <h1 className="text-sm font-semibold tracking-tight sm:text-base">
                                     {title}
                                 </h1>
                             </CardTitle>
-                            <CardDescription>{description}</CardDescription>
+                            <CardDescription className="text-xs sm:text-sm">{description}</CardDescription>
                         </CardHeader>
-                        <CardContent className="px-10 py-8 pt-3">
+                        <CardContent className="px-3.5 pb-4 pt-2 sm:px-4 md:px-4.5">
                             {children}
                         </CardContent>
                     </Card>
