@@ -27,6 +27,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('popularPage', 'popularPage')->name('popularPage');
 });
 
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::inertia('createPostPage', 'createPostPage')->name('createPostPage');
+});
+
 
 Route::get('/login/google', [GoogleAuthController::class, 'redirectToProvider'])->name('login.google');
 

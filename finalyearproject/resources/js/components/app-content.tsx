@@ -14,7 +14,7 @@ export function AppContent({
 }: Props) {
     if (variant === 'sidebar') {
         return (
-            <SidebarInset className={cn('md:pl-2', className)} {...props}>
+            <SidebarInset className={cn(className)} {...props}>
                 {children}
             </SidebarInset>
         );
@@ -23,7 +23,7 @@ export function AppContent({
     return (
         <main
             className={cn(
-                'mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl pl-[5%]',
+                'mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4  pl-[5%]',
                 className
             )}
             {...props}

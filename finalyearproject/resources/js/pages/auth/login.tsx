@@ -35,10 +35,10 @@ export default function Login({
             <Head title={trans('auth.login_title')} />
             <AppHeaderForUnlogin />
 
-            <div className="flex min-h-[calc(100svh-4rem)] items-start justify-center bg-muted px-3 pt-4 pb-8 sm:px-4 sm:pt-6 lg:px-5">
-                <Card className="w-full max-w-[clamp(19rem,88vw,48rem)] overflow-hidden rounded-3xl border-0 p-0 shadow-2xl lg:rounded-4xl">
-                    <div className="grid md:grid-cols-2">
-                        <div className="bg-background p-3.5 sm:p-5 lg:p-6 xl:p-7">
+            <div className="flex min-h-[calc(100svh-4rem)] items-center justify-center bg-muted px-3 py-5 sm:px-4 sm:py-6 lg:px-6">
+                <Card className="w-full max-w-[clamp(19rem,86vw,52rem)] overflow-hidden rounded-3xl border-0 p-0 shadow-2xl lg:rounded-4xl">
+                    <div className="grid lg:grid-cols-2">
+                        <div className="bg-background p-3.5 sm:p-5 md:p-6 lg:p-6 xl:p-7">
                             <div className="mb-6 space-y-2 text-left">
                                 <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
                                     {trans('auth.login_heading')}
@@ -193,7 +193,7 @@ export default function Login({
                             </Form>
                         </div>
 
-                        <div className="relative hidden bg-slate-100 md:block">
+                        <div className="relative hidden bg-slate-100 lg:block">
                             <img
                                 src="/images/login-visual.png"
                                 alt="Login illustration"
