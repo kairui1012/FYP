@@ -1,6 +1,7 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { reactLang } from '@erag/lang-sync-inertia';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { AppHeaderForUnlogin } from '@/components/app-header-for-unlogin';
@@ -27,22 +28,23 @@ export default function Login({
     canRegister,
 }: Props) {
     const [showPassword, setShowPassword] = useState(false);
+    const { trans } = reactLang();
 
     return (
         <>
-            <Head title="Log in" />
+            <Head title={trans('auth.login_title')} />
             <AppHeaderForUnlogin />
 
             <div className="flex min-h-[calc(100svh-4rem)] items-start justify-center bg-muted px-3 pt-4 pb-8 sm:px-4 sm:pt-6 lg:px-5">
-                <Card className="w-full max-w-[clamp(19rem,88vw,48rem)] overflow-hidden rounded-3xl border-0 p-0 shadow-2xl lg:rounded-[2rem]">
+                <Card className="w-full max-w-[clamp(19rem,88vw,48rem)] overflow-hidden rounded-3xl border-0 p-0 shadow-2xl lg:rounded-4xl">
                     <div className="grid md:grid-cols-2">
                         <div className="bg-background p-3.5 sm:p-5 lg:p-6 xl:p-7">
                             <div className="mb-6 space-y-2 text-left">
                                 <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
-                                    Login Page
+                                    {trans('auth.login_heading')}
                                 </h1>
                                 <p className="text-xs text-muted-foreground sm:text-sm">
-                                    Welcome to this website
+                                    {trans('auth.login_subtitle')}
                                 </p>
                             </div>
 
@@ -53,24 +55,22 @@ export default function Login({
                             >
                                 {({ processing, errors }) => {
                                     const invalidCredentials =
-                                        errors.email ===
-                                            'These credentials do not match our records.' ||
-                                        errors.password ===
-                                            'These credentials do not match our records.';
+                                        errors.email === trans('auth.failed') ||
+                                        errors.password === trans('auth.failed');
 
                                     return (
                                 <>
                                     <div className="h-10 w-full">
                                         {invalidCredentials && (
                                             <div className="flex h-full w-full items-center rounded-lg bg-red-600 px-4 text-sm font-medium text-white">
-                                                Incorrect email or password. Unable to log in.
+                                                {trans('auth.login_failed_notice')}
                                             </div>
                                         )}
                                     </div>
 
                                     <div className="grid gap-5">
                                         <div className="grid gap-2">
-                                            <Label htmlFor="email">Email address</Label>
+                                            <Label htmlFor="email">{trans('auth.email_address')}</Label>
                                             <Input
                                                 id="email"
                                                 type="email"
@@ -83,8 +83,7 @@ export default function Login({
                                             />
                                             <InputError
                                                 message={
-                                                    errors.email ===
-                                                    'These credentials do not match our records.'
+                                                    errors.email === trans('auth.failed')
                                                         ? undefined
                                                         : errors.email
                                                 }
@@ -93,7 +92,7 @@ export default function Login({
 
                                         <div className="grid gap-2">
                                             <div className="flex items-center">
-                                                <Label htmlFor="password">Password</Label>
+                                                <Label htmlFor="password">{trans('auth.password')}</Label>
                                             </div>
                                             <div className="relative">
                                                 <Input
@@ -114,8 +113,8 @@ export default function Login({
                                                     className="absolute inset-y-0 right-0 flex items-center px-2.5 text-muted-foreground transition-colors hover:text-foreground"
                                                     aria-label={
                                                         showPassword
-                                                            ? 'Hide password'
-                                                            : 'Show password'
+                                                            ? trans('auth.hide_password')
+                                                            : trans('auth.show_password')
                                                     }
                                                 >
                                                     {showPassword ? (
@@ -141,14 +140,14 @@ export default function Login({
                                                 name="remember"
                                                 tabIndex={3}
                                             />
-                                            <Label htmlFor="remember">Remember me</Label>
+                                            <Label htmlFor="remember">{trans('auth.remember_me')}</Label>
                                             {canResetPassword && (
                                                 <TextLink
                                                     href={request()}
                                                     className="ml-auto flex items-center gap-1 text-xs font-medium no-underline transition-all duration-200 ease-out hover:text-red-600 hover:gap-1.5"
                                                     tabIndex={5}
                                                 >
-                                                    Forgot password?
+                                                    {trans('auth.forgot_password')}
                                                     
                                                 </TextLink>
                                             )}
@@ -162,7 +161,7 @@ export default function Login({
                                             data-test="login-button"
                                         >
                                             {processing && <Spinner />}
-                                            <span className="font-semibold">Login</span>
+                                            <span className="font-semibold">{trans('auth.login')}</span>
                                         </Button>
 
                                         <GoogleLoginBtn />
@@ -170,14 +169,14 @@ export default function Login({
 
                                     {canRegister && (
                                         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                                            <span>Don't have an account?</span>
+                                            <span>{trans('auth.no_account')}</span>
 
                                             <Button
                                                 asChild
                                                 className="h-7 rounded-lg bg-black px-2.5 text-xs font-medium text-white transition-all duration-200 hover:bg-zinc-800 hover:shadow-md"
                                             >
                                                 <Link href={register()} tabIndex={5}>
-                                                    Sign up
+                                                    {trans('auth.sign_up')}
                                                 </Link>
                                             </Button>
                                         </div>

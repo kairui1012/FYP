@@ -35,9 +35,21 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $lang = array_replace_recursive(
+            syncLangFiles('navigation'),
+            syncLangFiles('auth'),
+        );
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'lang' => $lang,
+            'locale' => app()->getLocale(),
+            'availableLocales' => [
+                'en' => 'English',
+                'zh' => '中文',
+                'my' => 'BM',
+            ],
             'auth' => [
                 'user' => $request->user(),
             ],

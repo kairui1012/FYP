@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+
+class LocaleController extends Controller
+{
+    public function switchMethod(Request $request): RedirectResponse
+    {
+        $supportedLocales = ['en', 'zh', 'my'];
+        $requestedLocale = $request->input('locale', $request->query('locale'));
+
+        if (is_string($requestedLocale) && in_array($requestedLocale, $supportedLocales, true)) {
+            $nextLocale = $requestedLocale;
+        } else {
+            $currentLocale = app()->getLocale();
+
+            $currentIndex = array_search($currentLocale, $supportedLocales, true);
+            if ($currentIndex === false) {
+                $currentIndex = 0;
+            }
+
+            $nextIndex = ($currentIndex + 1) % count($supportedLocales);
+            $nextLocale = $supportedLocales[$nextIndex];
+        }
+
+        $request->session()->put('locale', $nextLocale);
+
+        $previousUrl = url()->previous() ?: route('home');
+
+        return redirect()
+            ->to($previousUrl)
+            ->withCookie(cookie('locale', $nextLocale, 60 * 24 * 365));
+    }
+}

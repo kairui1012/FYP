@@ -1,9 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
+import { reactLang } from '@erag/lang-sync-inertia';
 import {
     Bell,
     BookOpen,
     Folder,
-    Languages,
     LayoutGrid,
     Menu,
     Plus,
@@ -15,6 +15,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { BtnChangeLang } from '@/components/ui/btn-change-lang';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -76,7 +77,8 @@ const activeItemStyles =
 
 export function AppHeader({ breadcrumbs = [] }: Props) {
     const page = usePage();
-    const { auth } = page.props;
+    const { trans } = reactLang();
+    const { auth } = page.props as typeof page.props & { locale?: string };
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
     return (
@@ -100,7 +102,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                 className="flex h-full w-64 flex-col items-stretch justify-between bg-sidebar"
                             >
                                 <SheetTitle className="sr-only">
-                                    Navigation menu
+                                    {trans('navigation.navigation_menu')}
                                 </SheetTitle>
                                 <SheetHeader className="flex justify-start text-left">
                                     <AppLogoIcon className="h-6 w-6 fill-current text-black dark:text-white" />
@@ -117,7 +119,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                                     {item.icon && (
                                                         <item.icon className="h-5 w-5" />
                                                     )}
-                                                    <span>{item.title}</span>
+                                                    <span>{trans(`navigation.${item.title.toLowerCase()}`)}</span>
                                                 </Link>
                                             ))}
                                         </div>
@@ -134,7 +136,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                                     {item.icon && (
                                                         <item.icon className="h-5 w-5" />
                                                     )}
-                                                    <span>{item.title}</span>
+                                                    <span>{trans(`navigation.${item.title.toLowerCase()}`)}</span>
                                                 </a>
                                             ))}
                                         </div>
@@ -157,41 +159,34 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                             <Search className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                             <Input
                                 type="search"
-                                placeholder="Search..."
+                                placeholder={trans('navigation.search_placeholder')}
                                 className="h-10 rounded-full border-2 border-[#f090aa] pl-9 focus-visible:border-[#ef97ad] focus-visible:ring-2 focus-visible:ring-[#e36a8b]/35 dark:border-[#F0838F] dark:focus-visible:border-[#F0838F] dark:focus-visible:ring-[#F0838F]/30"
-                                aria-label="Search"
+                                aria-label={trans('navigation.search_placeholder')}
                             />
                         </div>
                     </div>
 
                     {/* Desktop Navigation */}
 
-                    <div className="ml-auto flex items-center space-x-2">
-                        <Link
-                            href="/change-language-setting"
-                            className="hidden md:inline-flex"
-                            aria-label="Change language setting"
-                        >
-                            <Button variant="ghost" size="icon" className="size-9">
-                                <Languages className="h-4.5 w-4.5" />
-                            </Button>
-                        </Link>
+                    <div className="ml-auto flex items-center space-x-4">
 
                         <Button
                             variant="ghost"
                             size="icon"
                             className="hidden size-9 md:inline-flex"
-                            aria-label="Notifications"
+                            aria-label={trans('navigation.notifications')}
                         >
                             <Bell className="h-4 w-4" />
                         </Button>
 
+                        <BtnChangeLang />
+
                         <Button
                             variant="outline"
-                            className="hidden h-9 rounded-full bg-[#de6b89] text-white shadow-none hover:bg-[#e7849e] hover:text-white hover:shadow-none md:mr-[5%] md:inline-flex dark:bg-[#F0838F] dark:text-white dark:hover:bg-[#e07481]"
+                            className="hidden h-9 rounded-full border-transparent bg-[#ee7d9b] text-white shadow-none transition-colors duration-200 hover:border-transparent hover:bg-[#e7849e] hover:text-white hover:shadow-none focus-visible:border-transparent focus-visible:ring-[#e36a8b]/35 md:mr-[5%] md:inline-flex dark:border-transparent dark:bg-[#F0838F] dark:text-white dark:hover:border-transparent dark:hover:bg-[#e07481] dark:focus-visible:border-transparent dark:focus-visible:ring-[#F0838F]/30"
                         >
                             <Plus className="mr-1 h-4 w-4" />
-                            Create Post
+                            {trans('navigation.create_post')}
                         </Button>
 
                         <DropdownMenu>

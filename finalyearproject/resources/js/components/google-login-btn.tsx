@@ -1,6 +1,9 @@
 import { Button } from '@/components/ui/button';
+import { reactLang } from '@erag/lang-sync-inertia';
 
 export default function GoogleLoginBtn() {
+    const { trans } = reactLang();
+
     return (
         <div>
             <Button
@@ -8,7 +11,7 @@ export default function GoogleLoginBtn() {
                 className="mt-1 h-11 w-full"
                 onClick={() => (window.location.href = '/login/google')}
             >
-                <h1 className="font-bold">Continue with Google</h1>
+                <h1 className="font-bold">{trans('auth.continue_with_google')}</h1>
                 <svg
                     aria-hidden="true"
                     className="ml-2 size-5 shrink-0"

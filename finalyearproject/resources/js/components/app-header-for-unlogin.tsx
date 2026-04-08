@@ -1,15 +1,12 @@
 import { Link, usePage } from '@inertiajs/react';
+import { reactLang } from '@erag/lang-sync-inertia';
 import {
-    Bell,
-    Languages,
     Menu,
-    Plus,
-    Search,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
+import { BtnChangeLang } from '@/components/ui/btn-change-lang';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
     Sheet,
     SheetContent,
@@ -21,6 +18,7 @@ import { homePage, login, register } from '@/routes';
 
 export function AppHeaderForUnlogin() {
     const page = usePage();
+    const { trans } = reactLang();
     const auth = page.props.auth as { user?: { name?: string } | null } | undefined;
     const isLoggedIn = Boolean(auth?.user);
 
@@ -45,7 +43,7 @@ export function AppHeaderForUnlogin() {
                                 className="flex h-full w-64 flex-col items-stretch justify-between bg-sidebar"
                             >
                                 <SheetTitle className="sr-only">
-                                    Navigation menu
+                                    {trans('navigation.navigation_menu')}
                                 </SheetTitle>
                                 <SheetHeader className="flex justify-start text-left">
                                     <AppLogoIcon className="h-6 w-6 fill-current text-black dark:text-white" />
@@ -54,16 +52,16 @@ export function AppHeaderForUnlogin() {
                                     <div className="flex h-full flex-col justify-between text-sm">
                                         <div className="flex flex-col space-y-4">
                                             <Link href={homePage()} className="font-medium">
-                                                Home
+                                                {trans('navigation.home')}
                                             </Link>
                                         </div>
 
                                         <div className="flex flex-col space-y-3">
                                             <Link href={login()} className="font-medium">
-                                                Login
+                                                {trans('navigation.login')}
                                             </Link>
                                             <Link href={register()} className="font-medium">
-                                                Register
+                                                {trans('navigation.register')}
                                             </Link>
                                         </div>
                                     </div>
@@ -84,29 +82,18 @@ export function AppHeaderForUnlogin() {
                     {/* Desktop Navigation */}
 
                     <div className="ml-auto flex items-center space-x-5">
-                        
-
-                        <Link
-                            href="/change-language-setting"
-                            className="hidden md:inline-flex"
-                            aria-label="Change language setting"
-                        >
-                            <Button variant="ghost" size="icon" className="size-9 bg-[#de6b89]">
-                                <Languages className="h-4.5 w-4.5" />
-                            </Button>
-                        </Link>
+                        <BtnChangeLang className="bg-white" />
 
                         {!isLoggedIn && (
                             <>
-                                 <Button asChild className="hidden md:inline-flex bg-[#de6b89]">
-                                    <Link href={login()}>Login</Link>
+                                <Button asChild className="hidden md:inline-flex bg-[#de6b89]">
+                                    <Link href={login()}>{trans('navigation.login')}</Link>
                                 </Button>
                                 <Button asChild className="hidden md:inline-flex bg-[#de6b89]">
-                                    <Link href={register()}>Register</Link>
+                                    <Link href={register()}>{trans('navigation.register')}</Link>
                                 </Button>
                             </>
                         )}
-                        
                     </div>
                 </div>
             </div>

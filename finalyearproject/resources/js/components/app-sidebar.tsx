@@ -1,6 +1,7 @@
 import { BookOpen, ChevronLeft, ChevronRight, Flame, FolderGit2, HomeIcon, Settings, Settings2Icon, SettingsIcon, Users } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { NavFooter } from '@/components/nav-footer';
+import { reactLang } from '@erag/lang-sync-inertia';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {

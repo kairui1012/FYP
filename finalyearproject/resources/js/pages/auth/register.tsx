@@ -1,6 +1,7 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { reactLang } from '@erag/lang-sync-inertia';
 import { AppHeaderForUnlogin } from '@/components/app-header-for-unlogin';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -14,13 +15,17 @@ import { store } from '@/routes/register';
 export default function Register() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const { trans } = reactLang();
 
     return (
         <>
-            <Head title="Register" />
+            <Head title={trans('auth.register_title')} />
             <AppHeaderForUnlogin />
 
-            <AuthCardLayout title="Create an account" description="">
+            <AuthCardLayout
+                title={trans('auth.register_heading')}
+                description={trans('auth.register_subtitle')}
+            >
                 <Form
                     {...store.form()}
                     resetOnSuccess={['password', 'password_confirmation']}
@@ -39,7 +44,7 @@ export default function Register() {
 
                         <div className="grid gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+                                <Label htmlFor="name">{trans('auth.name')}</Label>
                                 <Input
                                     id="name"
                                     type="text"
@@ -53,7 +58,7 @@ export default function Register() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">{trans('auth.email_address')}</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -66,7 +71,7 @@ export default function Register() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="password">Password</Label>
+                                <Label htmlFor="password">{trans('auth.password')}</Label>
                                 <div className="relative">
                                     <Input
                                         id="password"
@@ -86,8 +91,8 @@ export default function Register() {
                                         className="absolute inset-y-0 right-0 flex items-center px-2.5 text-muted-foreground transition-colors hover:text-foreground"
                                         aria-label={
                                             showPassword
-                                                ? 'Hide password'
-                                                : 'Show password'
+                                                ? trans('auth.hide_password')
+                                                : trans('auth.show_password')
                                         }
                                     >
                                         {showPassword ? (
@@ -101,7 +106,7 @@ export default function Register() {
 
                             <div className="grid gap-2">
                                 <Label htmlFor="password_confirmation">
-                                    Confirm password
+                                    {trans('auth.confirm_password')}
                                 </Label>
                                 <div className="relative">
                                     <Input
@@ -122,8 +127,8 @@ export default function Register() {
                                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition-colors hover:text-foreground"
                                         aria-label={
                                             showConfirmPassword
-                                                ? 'Hide confirm password'
-                                                : 'Show confirm password'
+                                                ? trans('auth.hide_confirm_password')
+                                                : trans('auth.show_confirm_password')
                                         }
                                     >
                                         {showConfirmPassword ? (
@@ -142,17 +147,17 @@ export default function Register() {
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
-                                Create account
+                                {trans('auth.create_account')}
                             </Button>
                         </div>
 
                         <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
-                            Already have an account?{' '}
+                            {trans('auth.already_have_account')}{' '}
                                             <Button 
                                 asChild
                                 className="h-7 rounded-lg bg-black px-2.5 text-xs font-medium text-white transition-all duration-200 hover:bg-zinc-800 hover:shadow-md">
                                 <Link href={login()} tabIndex={6}>
-                                    Login
+                                    {trans('auth.login')}
                                 </Link>
                             </Button>
                         </div>
