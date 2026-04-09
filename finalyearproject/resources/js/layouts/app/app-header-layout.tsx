@@ -13,7 +13,7 @@ export default function AppHeaderLayout({
 
     return (
         <AppShell variant="sidebar">
-            <div className="flex min-h-screen w-full flex-col ">
+            <div className="flex h-screen w-full flex-col overflow-hidden">
                 <div className="fixed inset-x-0 top-0 z-50 w-full bg-background">
                     <AppHeader key={`header-${locale}`} breadcrumbs={breadcrumbs} />
                 </div>
@@ -21,7 +21,7 @@ export default function AppHeaderLayout({
                     <AppSidebar key={`sidebar-${locale}`} className="top-16" />
                     <AppContent
                         variant="sidebar"
-                        className="min-h-0 overflow-x-hidden overflow-y-auto overscroll-y-contain md:mt-0"
+                        className="min-h-0 flex-1 overflow-y-auto"
                     >
                         {children}
                     </AppContent>

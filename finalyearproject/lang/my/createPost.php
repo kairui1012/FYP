@@ -1,0 +1,23 @@
+<?php
+
+return [
+    'page_title' => 'Cipta Pos',
+    'heading' => 'Cipta Pos Baharu',
+    'subtitle' => 'Isi tajuk dan kandungan, kemudian tambah imej atau fail PDF.',
+    'title_label' => 'Tajuk',
+    'title_placeholder' => 'Tajuk pos...',
+    'content_label' => 'Kandungan',
+    'content_placeholder' => 'Apa yang anda ingin kongsikan hari ini?',
+    'helper_text' => 'Pastikan jelas dan mesra.',
+    'language_label' => 'Bahasa Pos',
+    'language_required' => 'Sila pilih satu bahasa sebelum menerbitkan.',
+    'chars_left' => 'baki aksara',
+    'media_label' => 'Media (Imej / PDF)',
+    'add_files' => 'Tambah Fail',
+    'drag_drop_title' => 'Seret & lepaskan imej atau PDF di sini',
+    'drag_drop_subtitle' => 'Atau klik "Tambah Fail" untuk memilih',
+    'pdf_label' => 'PDF',
+    'supported_format' => 'Format disokong: imej dan PDF.',
+    'publishing' => 'Sedang menerbitkan...',
+    'publish_post' => 'Terbitkan Pos',
+];

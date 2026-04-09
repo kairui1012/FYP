@@ -29,6 +29,7 @@ class SetLocale
         $request->session()->put('locale', $locale);
 
         syncLangFiles('navigation');
+        syncLangFiles('createPost');
 
         return $next($request);
     }

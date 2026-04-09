@@ -85,8 +85,8 @@ function SidebarBoundaryToggle({
                 className={cn(
                     'pointer-events-auto absolute -right-2 top-(--sidebar-toggle-top) z-50 flex size-10 translate-x-1/2 items-center justify-center rounded-full border-2 shadow-lg ring-2 ring-background transition-all hover:scale-105',
                     isPinnedOpen
-                        ? 'border-[#e36a8b] bg-[#e36a8b] text-white'
-                        : 'border-sidebar-border bg-background text-foreground hover:border-[#e36a8b] hover:bg-sidebar-accent'
+                        ? 'border-[#e27193] bg-linear-to-r from-[#ef99b0] to-[#e27193] text-white'
+                        : 'border-sidebar-border bg-background text-foreground hover:border-[#e27193] hover:bg-linear-to-r hover:from-[#fff3f7] hover:to-[#ffe8f0]'
                 )}
             >
                 {isCollapsed ? (

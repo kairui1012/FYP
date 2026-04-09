@@ -6,6 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
+    protected $fillable = [
+        'user_id',
+        'title',
+        'content',
+        'language_id',
+        'image',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -23,5 +31,9 @@ class Post extends Model
 
     public function likes() {
         return $this->hasMany(Like::class);
+    }
+
+    public function language() {
+        return $this->belongsTo(Language::class);
     }
 }

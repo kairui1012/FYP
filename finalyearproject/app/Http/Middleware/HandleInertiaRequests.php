@@ -38,6 +38,7 @@ class HandleInertiaRequests extends Middleware
         $lang = array_replace_recursive(
             syncLangFiles('navigation'),
             syncLangFiles('auth'),
+            syncLangFiles('createPost'),
         );
 
         return [
