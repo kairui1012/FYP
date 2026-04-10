@@ -7,9 +7,25 @@ use App\Models\Post;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class PostController extends Controller
 {
+    public function index(): Response
+    {
+        $posts = Post::query()
+            ->with(['user:id,name', 'language:id,code,name'])
+            ->withCount(['likes', 'comments'])
+            ->latest()
+            ->get()
+            ->map(fn (Post $post) => $this->serializePost($post));
+
+        return Inertia::render('homePage', [
+            'posts' => $posts,
+        ]);
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -43,5 +59,35 @@ class PostController extends Controller
         return redirect()
             ->route('homePage')
             ->with('success', 'Post created successfully.');
+    }
+
+    public function show(Post $post): Response
+    {
+        $post->load(['user:id,name', 'language:id,code,name'])
+            ->loadCount(['likes', 'comments']);
+
+        return Inertia::render('PostContent', [
+            'post' => $this->serializePost($post),
+        ]);
+    }
+
+    private function serializePost(Post $post): array
+    {
+        return [
+            'id' => $post->id,
+            'title' => $post->title,
+            'content' => $post->content,
+            'image' => $post->image,
+            'created_at' => optional($post->created_at)->toISOString(),
+            'user' => $post->user ? [
+                'name' => $post->user->name,
+            ] : null,
+            'language' => $post->language ? [
+                'code' => $post->language->code,
+                'name' => $post->language->name,
+            ] : null,
+            'likes_count' => $post->likes_count,
+            'comments_count' => $post->comments_count,
+        ];
     }
 }

@@ -3,7 +3,6 @@
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PostController;
-use App\Models\Post;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -22,46 +21,12 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/homePage', function () {
-        $posts = Post::query()
-            ->with(['user:id,name', 'language:id,code,name'])
-            ->withCount(['likes', 'comments'])
-            ->latest()
-            ->get()
-            ->map(function (Post $post) {
-                return [
-                    'id' => $post->id,
-                    'title' => $post->title,
-                    'content' => $post->content,
-                    'image' => $post->image,
-                    'created_at' => optional($post->created_at)->toISOString(),
-                    'user' => $post->user ? [
-                        'name' => $post->user->name,
-                    ] : null,
-                    'language' => $post->language ? [
-                        'code' => $post->language->code,
-                        'name' => $post->language->name,
-                    ] : null,
-                    'likes_count' => $post->likes_count,
-                    'comments_count' => $post->comments_count,
-                ];
-            });
-
-        return Inertia::render('homePage', [
-            'posts' => $posts,
-        ]);
-    })->name('homePage');
-});
-
-Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/homePage', [PostController::class, 'index'])->name('homePage');
+    Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
     Route::inertia('popularPage', 'popularPage')->name('popularPage');
-});
-
-Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('createPostPage', 'createPostPage')->name('createPostPage');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
 });
-
 
 Route::get('/login/google', [GoogleAuthController::class, 'redirectToProvider'])->name('login.google');
 
