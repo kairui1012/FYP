@@ -2,6 +2,8 @@
 
 return [
     'home' => '首页',
+    'popular' => '热门',
+    'following' => '关注中',
     'login' => '登录',
     'register' => '注册',
     'repository' => '代码仓库',

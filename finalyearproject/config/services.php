@@ -41,4 +41,7 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'deepseek' => ['key' => env('DEEPSEEK_API_KEY')],
+    'gemini'   => ['key' => env('GEMINI_API_KEY')],
+
 ];

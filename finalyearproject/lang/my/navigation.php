@@ -2,6 +2,8 @@
 
 return [
     'home' => 'Laman utama',
+    'popular' => 'Popular',
+    'following' => 'Diikuti',
     'login' => 'Log masuk',
     'register' => 'Daftar',
     'repository' => 'Repositori',

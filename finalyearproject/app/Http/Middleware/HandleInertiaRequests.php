@@ -39,6 +39,7 @@ class HandleInertiaRequests extends Middleware
             syncLangFiles('navigation'),
             syncLangFiles('auth'),
             syncLangFiles('createPost'),
+            syncLangFiles('language_label'),
         );
 
         return [

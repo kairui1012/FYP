@@ -6,6 +6,7 @@ use App\Http\Controllers\PostController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
@@ -33,5 +34,7 @@ Route::get('/login/google', [GoogleAuthController::class, 'redirectToProvider'])
 Route::get('/login/google/callback', [GoogleAuthController::class, 'handleProviderCallback']);
 
 Route::post('/change-language-setting', [LocaleController::class, 'switchMethod'])->name('language.switch');
+
+require __DIR__.'/callAI.php';
 
 require __DIR__.'/settings.php';

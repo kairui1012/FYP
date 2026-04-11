@@ -2,6 +2,8 @@
 
 return [
     'home' => 'Home',
+    'popular' => 'Popular',
+    'following' => 'Following',
     'login' => 'Login',
     'register' => 'Register',
     'repository' => 'Repository',

@@ -1,52 +1,16 @@
-import { BookOpen, ChevronLeft, ChevronRight, Flame, FolderGit2, HomeIcon, Settings, Settings2Icon, SettingsIcon, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Flame, HomeIcon, Users } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { NavFooter } from '@/components/nav-footer';
 import { reactLang } from '@erag/lang-sync-inertia';
 import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
 import {
     Sidebar,
     SidebarContent,
-    SidebarFooter,
     useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import { homePage } from '@/routes';
 import { popularPage } from '@/routes';
-import profile from '@/routes/profile';
 import type { NavItem } from '@/types';
-
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Home',
-        href: homePage(),
-        icon: HomeIcon,
-    },
-    {
-        title: 'Popular',
-        href: popularPage(),
-        icon: Flame,
-    },
-    {
-        title: 'Following',
-        href: popularPage(),
-        icon: Users,
-    },
-];
-
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Setting',
-        href: profile.edit(),
-        icon: Settings,
-    },
-    //   {
-    //     title: 'Language',
-    //     href: ,
-    //     icon: Icon,
-    // },
-];
 
 type AppSidebarProps = {
     className?: string;
@@ -100,6 +64,24 @@ function SidebarBoundaryToggle({
 }
 
 export function AppSidebar({ className }: AppSidebarProps) {
+    const { trans } = reactLang();
+    const mainNavItems: NavItem[] = [
+        {
+            title: trans('navigation.home'),
+            href: homePage(),
+            icon: HomeIcon,
+        },
+        {
+            title: trans('navigation.popular'),
+            href: popularPage(),
+            icon: Flame,
+        },
+        {
+            title: trans('navigation.following'),
+            href: popularPage(),
+            icon: Users,
+        },
+    ];
     const { state, setOpen } = useSidebar();
     const [isPinnedOpen, setIsPinnedOpen] = useState<boolean>(() => {
         if (typeof window === 'undefined') {
@@ -226,13 +208,8 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 }
             >
                 <SidebarContent>
-                    <NavMain items={mainNavItems} />
+                    <NavMain items={mainNavItems} groupLabel={trans('navigation.navigation_menu')} />
                 </SidebarContent>
-
-                <SidebarFooter>
-                    <NavFooter items={footerNavItems} className="mt-auto pb-[6%]" />
-                    <NavUser />
-                </SidebarFooter>
             </Sidebar>
         </>
     );
