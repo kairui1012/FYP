@@ -1,47 +1,37 @@
-import { Head, router } from '@inertiajs/react';
-import { Heart, MessageCircle, Share2 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState, type ReactNode } from 'react';
 import { PostAttachments } from '@/components/post-attachments';
+import { BtnComment } from '@/components/ui/btn-comment';
+import { BtnLike } from '@/components/ui/btn-like';
+import { BtnShare } from '@/components/ui/btn-share';
 import { formatTimeAgo, getLanguageLabel } from '@/lib/post-utils';
 import AppLayout from '@/layouts/app-layout';
 import { homePage } from '@/routes';
 import type { BreadcrumbItem, PostItem } from '@/types';
 import { usePage } from '@inertiajs/react';
+import like from '@/routes/like';
 
 type PostFooterProps = {
     likes: number;
+    liked: boolean;
+    loading?: boolean;
     comments: number;
+    postId: number;
+    onLike: (postId: number) => void;
 };
 
-function PostFooter({ likes, comments }: PostFooterProps) {
-    const btnClass =
-        "inline-flex items-center gap-2 rounded-full bg-zinc-200 px-3.5 py-1.5 font-semibold transition-colors cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-200 text-zinc-600 hover:bg-gradient-to-r hover:from-[#ef99b0] hover:to-pink-500 hover:text-white active:bg-rose-700 active:text-white group mb-2";
+function PostFooter({ likes, liked, loading = false, comments, postId, onLike }: PostFooterProps) {
     return (
         <div className="mt-2 flex items-center gap-3 text-sm text-zinc-900">
-            <button
-                type="button"
-                className={btnClass}
-                onClick={event => event.stopPropagation()}
-            >
-                <Heart className="h-4 w-4 text-zinc-600 group-hover:text-white group-active:text-white transition-colors" />
-                <span className="text-zinc-600 group-hover:text-white group-active:text-white transition-colors">{likes}</span>
-            </button>
-            <button
-                type="button"
-                className={btnClass}
-                onClick={event => event.stopPropagation()}
-            >
-                <MessageCircle className="h-4 w-4 text-zinc-600 group-hover:text-white group-active:text-white transition-colors" />
-                <span className="text-zinc-600 group-hover:text-white group-active:text-white transition-colors">{comments}</span>
-            </button>
-            <button
-                type="button"
-                className={btnClass}
-                onClick={event => event.stopPropagation()}
-            >
-                <Share2 className="h-4 w-4 text-zinc-600 group-hover:text-white group-active:text-white transition-colors" />
-                <span className="text-zinc-600 group-hover:text-white group-active:text-white transition-colors">Share</span>
-            </button>
+            <BtnLike
+                count={likes}
+                liked={liked}
+                loading={loading}
+                className="mb-2"
+                onClick={() => onLike(postId)}
+            />
+            <BtnComment count={comments} className="mb-2" />
+            <BtnShare className="mb-2" />
         </div>
     );
 }
@@ -65,7 +55,6 @@ function getLangBadgeProps(code: string) {
 }
 
 function trans(key: string, page: any) {
-    // 支持嵌套 key，如 language_label.zh
     const parts = key.split('.');
     let obj = page.props?.lang;
     for (const part of parts) {
@@ -79,9 +68,74 @@ function trans(key: string, page: any) {
 }
 
 export default function HomePage({ posts = [] }: HomePageProps) {
+    const [likeStateByPost, setLikeStateByPost] = useState<Record<number, { liked: boolean; likesCount: number }>>(
+        () => Object.fromEntries(
+            posts.map((post) => [
+                post.id,
+                {
+                    liked: Boolean(post.is_liked),
+                    likesCount: post.likes_count ?? 0,
+                },
+            ])
+        )
+    );
+    const [likingPostIds, setLikingPostIds] = useState<number[]>([]);
+
     const goToPost = (postId: number) => {
         router.get(`/posts/${postId}`);
     };
+
+    const handleLike = async (postId: number) => {
+        if (likingPostIds.includes(postId)) {
+            return;
+        }
+
+        const previous = likeStateByPost[postId] ?? { liked: false, likesCount: 0 };
+        const optimisticLiked = !previous.liked;
+        const optimisticLikesCount = Math.max(
+            0,
+            previous.likesCount + (optimisticLiked ? 1 : -1)
+        );
+
+        setLikingPostIds((prev) => [...prev, postId]);
+        setLikeStateByPost((prev) => ({
+            ...prev,
+            [postId]: {
+                liked: optimisticLiked,
+                likesCount: optimisticLikesCount,
+            },
+        }));
+
+        router.post(like.toggle.url({ posts: postId }), {}, {
+            preserveScroll: true,
+            preserveState: true,
+            onError: () => {
+                setLikeStateByPost((prev) => ({
+                    ...prev,
+                    [postId]: previous,
+                }));
+            },
+            onSuccess: (page) => {
+                const nextPosts = ((page.props as { posts?: PostItem[] }).posts ?? []);
+
+                setLikeStateByPost(
+                    Object.fromEntries(
+                        nextPosts.map((post) => [
+                            post.id,
+                            {
+                                liked: Boolean(post.is_liked),
+                                likesCount: post.likes_count ?? 0,
+                            },
+                        ])
+                    )
+                );
+            },
+            onFinish: () => {
+                setLikingPostIds((prev) => prev.filter((id) => id !== postId));
+            },
+        });
+    };
+
     const page = usePage();
 
     return (
@@ -113,14 +167,19 @@ export default function HomePage({ posts = [] }: HomePageProps) {
                                 >
                                     <header className=" flex items-start justify-between mb-2">
                                         <div className="flex items-center gap-3">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-200 text-sm font-semibold text-zinc-700 ">
-                                                {(post.user?.name ?? 'U')
-                                                    .charAt(0)
-                                                    .toUpperCase()}
-                                            </div>
-                                             <div className="min-w-0 flex-1">
+                                            <Link
+                                                href="/profilePage"
+                                                className="group flex items-center gap-3"
+                                                onClick={(event) => event.stopPropagation()}
+                                            >
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-200 text-sm font-semibold text-zinc-700 ring-2 ring-transparent transition-colors group-hover:ring-[#ef99b0] ">
+                                                    {(post.user?.name ?? 'U')
+                                                        .charAt(0)
+                                                        .toUpperCase()}
+                                                </div>
+                                                <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-1.5 text-base">
-                                                    <p className="font-semibold text-zinc-900">
+                                                    <p className="font-semibold text-zinc-900 transition-colors group-hover:text-[#de6b89]">
                                                         {post.user?.name ?? 'Unknown User'}
                                                     </p>
                                                     <span className="text-zinc-400">•</span>
@@ -141,7 +200,8 @@ export default function HomePage({ posts = [] }: HomePageProps) {
                                                         );
                                                     })()}
                                                 </div>
-                                            </div>
+                                                </div>
+                                            </Link>
                                         </div>
                                     </header>
 
@@ -154,10 +214,23 @@ export default function HomePage({ posts = [] }: HomePageProps) {
 
                                     <PostAttachments files={post.image} compact />
                                 </article>
+                                {(() => {
+                                    const likeState = likeStateByPost[post.id] ?? {
+                                        liked: Boolean(post.is_liked),
+                                        likesCount: post.likes_count ?? 0,
+                                    };
+
+                                    return (
                                 <PostFooter
-                                    likes={post.likes_count ?? 0}
+                                    postId={post.id}
+                                    likes={likeState.likesCount}
+                                    liked={likeState.liked}
+                                    loading={likingPostIds.includes(post.id)}
                                     comments={post.comments_count ?? 0}
+                                    onLike={handleLike}
                                 />
+                                    );
+                                })()}
                                 <div className=" w-full border-t border-zinc-200 mt-1"></div>
                             </div>
                         ))

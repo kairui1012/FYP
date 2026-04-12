@@ -10,7 +10,7 @@ export function BtnCreatePost() {
         <Button
             asChild
             variant="outline"
-            className="hidden h-9 rounded-full border-transparent bg-[#ee7d9b] text-white shadow-none transition-colors duration-200 hover:border-transparent hover:bg-[#e7849e] hover:text-white hover:shadow-none focus-visible:border-transparent focus-visible:ring-[#e36a8b]/35 md:mr-[5%] md:inline-flex dark:border-transparent dark:bg-[#F0838F] dark:text-white dark:hover:border-transparent dark:hover:bg-[#e07481] dark:focus-visible:border-transparent dark:focus-visible:ring-[#F0838F]/30"
+            className="hidden h-9 rounded-full border-2 border-[#ef99b0] bg-linear-to-r from-[#ef99b0] to-[#e27193] text-white transition-all duration-200 hover:border-[#d85380] hover:from-[#f5c4d6] hover:to-[#f39db8] hover:text-black hover:shadow-[0_4px_12px_rgba(227,106,139,0.3)] focus-visible:border-[#d85380] focus-visible:ring-[#e36a8b]/35 md:mr-[5%] md:inline-flex dark:border-[#ef99b0] dark:bg-linear-to-r dark:from-[#ef99b0] dark:to-[#e27193] dark:text-white dark:hover:border-[#d85380] dark:hover:from-[#f5c4d6] dark:hover:to-[#f39db8] dark:hover:text-black dark:hover:shadow-[0_4px_12px_rgba(227,106,139,0.3)] dark:focus-visible:border-[#d85380]"
         >
             <Link href="/createPostPage" prefetch>
                 <Plus className="mr-1 h-4 w-4" />

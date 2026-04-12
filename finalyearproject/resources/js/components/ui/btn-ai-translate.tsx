@@ -1,6 +1,6 @@
 // BtnAiTranslate.tsx
 import { useState } from 'react';
-import { Languages, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -159,11 +159,8 @@ export function BtnAiTranslate({ title, content, className, onTranslate }: Props
             disabled={loading || translated}
             onClick={handleTranslate}
             className={cn(
-                'hidden h-9 items-center gap-2 rounded-full border-2 border-[#ef99b0] bg-white px-3 text-black shadow-none transition-colors duration-200',
-                'hover:border-[#de6b89] hover:bg-neutral-100 hover:text-black',
-                'focus-visible:border-[#de6b89] focus-visible:ring-[#de6b89]/25',
-                'dark:border-[#eea3b7] dark:bg-white dark:text-black',
-                'dark:hover:border-[#de6b89] dark:hover:bg-neutral-100',
+                'hidden h-9 cursor-pointer items-center gap-2 rounded-full border-2 border-[#ef99b0] bg-linear-to-r from-[#ef99b0] to-[#e27193] text-white transition-all duration-200',
+                'hover:border-[#d85380] hover:from-[#f5c4d6] hover:to-[#f39db8] hover:text-black',
                 'disabled:opacity-60 disabled:cursor-not-allowed',
                 'md:inline-flex',
                 className,
@@ -173,7 +170,7 @@ export function BtnAiTranslate({ title, content, className, onTranslate }: Props
             {loading ? (
                 <Loader2 className="h-4.5 w-4.5 animate-spin" />
             ) : (
-                <Languages className="h-4.5 w-4.5" />
+                <Sparkles className="h-4.5 w-4.5" />
             )}
             <span className="text-sm font-medium">
                 {loading ? 'Translating…'

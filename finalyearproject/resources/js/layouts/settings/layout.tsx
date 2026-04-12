@@ -61,11 +61,15 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                 size="sm"
                                 variant="ghost"
                                 asChild
-                                className={cn('w-full justify-start', {
-                                    'bg-muted': isCurrentOrParentUrl(item.href),
-                                })}
+                                className={cn(
+                                    'my-0.5 rounded-xl px-3 py-2.5 outline-none transition-colors focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100',
+                                    isCurrentOrParentUrl(item.href) && 'bg-neutral-100 text-neutral-900',
+                                )}
                             >
-                                <Link href={item.href}>
+                                <Link
+                                    href={item.href}
+                                    className="flex w-full cursor-pointer items-center justify-between gap-3 text-sm font-medium text-neutral-900"
+                                >
                                     {item.icon && (
                                         <item.icon className="h-4 w-4" />
                                     )}

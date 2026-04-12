@@ -17,4 +17,5 @@ export type PostItem = {
     user?: PostUser;
     likes_count?: number;
     comments_count?: number;
+    is_liked?: boolean;
 };
