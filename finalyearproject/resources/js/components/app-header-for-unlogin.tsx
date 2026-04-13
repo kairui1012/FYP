@@ -1,11 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
+import { lazy, Suspense } from 'react';
 import {
     Menu,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
-import { BtnChangeLang } from '@/components/ui/btn-change-lang';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -15,6 +15,8 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { homePage, login, register } from '@/routes';
+
+const BtnChangeLang = lazy(() => import('@/components/ui/btn-change-lang').then((module) => ({ default: module.BtnChangeLang })));
 
 export function AppHeaderForUnlogin() {
     const page = usePage();
@@ -82,7 +84,9 @@ export function AppHeaderForUnlogin() {
                     {/* Desktop Navigation */}
 
                     <div className="ml-auto flex items-center space-x-5">
-                        <BtnChangeLang className="bg-white" />
+                        <Suspense fallback={<div className="hidden h-9 w-20 rounded-full md:inline-flex" aria-hidden="true" />}>
+                            <BtnChangeLang className="bg-white" />
+                        </Suspense>
 
                         {!isLoggedIn && (
                             <>

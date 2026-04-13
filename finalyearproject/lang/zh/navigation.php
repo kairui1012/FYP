@@ -13,4 +13,6 @@ return [
     'notifications' => '通知',
     'create_post' => '发布帖子',
     'navigation_menu' => '导航菜单',
+    'share_link_copied' => '链接已复制！',
+    'share_link_copy_failed' => '复制链接失败。',
 ];

@@ -4,6 +4,7 @@ export type PostLanguage = {
 } | null;
 
 export type PostUser = {
+    id: number;
     name: string;
 } | null;
 

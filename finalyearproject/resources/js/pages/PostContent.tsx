@@ -102,7 +102,7 @@ export default function PostContent({ post }: PostContentProps) {
                             >
                                 <ArrowLeft className="h-4 w-4" />
                             </Link>
-                            <Link href="/profilePage" className="group flex items-center gap-3">
+                            <Link href={post.user?.id ? `/profilePage/${post.user.id}` : '/profilePage'} className="group flex items-center gap-3">
                                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-base font-bold text-zinc-700 overflow-hidden ring-2 ring-transparent transition-colors group-hover:ring-[#ef99b0]">
                                     {(post.user?.name ?? 'U')
                                         .charAt(0)

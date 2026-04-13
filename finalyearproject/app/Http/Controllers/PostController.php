@@ -6,6 +6,7 @@ use App\Models\Language;
 use App\Models\Post;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -20,7 +21,7 @@ class PostController extends Controller
             ->with(['user:id,name', 'language:id,code,name'])
             ->withCount(['likes', 'comments'])
             ->withExists([
-                'likes as is_liked' => fn ($query) => $query->where('user_id', auth()->id()),
+                'likes as is_liked' => fn ($query) => $query->where('user_id', Auth::id()),
             ])
             ->latest()
             ->get()
@@ -79,7 +80,7 @@ class PostController extends Controller
 
         $post->setAttribute(
             'is_liked',
-            $post->likes()->where('user_id', auth()->id())->exists()
+            $post->likes()->where('user_id', Auth::id())->exists()
         );
 
         return Inertia::render('PostContent', [
@@ -96,6 +97,7 @@ class PostController extends Controller
             'image' => $post->image,
             'created_at' => optional($post->created_at)->toISOString(),
             'user' => $post->user ? [
+                'id' => $post->user->id,
                 'name' => $post->user->name,
             ] : null,
             'language' => $post->language ? [

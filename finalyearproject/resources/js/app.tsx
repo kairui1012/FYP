@@ -2,6 +2,7 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Toaster } from 'react-hot-toast';
 import '../css/app.css';
 import { initializeTheme } from '@/hooks/use-appearance';
 
@@ -19,7 +20,18 @@ createInertiaApp({
 
         root.render(
             <StrictMode>
-                <App {...props} />
+                <>
+                    <App {...props} />
+                    <Toaster
+                        position="bottom-center"
+                        toastOptions={{
+                            style: {
+                                borderRadius: '9999px',
+                                padding: '10px 16px',
+                            },
+                        }}
+                    />
+                </>
             </StrictMode>,
         );
     },

@@ -168,7 +168,7 @@ export default function HomePage({ posts = [] }: HomePageProps) {
                                     <header className=" flex items-start justify-between mb-2">
                                         <div className="flex items-center gap-3">
                                             <Link
-                                                href="/profilePage"
+                                                href={post.user?.id ? `/profilePage/${post.user.id}` : '/profilePage'}
                                                 className="group flex items-center gap-3"
                                                 onClick={(event) => event.stopPropagation()}
                                             >

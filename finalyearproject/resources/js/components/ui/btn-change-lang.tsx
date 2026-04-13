@@ -30,17 +30,16 @@ export function BtnChangeLang({ className }: Props) {
     const currentLocaleLabel = localeLabels[locale] ?? locale;
 
     const handleLocaleChange = (nextLocale: (typeof localeOptions)[number]) => {
+        if (nextLocale === locale) {
+            return;
+        }
+
         router.post(
             changeLocale().url,
             { locale: nextLocale },
             {
                 preserveScroll: true,
                 preserveState: false,
-                onSuccess: () => {
-                    router.reload({
-                        only: ['lang', 'locale'],
-                    });
-                },
             },
         );
     };

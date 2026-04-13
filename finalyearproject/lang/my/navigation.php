@@ -13,4 +13,6 @@ return [
     'notifications' => 'Pemberitahuan',
     'create_post' => 'Cipta kiriman',
     'navigation_menu' => 'Menu navigasi',
+    'share_link_copied' => 'Pautan telah disalin!',
+    'share_link_copy_failed' => 'Gagal menyalin pautan.',
 ];

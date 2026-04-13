@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
+import { lazy, Suspense } from 'react';
 import {
     Bell,
     BookOpen,
@@ -15,7 +16,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { BtnCreatePost } from '@/components/ui/btn-create-post';
 import { Input } from '@/components/ui/input';
-import { BtnChangeLang } from '@/components/ui/btn-change-lang';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -46,6 +46,8 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
 import { homePage } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
+
+const BtnChangeLang = lazy(() => import('@/components/ui/btn-change-lang').then((module) => ({ default: module.BtnChangeLang })));
 
 type Props = {
     breadcrumbs?: BreadcrumbItem[];
@@ -179,7 +181,9 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                             <Bell className="h-4 w-4" />
                         </Button>
 
-                        <BtnChangeLang />
+                        <Suspense fallback={<div className="hidden h-9 w-20 rounded-full md:inline-flex" aria-hidden="true" />}>
+                            <BtnChangeLang />
+                        </Suspense>
 
                         <BtnCreatePost />
 
