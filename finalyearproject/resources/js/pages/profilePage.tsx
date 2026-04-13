@@ -1,3 +1,4 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, ReactNode } from 'react';
@@ -33,12 +34,30 @@ type PageProps = {
 };
 
 export default function ProfilePage() {
+    const { trans } = reactLang();
     const {
         profileUser,
         posts = [],
         can_edit_cover,
     } = usePage<PageProps>().props;
-    const displayName = profileUser.name?.trim() || 'User';
+    const t = {
+        pageTitle: trans('profile.page_title'),
+        defaultUserName: trans('profile.default_user_name'),
+        coverAltSuffix: trans('profile.cover_alt_suffix'),
+        uploading: trans('profile.uploading'),
+        changeCover: trans('profile.change_cover'),
+        contact: trans('profile.contact'),
+        noEmailSharedYet: trans('profile.no_email_shared_yet'),
+        posts: trans('profile.posts'),
+        postSingle: trans('profile.post_single'),
+        postPlural: trans('profile.post_plural'),
+        noPostsYet: trans('profile.no_posts_yet'),
+        likes: trans('profile.likes'),
+        comments: trans('profile.comments'),
+        attachmentSingle: trans('profile.attachment_single'),
+        attachmentPlural: trans('profile.attachment_plural'),
+    };
+    const displayName = profileUser.name?.trim() || t.defaultUserName;
     const firstLetter = displayName.charAt(0).toUpperCase();
     const coverImageUrl = profileUser.cover_image
         ? `/storage/${profileUser.cover_image}`
@@ -193,7 +212,7 @@ export default function ProfilePage() {
 
     return (
         <>
-            <Head title={`Profile - ${displayName}`} />
+            <Head title={`${t.pageTitle} - ${displayName}`} />
 
             <div className="mx-auto w-full max-w-4xl px-4 pb-10 md:px-6">
                 <section className="relative pt-6 md:pt-8">
@@ -201,7 +220,7 @@ export default function ProfilePage() {
                         {effectiveCoverImageUrl ? (
                             <img
                                 src={effectiveCoverImageUrl}
-                                alt={`${displayName} cover`}
+                                alt={`${displayName} ${t.coverAltSuffix}`}
                                 className="h-full w-full object-cover"
                             />
                         ) : null}
@@ -224,8 +243,8 @@ export default function ProfilePage() {
                                     className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-zinc-800 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     {uploadingCover
-                                        ? 'Uploading...'
-                                        : 'Change cover'}
+                                        ? t.uploading
+                                        : t.changeCover}
                                 </button>
                             </div>
                         ) : null}
@@ -268,11 +287,11 @@ export default function ProfilePage() {
 
                     <div className="grid gap-6 py-6 md:grid-cols-[180px_1fr] md:gap-10">
                         <p className="text-sm font-medium tracking-wide text-zinc-400 uppercase">
-                            Contact
+                            {t.contact}
                         </p>
                         <div>
                             <p className="text-base text-zinc-800">
-                                {profileUser.email || 'No email shared yet'}
+                                {profileUser.email || t.noEmailSharedYet}
                             </p>
                         </div>
                     </div>
@@ -306,11 +325,11 @@ export default function ProfilePage() {
                 <section className="mt-10">
                     <div className="mb-3 flex items-end justify-between">
                         <h2 className="text-lg font-semibold text-zinc-900">
-                            Posts
+                            {t.posts}
                         </h2>
                         <p className="text-sm text-zinc-500">
                             {posts.length}{' '}
-                            {posts.length === 1 ? 'post' : 'posts'}
+                            {posts.length === 1 ? t.postSingle : t.postPlural}
                         </p>
                     </div>
 
@@ -318,7 +337,7 @@ export default function ProfilePage() {
 
                     {posts.length === 0 ? (
                         <p className="py-6 text-sm text-zinc-500">
-                            No posts yet.
+                            {t.noPostsYet}
                         </p>
                     ) : (
                         posts.map((post) => (
@@ -336,11 +355,12 @@ export default function ProfilePage() {
                                         </span>
                                         <span>•</span>
                                         <span>
-                                            {post.likes_count ?? 0} likes
+                                            {post.likes_count ?? 0} {t.likes}
                                         </span>
                                         <span>•</span>
                                         <span>
-                                            {post.comments_count ?? 0} comments
+                                            {post.comments_count ?? 0}{' '}
+                                            {t.comments}
                                         </span>
                                     </div>
 
@@ -362,8 +382,10 @@ export default function ProfilePage() {
 
                                     {post.image && post.image.length > 0 ? (
                                         <p className="mt-2 text-xs text-zinc-500">
-                                            {post.image.length} attachment
-                                            {post.image.length > 1 ? 's' : ''}
+                                            {post.image.length}{' '}
+                                            {post.image.length > 1
+                                                ? t.attachmentPlural
+                                                : t.attachmentSingle}
                                         </p>
                                     ) : null}
                                 </Link>

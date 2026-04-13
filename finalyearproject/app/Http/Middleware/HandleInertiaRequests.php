@@ -40,6 +40,8 @@ class HandleInertiaRequests extends Middleware
             syncLangFiles('auth'),
             syncLangFiles('createPost'),
             syncLangFiles('language_label'),
+            syncLangFiles('settings'),
+            syncLangFiles('profile'),
         );
 
         return [

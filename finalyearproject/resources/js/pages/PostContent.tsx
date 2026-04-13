@@ -28,7 +28,6 @@ function getLangBadgeProps(code: string) {
 }
 
 function trans(key: string, page: any) {
-    // 支持嵌套 key，如 language_label.zh
     const parts = key.split('.');
     let obj = page.props?.lang;
     for (const part of parts) {
@@ -40,6 +39,8 @@ function trans(key: string, page: any) {
     }
     return typeof obj === 'string' ? obj : key;
 }
+
+import{CommentSection} from '@/components/comment-section';
 
 export default function PostContent({ post }: PostContentProps) {
     const [translated, setTranslated] = useState<{ title: string; content: string } | null>(null);
@@ -154,12 +155,14 @@ export default function PostContent({ post }: PostContentProps) {
                         likes={likesCount}
                         comments={post.comments_count ?? 0}
                     />
-                    <div className=" w-full border-t border-zinc-200 mt-1 mb-3"></div>
+                    
                     <BtnAiTranslate
                         title={post.title}
                         content={post.content ?? ''}
                         onTranslate={setTranslated}
                     />
+                    <div className=" w-full border-t border-zinc-200 mt-1 mb-3"></div>
+                    <CommentSection post={post} />
                 </div>
             </div>
         </>

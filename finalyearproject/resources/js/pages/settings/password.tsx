@@ -1,5 +1,6 @@
 import { Transition } from '@headlessui/react';
 import { Form, Head } from '@inertiajs/react';
+import { reactLang } from '@erag/lang-sync-inertia';
 import { useRef } from 'react';
 import PasswordController from '@/actions/App/Http/Controllers/Settings/PasswordController';
 import Heading from '@/components/heading';
@@ -12,29 +13,29 @@ import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/user-password';
 import type { BreadcrumbItem } from '@/types';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Password settings',
-        href: edit(),
-    },
-];
-
 export default function Password() {
+    const { trans } = reactLang();
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: trans('settings.password_breadcrumb'),
+            href: edit(),
+        },
+    ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Password settings" />
+            <Head title={trans('settings.password_breadcrumb')} />
 
-            <h1 className="sr-only">Password settings</h1>
+            <h1 className="sr-only">{trans('settings.password_breadcrumb')}</h1>
 
             <SettingsLayout>
                 <div className="space-y-6">
                     <Heading
                         variant="small"
-                        title="Update password"
-                        description="Ensure your account is using a long, random password to stay secure"
+                        title={trans('settings.password_heading')}
+                        description={trans('settings.password_description')}
                     />
 
                     <Form
@@ -63,8 +64,12 @@ export default function Password() {
                             <>
                                 <div className="grid gap-2">
                                     <Label htmlFor="current_password">
-                                        Current password
+                                        {trans('settings.current_password_label')}
                                     </Label>
+
+                                    <p className="text-xs text-zinc-500">
+                                        {trans('settings.google_account_password_hint')}
+                                    </p>
 
                                     <Input
                                         id="current_password"
@@ -73,7 +78,7 @@ export default function Password() {
                                         type="password"
                                         className="mt-1 block w-full"
                                         autoComplete="current-password"
-                                        placeholder="Current password"
+                                        placeholder={trans('settings.current_password_placeholder')}
                                     />
 
                                     <InputError
@@ -83,7 +88,7 @@ export default function Password() {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="password">
-                                        New password
+                                        {trans('settings.new_password_label')}
                                     </Label>
 
                                     <Input
@@ -93,7 +98,7 @@ export default function Password() {
                                         type="password"
                                         className="mt-1 block w-full"
                                         autoComplete="new-password"
-                                        placeholder="New password"
+                                        placeholder={trans('settings.new_password_placeholder')}
                                     />
 
                                     <InputError message={errors.password} />
@@ -101,7 +106,7 @@ export default function Password() {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="password_confirmation">
-                                        Confirm password
+                                        {trans('settings.confirm_password_label')}
                                     </Label>
 
                                     <Input
@@ -110,7 +115,7 @@ export default function Password() {
                                         type="password"
                                         className="mt-1 block w-full"
                                         autoComplete="new-password"
-                                        placeholder="Confirm password"
+                                        placeholder={trans('settings.confirm_password_placeholder')}
                                     />
 
                                     <InputError
@@ -122,8 +127,9 @@ export default function Password() {
                                     <Button
                                         disabled={processing}
                                         data-test="update-password-button"
+                                        className='cursor-pointer'
                                     >
-                                        Save password
+                                        {trans('settings.save_password')}
                                     </Button>
 
                                     <Transition
@@ -134,7 +140,7 @@ export default function Password() {
                                         leaveTo="opacity-0"
                                     >
                                         <p className="text-sm text-neutral-600">
-                                            Saved
+                                            {trans('settings.saved')}
                                         </p>
                                     </Transition>
                                 </div>

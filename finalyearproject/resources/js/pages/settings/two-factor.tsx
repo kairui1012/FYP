@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { reactLang } from '@erag/lang-sync-inertia';
 import { ShieldBan, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import Heading from '@/components/heading';
@@ -17,17 +18,18 @@ type Props = {
     twoFactorEnabled?: boolean;
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Two-factor authentication',
-        href: show(),
-    },
-];
-
 export default function TwoFactor({
     requiresConfirmation = false,
     twoFactorEnabled = false,
 }: Props) {
+    const { trans } = reactLang();
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: trans('settings.two_factor_breadcrumb'),
+            href: show(),
+        },
+    ];
+
     const {
         qrCodeSvg,
         hasSetupData,
@@ -42,25 +44,22 @@ export default function TwoFactor({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Two-factor authentication" />
+            <Head title={trans('settings.two_factor_breadcrumb')} />
 
-            <h1 className="sr-only">Two-factor authentication settings</h1>
+            <h1 className="sr-only">{trans('settings.two_factor_sr_title')}</h1>
 
             <SettingsLayout>
                 <div className="space-y-6">
                     <Heading
                         variant="small"
-                        title="Two-factor authentication"
-                        description="Manage your two-factor authentication settings"
+                        title={trans('settings.two_factor_heading')}
+                        description={trans('settings.two_factor_description')}
                     />
                     {twoFactorEnabled ? (
                         <div className="flex flex-col items-start justify-start space-y-4">
-                            <Badge variant="default">Enabled</Badge>
+                            <Badge variant="default">{trans('settings.two_factor_enabled')}</Badge>
                             <p className="text-muted-foreground">
-                                With two-factor authentication enabled, you will
-                                be prompted for a secure, random pin during
-                                login, which you can retrieve from the
-                                TOTP-supported application on your phone.
+                                {trans('settings.two_factor_enabled_description')}
                             </p>
 
                             <TwoFactorRecoveryCodes
@@ -77,7 +76,7 @@ export default function TwoFactor({
                                             type="submit"
                                             disabled={processing}
                                         >
-                                            <ShieldBan /> Disable 2FA
+                                            <ShieldBan /> {trans('settings.disable_2fa')}
                                         </Button>
                                     )}
                                 </Form>
@@ -85,12 +84,9 @@ export default function TwoFactor({
                         </div>
                     ) : (
                         <div className="flex flex-col items-start justify-start space-y-4">
-                            <Badge variant="destructive">Disabled</Badge>
+                            <Badge variant="destructive">{trans('settings.two_factor_disabled')}</Badge>
                             <p className="text-muted-foreground">
-                                When you enable two-factor authentication, you
-                                will be prompted for a secure pin during login.
-                                This pin can be retrieved from a TOTP-supported
-                                application on your phone.
+                                {trans('settings.two_factor_disabled_description')}
                             </p>
 
                             <div>
@@ -99,7 +95,7 @@ export default function TwoFactor({
                                         onClick={() => setShowSetupModal(true)}
                                     >
                                         <ShieldCheck />
-                                        Continue setup
+                                        {trans('settings.continue_setup')}
                                     </Button>
                                 ) : (
                                     <Form
@@ -114,7 +110,7 @@ export default function TwoFactor({
                                                 disabled={processing}
                                             >
                                                 <ShieldCheck />
-                                                Enable 2FA
+                                                {trans('settings.enable_2fa')}
                                             </Button>
                                         )}
                                     </Form>

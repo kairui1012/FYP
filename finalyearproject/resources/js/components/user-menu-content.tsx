@@ -1,4 +1,5 @@
 import { Link, router } from '@inertiajs/react';
+import { reactLang } from '@erag/lang-sync-inertia';
 import { LogOut, Settings, User as UserIcon } from 'lucide-react';
 import {
     DropdownMenuGroup,
@@ -9,7 +10,6 @@ import {
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
-import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 
@@ -18,6 +18,7 @@ type Props = {
 };
 
 export function UserMenuContent({ user }: Props) {
+    const { trans } = reactLang();
     const cleanup = useMobileNavigation();
 
     const handleLogout = () => {
@@ -36,23 +37,23 @@ export function UserMenuContent({ user }: Props) {
                 <DropdownMenuItem asChild>
                     <Link
                         className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 outline-none transition-colors focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100"
-                        href={edit()}
+                        href="/profilePage"
                         prefetch
                         onClick={cleanup}
                     >
                         <UserIcon className="mr-2" />
-                        Profile
+                        {trans('navigation.profile')}
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                     <Link
                         className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 outline-none transition-colors focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100"
-                        href={editAppearance()}
+                        href={edit()}
                         prefetch
                         onClick={cleanup}
                     >
                         <Settings className="mr-2" />
-                        Settings
+                        {trans('navigation.settings')}
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>
@@ -66,7 +67,7 @@ export function UserMenuContent({ user }: Props) {
                     data-test="logout-button"
                 >
                     <LogOut className="mr-2" />
-                    Log out
+                    {trans('navigation.log_out')}
                 </Link>
             </DropdownMenuItem>
         </>

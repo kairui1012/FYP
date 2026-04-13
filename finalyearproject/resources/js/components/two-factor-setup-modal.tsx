@@ -6,13 +6,6 @@ import AlertError from '@/components/alert-error';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import {
     InputOTP,
     InputOTPGroup,
     InputOTPSlot,
@@ -314,34 +307,42 @@ export default function TwoFactorSetupModal({
         onClose();
     }, [onClose, resetModalState]);
 
-    return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader className="flex items-center justify-center">
-                    <GridScanIcon />
-                    <DialogTitle>{modalConfig.title}</DialogTitle>
-                    <DialogDescription className="text-center">
-                        {modalConfig.description}
-                    </DialogDescription>
-                </DialogHeader>
+    if (!isOpen) {
+        return null;
+    }
 
-                <div className="flex flex-col items-center space-y-5">
-                    {showVerificationStep ? (
-                        <TwoFactorVerificationStep
-                            onClose={onClose}
-                            onBack={() => setShowVerificationStep(false)}
-                        />
-                    ) : (
-                        <TwoFactorSetupStep
-                            qrCodeSvg={qrCodeSvg}
-                            manualSetupKey={manualSetupKey}
-                            buttonText={modalConfig.buttonText}
-                            onNextStep={handleModalNextStep}
-                            errors={errors}
-                        />
-                    )}
-                </div>
-            </DialogContent>
-        </Dialog>
+    return (
+        <div className="w-full rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="mb-3 flex justify-end">
+                <Button type="button" variant="ghost" size="sm" onClick={handleClose}>
+                    Close
+                </Button>
+            </div>
+
+            <div className="flex items-center justify-center">
+                <GridScanIcon />
+            </div>
+            <h3 className="text-center text-lg font-semibold">{modalConfig.title}</h3>
+            <p className="text-muted-foreground mt-1 text-center text-sm">
+                {modalConfig.description}
+            </p>
+
+            <div className="mt-5 flex flex-col items-center space-y-5">
+                {showVerificationStep ? (
+                    <TwoFactorVerificationStep
+                        onClose={handleClose}
+                        onBack={() => setShowVerificationStep(false)}
+                    />
+                ) : (
+                    <TwoFactorSetupStep
+                        qrCodeSvg={qrCodeSvg}
+                        manualSetupKey={manualSetupKey}
+                        buttonText={modalConfig.buttonText}
+                        onNextStep={handleModalNextStep}
+                        errors={errors}
+                    />
+                )}
+            </div>
+        </div>
     );
 }
