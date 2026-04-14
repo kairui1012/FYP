@@ -10,6 +10,8 @@ import type { BreadcrumbItem } from '@/types';
 const MAX_TITLE_LENGTH = 150;
 const MAX_CONTENT_LENGTH = 2000;
 const ACCEPTED_FILE_TYPES = 'image/*,.pdf,application/pdf';
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB per file
+const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 50MB total upload
 type LocalAttachment = {
     file: File;
     preview: string | null;
@@ -20,6 +22,11 @@ const LANGUAGE_OPTIONS = [
     { code: 'en', label: 'English' },
     { code: 'zh', label: '中文' },
     { code: 'bm', label: 'Bahasa Malaysia' },
+] as const;
+
+const POST_TYPE_OPTIONS = [
+    { value: 'material', labelKey: 'shareMaterial' },
+    { value: 'question', labelKey: 'askQuestion' },
 ] as const;
 
 export default function CreatePostPage() {
@@ -33,6 +40,10 @@ export default function CreatePostPage() {
         contentLabel: trans('createPost.content_label'),
         contentPlaceholder: trans('createPost.content_placeholder'),
         helperText: trans('createPost.helper_text'),
+        postTypeLabel: trans('createPost.post_type_label'),
+        postTypeRequired: trans('createPost.post_type_required'),
+        shareMaterial: trans('createPost.share_material'),
+        askQuestion: trans('createPost.ask_question'),
         languageLabel: trans('createPost.language_label'),
         languageRequired: trans('createPost.language_required'),
         charsLeft: trans('createPost.chars_left'),
@@ -49,10 +60,12 @@ export default function CreatePostPage() {
     const attachmentsRef = useRef<LocalAttachment[]>([]);
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
+    const [selectedPostType, setSelectedPostType] = useState<string>('');
     const [selectedLanguage, setSelectedLanguage] = useState<string>('');
     const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const [fileError, setFileError] = useState<string | null>(null);
 
     useEffect(() => {
         attachmentsRef.current = attachments;
@@ -79,15 +92,28 @@ export default function CreatePostPage() {
     const canSubmit =
         title.trim().length > 0 &&
         content.trim().length > 0 &&
+        selectedPostType.trim().length > 0 &&
         selectedLanguage.trim().length > 0 &&
         !isSubmitting;
 
     const appendFiles = (incomingFiles: FileList | File[]) => {
-        const validFiles = Array.from(incomingFiles).filter(
-            (file) => file.type.startsWith('image/') || file.type === 'application/pdf'
-        );
+        setFileError(null);
+        
+        const validFiles = Array.from(incomingFiles).filter((file) => {
+            if (!(file.type.startsWith('image/') || file.type === 'application/pdf')) {
+                return false;
+            }
+            if (file.size > MAX_FILE_SIZE) {
+                setFileError(`File "${file.name}" exceeds 20MB limit (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+                return false;
+            }
+            return true;
+        });
 
         if (validFiles.length === 0) {
+            if (!fileError) {
+                setFileError('No valid files selected. Please select images or PDFs under 20MB.');
+            }
             return;
         }
 
@@ -96,8 +122,14 @@ export default function CreatePostPage() {
                 prev.map((item) => `${item.file.name}-${item.file.size}-${item.file.lastModified}`)
             );
             const nextAttachments: LocalAttachment[] = [];
+            let totalSize = prev.reduce((sum, item) => sum + item.file.size, 0);
 
             validFiles.forEach((file) => {
+                if (totalSize + file.size > MAX_TOTAL_SIZE) {
+                    setFileError(`Total upload size would exceed 50MB limit`);
+                    return;
+                }
+                
                 const key = `${file.name}-${file.size}-${file.lastModified}`;
                 if (existingKeys.has(key)) {
                     return;
@@ -109,6 +141,7 @@ export default function CreatePostPage() {
                     preview: isImage ? URL.createObjectURL(file) : null,
                     type: isImage ? 'image' : 'pdf',
                 });
+                totalSize += file.size;
             });
 
             return [...prev, ...nextAttachments];
@@ -151,6 +184,7 @@ export default function CreatePostPage() {
         const formData = new FormData();
         formData.append('title', title.trim());
         formData.append('content', content.trim());
+        formData.append('post_type', selectedPostType);
         formData.append('language_code', selectedLanguage);
 
         attachments.forEach((attachment) => {
@@ -167,6 +201,7 @@ export default function CreatePostPage() {
                 });
                 setTitle('');
                 setContent('');
+                setSelectedPostType('');
                 setSelectedLanguage('');
                 setAttachments([]);
             },
@@ -230,6 +265,33 @@ export default function CreatePostPage() {
                         </div>
 
                         <div className="space-y-3">
+                            <p className="text-base font-medium text-zinc-700">{t.postTypeLabel}</p>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                {POST_TYPE_OPTIONS.map((postType) => {
+                                    const isSelected = selectedPostType === postType.value;
+
+                                    return (
+                                        <button
+                                            key={postType.value}
+                                            type="button"
+                                            onClick={() => setSelectedPostType(postType.value)}
+                                            className={`rounded-xl border px-4 py-3 text-sm font-medium transition ${
+                                                isSelected
+                                                    ? 'border-rose-500 bg-rose-50 text-rose-700'
+                                                    : 'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400'
+                                            }`}
+                                            aria-pressed={isSelected}
+                                        >
+                                            {t[postType.labelKey]}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-sm text-zinc-500">{t.postTypeRequired}</p>
+                            <input type="hidden" name="post_type" value={selectedPostType} required />
+                        </div>
+
+                        <div className="space-y-3">
                             <p className="text-base font-medium text-zinc-700">{t.languageLabel}</p>
                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                 {LANGUAGE_OPTIONS.map((language) => {
@@ -277,6 +339,12 @@ export default function CreatePostPage() {
                                 className="hidden"
                                 onChange={onSelectFiles}
                             />
+
+                            {fileError && (
+                                <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+                                    {fileError}
+                                </div>
+                            )}
 
                             <div
                                 onDrop={onDropFiles}

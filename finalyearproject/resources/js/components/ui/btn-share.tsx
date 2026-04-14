@@ -8,8 +8,9 @@ type BtnShareProps = {
 	postId?: number;
 };
 
-export function BtnShare({ label = 'Share', className = '', postId }: BtnShareProps) {
+export function BtnShare({ label, className = '', postId }: BtnShareProps) {
 	const { trans } = reactLang();
+	const shareLabel = label ?? trans('navigation.share');
 	const btnClass =
 		'inline-flex items-center gap-2 rounded-full bg-zinc-200 px-3.5 py-1.5 font-semibold transition-colors cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-200 text-zinc-600 hover:bg-gradient-to-r hover:from-[#ef99b0] hover:to-pink-500 hover:text-white active:bg-rose-700 active:text-white group';
 
@@ -33,7 +34,7 @@ export function BtnShare({ label = 'Share', className = '', postId }: BtnSharePr
 		<button type="button" className={`${btnClass} ${className}`} onClick={handleCopy}>
 			<Share2 className="h-4 w-4 text-zinc-600 group-hover:text-white group-active:text-white transition-colors" />
 			<span className="text-zinc-600 group-hover:text-white group-active:text-white transition-colors">
-				{label}
+				{shareLabel}
 			</span>
 		</button>
 	);

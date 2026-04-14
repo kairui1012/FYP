@@ -3,6 +3,8 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, ReactNode } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import { BtnAiTranslate } from '@/components/ui/btn-ai-translate';
+import { BtnFollow } from '@/components/ui/btn-follow';
 import { formatTimeAgo } from '@/lib/post-utils';
 
 type ProfileUser = {
@@ -11,6 +13,7 @@ type ProfileUser = {
     email?: string | null;
     avatar?: string | null;
     cover_image?: string | null;
+    is_following?: boolean;
 };
 
 type ProfilePost = {
@@ -40,6 +43,8 @@ export default function ProfilePage() {
         posts = [],
         can_edit_cover,
     } = usePage<PageProps>().props;
+    const page = usePage<{ auth?: { user?: { id?: number } } }>();
+    const currentUserId = page.props.auth?.user?.id;
     const t = {
         pageTitle: trans('profile.page_title'),
         defaultUserName: trans('profile.default_user_name'),
@@ -69,8 +74,36 @@ export default function ProfilePage() {
     const [localCoverPreview, setLocalCoverPreview] = useState<string | null>(
         null,
     );
+    const [translatedAbout, setTranslatedAbout] = useState<{
+        title: string;
+        content: string;
+    } | null>(null);
+    const [isFollowing, setIsFollowing] = useState(Boolean(profileUser.is_following));
+    const [followLoading, setFollowLoading] = useState(false);
 
     const effectiveCoverImageUrl = localCoverPreview ?? coverImageUrl;
+    const isOwnProfile = can_edit_cover;
+    const aboutTitle = trans('profile.about');
+    const aboutBadgeLabel = trans('profile.about_of').replace(
+        ':name',
+        displayName,
+    );
+    const defaultAboutMain = isOwnProfile
+        ? trans('profile.about_self_intro')
+        : trans('profile.about_other_intro').replace(':name', displayName);
+    const defaultAboutTip = isOwnProfile
+        ? trans('profile.about_self_tip')
+        : trans('profile.about_other_tip');
+    const defaultAboutContent = `${defaultAboutMain}\n\n${defaultAboutTip}`;
+    const aboutMainText = (translatedAbout?.content ?? defaultAboutContent)
+        .split(/\n{2,}/)[0]
+        ?.trim();
+    const aboutTipText =
+        (translatedAbout?.content ?? defaultAboutContent)
+            .split(/\n{2,}/)
+            .slice(1)
+            .join('\n\n')
+            .trim() || defaultAboutTip;
 
     useEffect(() => {
         return () => {
@@ -83,6 +116,48 @@ export default function ProfilePage() {
     useEffect(() => {
         setAvatarLoadFailed(false);
     }, [profileUser.avatar]);
+
+    useEffect(() => {
+        setIsFollowing(Boolean(profileUser.is_following));
+    }, [profileUser.is_following]);
+
+    const handleFollowToggle = async () => {
+        if (!profileUser.id || !currentUserId || currentUserId === profileUser.id || followLoading) {
+            return;
+        }
+
+        const previous = isFollowing;
+        const optimistic = !previous;
+
+        setFollowLoading(true);
+        setIsFollowing(optimistic);
+
+        const csrfToken =
+            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+                ?.content ?? '';
+
+        try {
+            const response = await fetch(`/users/${profileUser.id}/follow`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Follow toggle failed.');
+            }
+
+            const payload = (await response.json()) as { is_following: boolean };
+            setIsFollowing(payload.is_following);
+        } catch {
+            setIsFollowing(previous);
+        } finally {
+            setFollowLoading(false);
+        }
+    };
 
     const cropCoverToFixedRatio = async (file: File): Promise<File> => {
         const objectUrl = URL.createObjectURL(file);
@@ -216,7 +291,7 @@ export default function ProfilePage() {
 
             <div className="mx-auto w-full max-w-4xl px-4 pb-10 md:px-6">
                 <section className="relative pt-6 md:pt-8">
-                    <div className="relative h-32 w-full overflow-hidden rounded-2xl bg-gradient-to-r from-rose-100 via-orange-50 to-amber-100 md:h-40">
+                    <div className="relative h-32 w-full overflow-hidden rounded-2xl bg-liner-to-r from-rose-100 via-orange-50 to-amber-100 md:h-40">
                         {effectiveCoverImageUrl ? (
                             <img
                                 src={effectiveCoverImageUrl}
@@ -271,9 +346,20 @@ export default function ProfilePage() {
                             )}
 
                             <div className="pb-1">
-                                <h1 className="text-2xl font-bold tracking-tight text-zinc-900 md:text-3xl">
-                                    {displayName}
-                                </h1>
+                                <div className="flex items-center gap-3">
+                                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900 md:text-3xl">
+                                        {displayName}
+                                    </h1>
+                                    {!can_edit_cover && currentUserId && currentUserId !== profileUser.id ? (
+                                        <BtnFollow
+                                            following={isFollowing}
+                                            loading={followLoading}
+                                            onClick={() => {
+                                                void handleFollowToggle();
+                                            }}
+                                        />
+                                    ) : null}
+                                </div>
                                 <p className="text-sm text-zinc-500">
                                     @user-{profileUser.id}
                                 </p>
@@ -300,22 +386,26 @@ export default function ProfilePage() {
 
                     <div className="grid gap-6 py-6 md:grid-cols-[180px_1fr] md:gap-10">
                         <p className="text-sm font-medium tracking-wide text-zinc-400 uppercase">
-                            About
+                            {aboutTitle}
                         </p>
                         <div className="space-y-3 text-zinc-700">
                             <p className="inline-flex rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold tracking-wide text-rose-700 uppercase">
-                                About {displayName}
+                                {translatedAbout?.title ?? aboutBadgeLabel}
                             </p>
                             <p className="text-base leading-7 text-zinc-800">
-                                {can_edit_cover
-                                    ? 'This is your personal corner. Keep sharing ideas, stories, and updates through your posts.'
-                                    : `${displayName} shares ideas, stories, and updates through posts in this profile.`}
+                                {aboutMainText}
                             </p>
                             <p className="border-l-2 border-rose-200 pl-3 text-sm leading-7 text-zinc-500">
-                                {can_edit_cover
-                                    ? 'Tip: a clear profile image plus a cover photo usually makes your page feel much more complete.'
-                                    : 'Scroll down to read recent posts and see what this user has shared recently.'}
+                                {aboutTipText}
                             </p>
+                            {!isOwnProfile ? (
+                                <BtnAiTranslate
+                                    className="my-1"
+                                    title={aboutBadgeLabel}
+                                    content={defaultAboutContent}
+                                    onTranslate={setTranslatedAbout}
+                                />
+                            ) : null}
                         </div>
                     </div>
 

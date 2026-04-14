@@ -2,6 +2,8 @@
 
 return [
     'home' => '首页',
+    'questions' => '问题',
+    'learning_materials' => '学习资料',
     'popular' => '热门',
     'following' => '关注中',
     'login' => '登录',
@@ -16,6 +18,11 @@ return [
     'settings' => '设置',
     'log_out' => '退出登录',
     'navigation_menu' => '导航菜单',
+    'share' => '分享',
+    'save' => '收藏',
+    'saved' => '已收藏',
+    'follow_action' => '关注',
+    'following_action' => '已关注',
     'share_link_copied' => '链接已复制！',
     'share_link_copy_failed' => '复制链接失败。',
 ];

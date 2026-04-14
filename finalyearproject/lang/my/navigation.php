@@ -2,6 +2,8 @@
 
 return [
     'home' => 'Laman utama',
+    'questions' => 'Soalan',
+    'learning_materials' => 'Bahan Pembelajaran',
     'popular' => 'Popular',
     'following' => 'Diikuti',
     'login' => 'Log masuk',
@@ -16,6 +18,11 @@ return [
     'settings' => 'Tetapan',
     'log_out' => 'Log keluar',
     'navigation_menu' => 'Menu navigasi',
+    'share' => 'Kongsi',
+    'save' => 'Simpan',
+    'saved' => 'Disimpan',
+    'follow_action' => 'Ikuti',
+    'following_action' => 'Mengikuti',
     'share_link_copied' => 'Pautan telah disalin!',
     'share_link_copy_failed' => 'Gagal menyalin pautan.',
 ];

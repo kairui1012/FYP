@@ -27,6 +27,10 @@ class ProfilePageController extends Controller
             ->first(fn ($account) => ! empty($account->avatar))
             ?->avatar;
 
+        $isFollowing = $viewer->id !== $profileUser->id
+            ? $viewer->following()->where('following_id', $profileUser->id)->exists()
+            : false;
+
         $posts = Post::query()
             ->where('user_id', $profileUser->id)
             ->with(['language:id,code,name'])
@@ -54,6 +58,7 @@ class ProfilePageController extends Controller
                 'email' => $viewer->id === $profileUser->id ? $profileUser->email : null,
                 'avatar' => $avatar,
                 'cover_image' => $profileUser->profile?->cover_image ?? $profileUser->cover_image,
+                'is_following' => $isFollowing,
             ],
             'can_edit_cover' => $viewer->id === $profileUser->id,
             'posts' => $posts,

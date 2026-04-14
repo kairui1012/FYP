@@ -1,5 +1,6 @@
 // BtnAiTranslate.tsx
 import { useState } from 'react';
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -18,18 +19,6 @@ function getCurrentLocale(): 'en' | 'zh' | 'my' {
     if (htmlLang.startsWith('zh')) return 'zh';
     if (htmlLang.startsWith('my') || htmlLang.startsWith('ms')) return 'my';
     return 'en';
-}
-
-function getLocaleBadge(locale: 'en' | 'zh' | 'my'): string {
-    if (locale === 'zh') return '中文';
-    if (locale === 'my') return 'BM';
-    return 'EN';
-}
-
-function getAriaLabel(locale: 'en' | 'zh' | 'my'): string {
-    if (locale === 'zh') return 'Translate page to Chinese';
-    if (locale === 'my') return 'Translate page to Malay';
-    return 'Translate page to English';
 }
 
 function chunkArray<T>(items: T[], size: number): T[][] {
@@ -113,13 +102,14 @@ async function translateInBatches(
 }
 
 export function BtnAiTranslate({ title, content, className, onTranslate }: Props) {
+    const { trans } = reactLang();
     const [loading, setLoading] = useState(false);
     const [translated, setTranslated] = useState(false);
     const [usedProvider, setUsedProvider] = useState<'deepseek' | 'gemini' | null>(null);
     const [error, setError] = useState<string | null>(null);
     const locale = getCurrentLocale();
-    const localeBadge = getLocaleBadge(locale);
-    const ariaLabel = getAriaLabel(locale);
+    const localeBadge = trans(`aiTranslate.badge_${locale}`);
+    const ariaLabel = trans(`aiTranslate.aria_${locale}`);
 
     const handleTranslate = async () => {
         if (loading || translated) return;
@@ -147,7 +137,11 @@ export function BtnAiTranslate({ title, content, className, onTranslate }: Props
             }
         } catch (err) {
             console.error('[BtnAiTranslate] Both providers failed:', err);
-            setError(err instanceof Error ? err.message : 'Translation failed. Please try again.');
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : trans('aiTranslate.failed_generic'),
+            );
         } finally {
             setLoading(false);
         }
@@ -173,10 +167,10 @@ export function BtnAiTranslate({ title, content, className, onTranslate }: Props
                 <Sparkles className="h-4.5 w-4.5" />
             )}
             <span className="text-sm font-medium">
-                {loading ? 'Translating…'
+                {loading ? trans('aiTranslate.loading')
                 : translated ? `${localeBadge} · ${usedProvider === 'gemini' ? 'Gemini' : 'DeepSeek'}`
-                : error ? 'Retry Translate'
-                : 'AI Translate'}
+                : error ? trans('aiTranslate.retry')
+                : trans('aiTranslate.button')}
             </span>
         </Button>
     );

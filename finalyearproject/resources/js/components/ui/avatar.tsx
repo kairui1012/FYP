@@ -1,32 +1,65 @@
-import * as AvatarPrimitive from "@radix-ui/react-avatar"
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+type AvatarStatus = "idle" | "loaded" | "error"
+
+type AvatarContextValue = {
+  status: AvatarStatus
+  setStatus: React.Dispatch<React.SetStateAction<AvatarStatus>>
+}
+
+const AvatarContext = React.createContext<AvatarContextValue | null>(null)
+
 function Avatar({
+  children,
   className,
   ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Root>) {
+}: React.ComponentProps<"span">) {
+  const [status, setStatus] = React.useState<AvatarStatus>("idle")
+
   return (
-    <AvatarPrimitive.Root
-      data-slot="avatar"
-      className={cn(
-        "relative flex size-8 shrink-0 overflow-hidden rounded-full",
-        className
-      )}
-      {...props}
-    />
+    <AvatarContext.Provider value={{ status, setStatus }}>
+      <span
+        data-slot="avatar"
+        className={cn(
+          "relative flex size-8 shrink-0 overflow-hidden rounded-full",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </span>
+    </AvatarContext.Provider>
   )
 }
 
 function AvatarImage({
   className,
+  referrerPolicy,
+  onLoad,
+  onError,
   ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+}: React.ComponentProps<"img">) {
+  const context = React.useContext(AvatarContext)
+
+  if (!context) {
+    return null
+  }
+
   return (
-    <AvatarPrimitive.Image
+    <img
       data-slot="avatar-image"
-      className={cn("aspect-square size-full", className)}
+      className={cn("absolute inset-0 aspect-square size-full", className)}
+      referrerPolicy={referrerPolicy ?? "no-referrer"}
+      onLoad={(event) => {
+        context.setStatus("loaded")
+        onLoad?.(event)
+      }}
+      onError={(event) => {
+        context.setStatus("error")
+        onError?.(event)
+      }}
       {...props}
     />
   )
@@ -35,9 +68,15 @@ function AvatarImage({
 function AvatarFallback({
   className,
   ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
+}: React.ComponentProps<"span">) {
+  const context = React.useContext(AvatarContext)
+
+  if (context?.status === "loaded") {
+    return null
+  }
+
   return (
-    <AvatarPrimitive.Fallback
+    <span
       data-slot="avatar-fallback"
       className={cn(
         "bg-muted flex size-full items-center justify-center rounded-full",

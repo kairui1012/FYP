@@ -4,6 +4,7 @@ import { lazy, Suspense } from 'react';
 import {
     Bell,
     BookOpen,
+    CircleHelp,
     Folder,
     LayoutGrid,
     Menu,
@@ -55,20 +56,30 @@ type Props = {
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Home',
+        title: 'home',
         href: homePage(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'questions',
+        href: '/questions',
+        icon: CircleHelp,
+    },
+    {
+        title: 'learning_materials',
+        href: '/learning-materials',
+        icon: BookOpen,
     },
 ];
 
 const rightNavItems: NavItem[] = [
     {
-        title: 'Repository',
+        title: 'repository',
         href: 'https://github.com/laravel/react-starter-kit',
         icon: Folder,
     },
     {
-        title: 'Documentation',
+        title: 'documentation',
         href: 'https://laravel.com/docs/starter-kits#react',
         icon: BookOpen,
     },
@@ -121,7 +132,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                                     {item.icon && (
                                                         <item.icon className="h-5 w-5" />
                                                     )}
-                                                    <span>{trans(`navigation.${item.title.toLowerCase()}`)}</span>
+                                                    <span>{trans(`navigation.${item.title}`)}</span>
                                                 </Link>
                                             ))}
                                         </div>
@@ -138,7 +149,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                                     {item.icon && (
                                                         <item.icon className="h-5 w-5" />
                                                     )}
-                                                    <span>{trans(`navigation.${item.title.toLowerCase()}`)}</span>
+                                                    <span>{trans(`navigation.${item.title}`)}</span>
                                                 </a>
                                             ))}
                                         </div>

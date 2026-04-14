@@ -1,7 +1,9 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { useState, type ReactNode } from 'react';
-import { PostAttachments } from '@/components/post-attachments';
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
+const PostAttachments = lazy(() => import('@/components/post-attachments').then(m => ({ default: m.PostAttachments })));
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnComment } from '@/components/ui/btn-comment';
+import { BtnFollow } from '@/components/ui/btn-follow';
 import { BtnLike } from '@/components/ui/btn-like';
 import { BtnShare } from '@/components/ui/btn-share';
 import { formatTimeAgo, getLanguageLabel } from '@/lib/post-utils';
@@ -18,9 +20,10 @@ type PostFooterProps = {
     comments: number;
     postId: number;
     onLike: (postId: number) => void;
+    onComment: (postId: number) => void;
 };
 
-function PostFooter({ likes, liked, loading = false, comments, postId, onLike }: PostFooterProps) {
+function PostFooter({ likes, liked, loading = false, comments, postId, onLike, onComment }: PostFooterProps) {
     return (
         <div className="mt-2 flex items-center gap-3 text-sm text-zinc-900">
             <BtnLike
@@ -30,7 +33,11 @@ function PostFooter({ likes, liked, loading = false, comments, postId, onLike }:
                 className="mb-2"
                 onClick={() => onLike(postId)}
             />
-            <BtnComment count={comments} className="mb-2" />
+            <BtnComment
+                count={comments}
+                className="mb-2"
+                onClick={() => onComment(postId)}
+            />
             <BtnShare className="mb-2" />
         </div>
     );
@@ -54,6 +61,11 @@ function getLangBadgeProps(code: string) {
     return { bg: 'bg-gray-200', text: 'text-gray-700' };
 }
 
+function getPostTypeBadgeProps(type: string) {
+    if (type === 'question') return { bg: 'bg-emerald-100', text: 'text-emerald-700' };
+    return { bg: 'bg-violet-100', text: 'text-violet-700' };
+}
+
 function trans(key: string, page: any) {
     const parts = key.split('.');
     let obj = page.props?.lang;
@@ -68,6 +80,8 @@ function trans(key: string, page: any) {
 }
 
 export default function HomePage({ posts = [] }: HomePageProps) {
+    const page = usePage();
+    const currentUserId = (page.props as { auth?: { user?: { id?: number } } }).auth?.user?.id;
     const [likeStateByPost, setLikeStateByPost] = useState<Record<number, { liked: boolean; likesCount: number }>>(
         () => Object.fromEntries(
             posts.map((post) => [
@@ -80,9 +94,23 @@ export default function HomePage({ posts = [] }: HomePageProps) {
         )
     );
     const [likingPostIds, setLikingPostIds] = useState<number[]>([]);
+    const [followStateByUser, setFollowStateByUser] = useState<Record<number, boolean>>(() => {
+        const states: Record<number, boolean> = {};
+        posts.forEach((post) => {
+            if (post.user?.id) {
+                states[post.user.id] = Boolean(post.user.is_following);
+            }
+        });
+        return states;
+    });
+    const [followingUserIds, setFollowingUserIds] = useState<number[]>([]);
 
     const goToPost = (postId: number) => {
         router.get(`/posts/${postId}`);
+    };
+
+    const goToPostComments = (postId: number) => {
+        router.visit(`/posts/${postId}#comments`);
     };
 
     const handleLike = async (postId: number) => {
@@ -136,7 +164,60 @@ export default function HomePage({ posts = [] }: HomePageProps) {
         });
     };
 
-    const page = usePage();
+    const handleFollowToggle = async (userId: number) => {
+        if (followingUserIds.includes(userId)) {
+            return;
+        }
+
+        const previous = followStateByUser[userId] ?? false;
+        const optimistic = !previous;
+
+        setFollowingUserIds((prev) => [...prev, userId]);
+        setFollowStateByUser((prev) => ({
+            ...prev,
+            [userId]: optimistic,
+        }));
+
+        const csrfToken =
+            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+                ?.content ?? '';
+
+        try {
+            const response = await fetch(`/users/${userId}/follow`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Follow toggle failed.');
+            }
+
+            const payload = (await response.json()) as { is_following: boolean };
+            setFollowStateByUser((prev) => ({
+                ...prev,
+                [userId]: payload.is_following,
+            }));
+        } catch {
+            setFollowStateByUser((prev) => ({
+                ...prev,
+                [userId]: previous,
+            }));
+        } finally {
+            setFollowingUserIds((prev) => prev.filter((id) => id !== userId));
+        }
+    };
+
+    useEffect(() => {
+        // Guard against a stale Inertia progress state that can leave cursor styles behind.
+        document.documentElement.classList.remove('nprogress-busy');
+        document.body.classList.remove('nprogress-busy');
+        document.documentElement.style.cursor = '';
+        document.body.style.cursor = '';
+    }, []);
 
     return (
         <>
@@ -169,19 +250,39 @@ export default function HomePage({ posts = [] }: HomePageProps) {
                                         <div className="flex items-center gap-3">
                                             <Link
                                                 href={post.user?.id ? `/profilePage/${post.user.id}` : '/profilePage'}
-                                                className="group flex items-center gap-3"
+                                                className="peer group/avatar cursor-pointer"
                                                 onClick={(event) => event.stopPropagation()}
                                             >
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-200 text-sm font-semibold text-zinc-700 ring-2 ring-transparent transition-colors group-hover:ring-[#ef99b0] ">
-                                                    {(post.user?.name ?? 'U')
-                                                        .charAt(0)
-                                                        .toUpperCase()}
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                <div className="flex items-center gap-1.5 text-base">
-                                                    <p className="font-semibold text-zinc-900 transition-colors group-hover:text-[#de6b89]">
+                                                <Avatar className="h-10 w-10 ring-2 ring-transparent transition-colors group-hover/avatar:ring-[#ef99b0]">
+                                                    {post.user?.avatar ? (
+                                                        <AvatarImage
+                                                            src={post.user.avatar}
+                                                            alt={post.user?.name ?? 'User avatar'}
+                                                        />
+                                                    ) : null}
+                                                    <AvatarFallback className="bg-zinc-200 text-sm font-semibold text-zinc-700">
+                                                        {(post.user?.name ?? 'U')
+                                                            .charAt(0)
+                                                            .toUpperCase()}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                            </Link>
+                                            <div className="min-w-0 flex-1">
+                                                <div className="mb-3 flex items-center gap-1.5 text-base">
+                                                    <Link
+                                                        href={post.user?.id ? `/profilePage/${post.user.id}` : '/profilePage'}
+                                                        className="cursor-pointer font-semibold text-zinc-900 transition-colors hover:text-[#de6b89] peer-hover:text-[#de6b89]"
+                                                        onClick={(event) => event.stopPropagation()}
+                                                    >
                                                         {post.user?.name ?? 'Unknown User'}
-                                                    </p>
+                                                    </Link>
+                                                    {post.user?.id && currentUserId && post.user.id !== currentUserId ? (
+                                                        <BtnFollow
+                                                            following={followStateByUser[post.user.id] ?? Boolean(post.user.is_following)}
+                                                            loading={followingUserIds.includes(post.user.id)}
+                                                            onClick={() => handleFollowToggle(post.user!.id)}
+                                                        />
+                                                    ) : null}
                                                     <span className="text-zinc-400">•</span>
                                                     <span className="text-zinc-500 text-sm">
                                                         {formatTimeAgo(post.created_at)}
@@ -189,6 +290,19 @@ export default function HomePage({ posts = [] }: HomePageProps) {
                                                 </div>
 
                                                 <div className="flex items-center gap-1.5 text-sm text-zinc-500">
+                                                    {(() => {
+                                                        const type = post.post_type === 'question' ? 'question' : 'material';
+                                                        const { bg, text } = getPostTypeBadgeProps(type);
+                                                        const label = type === 'question'
+                                                            ? trans('createPost.ask_question', page)
+                                                            : trans('createPost.share_material', page);
+
+                                                        return (
+                                                            <span className={`rounded-full px-2 py-0.5 font-medium ${bg} ${text}`}>
+                                                                {label}
+                                                            </span>
+                                                        );
+                                                    })()}
                                                     {(() => {
                                                         const code = post.language?.code || 'en';
                                                         const { bg, text } = getLangBadgeProps(code);
@@ -200,8 +314,7 @@ export default function HomePage({ posts = [] }: HomePageProps) {
                                                         );
                                                     })()}
                                                 </div>
-                                                </div>
-                                            </Link>
+                                            </div>
                                         </div>
                                     </header>
 
@@ -212,7 +325,9 @@ export default function HomePage({ posts = [] }: HomePageProps) {
                                         {post.content}
                                     </p>
 
-                                    <PostAttachments files={post.image} compact />
+                                    <Suspense fallback={<div className="h-48 rounded-xl bg-zinc-100" />}>
+                                        <PostAttachments files={post.image} compact />
+                                    </Suspense>
                                 </article>
                                 {(() => {
                                     const likeState = likeStateByPost[post.id] ?? {
@@ -228,6 +343,7 @@ export default function HomePage({ posts = [] }: HomePageProps) {
                                     loading={likingPostIds.includes(post.id)}
                                     comments={post.comments_count ?? 0}
                                     onLike={handleLike}
+                                    onComment={goToPostComments}
                                 />
                                     );
                                 })()}

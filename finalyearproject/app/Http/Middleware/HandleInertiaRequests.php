@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -42,6 +43,8 @@ class HandleInertiaRequests extends Middleware
             syncLangFiles('language_label'),
             syncLangFiles('settings'),
             syncLangFiles('profile'),
+            syncLangFiles('comment'),
+            syncLangFiles('aiTranslate'),
         );
 
         return [
@@ -55,9 +58,27 @@ class HandleInertiaRequests extends Middleware
                 'my' => 'BM',
             ],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $this->serializeAuthUser($request->user()),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+        ];
+    }
+
+    private function serializeAuthUser(?User $user): ?array
+    {
+        if (! $user) {
+            return null;
+        }
+
+        $user->loadMissing([
+            'socialAccounts:id,user_id,avatar',
+        ]);
+
+        return [
+            ...$user->toArray(),
+            'avatar' => $user->socialAccounts
+                ->first(fn ($account) => ! empty($account->avatar))
+                ?->avatar,
         ];
     }
 }

@@ -2,6 +2,8 @@
 
 return [
     'home' => 'Home',
+    'questions' => 'Questions',
+    'learning_materials' => 'Learning Materials',
     'popular' => 'Popular',
     'following' => 'Following',
     'login' => 'Login',
@@ -16,6 +18,11 @@ return [
     'settings' => 'Settings',
     'log_out' => 'Log out',
     'navigation_menu' => 'Navigation menu',
+    'share' => 'Share',
+    'save' => 'Save',
+    'saved' => 'Saved',
+    'follow_action' => 'Follow',
+    'following_action' => 'Following',
     'share_link_copied' => 'Link copied!',
     'share_link_copy_failed' => 'Failed to copy link.',
 ];

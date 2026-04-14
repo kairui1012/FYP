@@ -58,4 +58,32 @@ export default defineConfig({
     esbuild: {
         jsx: 'automatic',
     },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    // Vendor chunks to split large libraries
+                    'vendor-react': ['react', 'react-dom', '@inertiajs/react'],
+                    'vendor-ui': [
+                        '@radix-ui/react-avatar',
+                        '@radix-ui/react-checkbox',
+                        '@radix-ui/react-collapsible',
+                        '@radix-ui/react-dialog',
+                        '@radix-ui/react-dropdown-menu',
+                        '@radix-ui/react-label',
+                        '@radix-ui/react-navigation-menu',
+                        '@radix-ui/react-select',
+                        '@radix-ui/react-separator',
+                        '@radix-ui/react-slot',
+                        '@radix-ui/react-toggle',
+                        '@radix-ui/react-toggle-group',
+                        '@radix-ui/react-tooltip',
+                    ],
+                    // Heavy document libraries - split to lazy-loaded chunk
+                    'vendor-documents': ['react-pdf', 'docx-preview'],
+                },
+            },
+        },
+        chunkSizeWarningLimit: 800, // Increased from default 500KB
+    },
 });

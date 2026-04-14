@@ -10,6 +10,7 @@ class Post extends Model
         'user_id',
         'title',
         'content',
+        'post_type',
         'language_id',
         'image',
     ];
@@ -31,6 +32,10 @@ class Post extends Model
 
     public function likes() {
         return $this->hasMany(Like::class);
+    }
+
+    public function saves() {
+        return $this->hasMany(PostSave::class);
     }
 
     public function language() {
