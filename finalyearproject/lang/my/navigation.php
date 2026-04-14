@@ -5,6 +5,7 @@ return [
     'questions' => 'Soalan',
     'learning_materials' => 'Bahan Pembelajaran',
     'popular' => 'Popular',
+    'leaderboard' => 'Papan Pendahulu',
     'following' => 'Diikuti',
     'login' => 'Log masuk',
     'register' => 'Daftar',

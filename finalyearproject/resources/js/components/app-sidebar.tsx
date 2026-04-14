@@ -1,4 +1,4 @@
-import { BookOpen, ChevronLeft, ChevronRight, CircleHelp, Flame, HomeIcon, Users } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, CircleHelp, Flame, HomeIcon, Users, Trophy } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { reactLang } from '@erag/lang-sync-inertia';
 import { NavMain } from '@/components/nav-main';
@@ -87,8 +87,13 @@ export function AppSidebar({ className }: AppSidebarProps) {
             icon: Flame,
         },
         {
+            title: trans('navigation.leaderboard'),
+            href: '/leaderboard',
+            icon: Trophy,
+        },
+        {
             title: trans('navigation.following'),
-            href: popularPage(),
+            href: '/following',
             icon: Users,
         },
     ];

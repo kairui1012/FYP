@@ -5,6 +5,7 @@ return [
     'questions' => 'Questions',
     'learning_materials' => 'Learning Materials',
     'popular' => 'Popular',
+    'leaderboard' => 'Leaderboard',
     'following' => 'Following',
     'login' => 'Login',
     'register' => 'Register',

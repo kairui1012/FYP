@@ -1,11 +1,12 @@
-import { Head, router } from '@inertiajs/react';
-import { FileText, ImagePlus, Send, Trash2, UploadCloud } from 'lucide-react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { FileText, ImagePlus, Send, Trash2, UploadCloud, BookOpen, Calculator, Atom, TestTube, Dna, Music, Palette, Globe, Languages, GraduationCap, Briefcase, Landmark, Activity, Scissors, Laptop } from 'lucide-react';
 import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { homePage } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
+import type { PostSubject } from '@/types';
 
 const MAX_TITLE_LENGTH = 150;
 const MAX_CONTENT_LENGTH = 2000;
@@ -18,6 +19,10 @@ type LocalAttachment = {
     type: 'image' | 'pdf';
 };
 
+type CreatePostPageProps = {
+    subjects?: PostSubject[];
+};
+
 const LANGUAGE_OPTIONS = [
     { code: 'en', label: 'English' },
     { code: 'zh', label: '中文' },
@@ -28,6 +33,30 @@ const POST_TYPE_OPTIONS = [
     { value: 'material', labelKey: 'shareMaterial' },
     { value: 'question', labelKey: 'askQuestion' },
 ] as const;
+
+// Mapping subjects to icons
+const getSubjectIcon = (subjectName: string) => {
+    const lowerCaseName = subjectName.toLowerCase();
+    
+    if (lowerCaseName.includes('math')) return Calculator;
+    if (lowerCaseName.includes('physics')) return Atom;
+    if (lowerCaseName.includes('chemistry')) return TestTube;
+    if (lowerCaseName.includes('biology') || lowerCaseName.includes('science')) return Dna;
+    if (lowerCaseName.includes('computer')) return Laptop;
+    if (lowerCaseName.includes('islamic')) return BookOpen; // Islamic studies represented with book
+    if (lowerCaseName.includes('moral') || lowerCaseName.includes('studies')) return BookOpen;
+    if (lowerCaseName.includes('language') || lowerCaseName.includes('english') || lowerCaseName.includes('chinese') || lowerCaseName.includes('tamil') || lowerCaseName.includes('malay')) return Languages;
+    if (lowerCaseName.includes('history')) return GraduationCap;
+    if (lowerCaseName.includes('geography') || lowerCaseName.includes('citizenship')) return Globe;
+    if (lowerCaseName.includes('economics') || lowerCaseName.includes('accounting') || lowerCaseName.includes('business')) return Landmark;
+    if (lowerCaseName.includes('art')) return Palette;
+    if (lowerCaseName.includes('music')) return Music;
+    if (lowerCaseName.includes('physical') || lowerCaseName.includes('education')) return Activity;
+    if (lowerCaseName.includes('design') || lowerCaseName.includes('technology')) return Scissors;
+    
+    // Default icon
+    return BookOpen;
+};
 
 export default function CreatePostPage() {
     const { trans } = reactLang();
@@ -42,6 +71,9 @@ export default function CreatePostPage() {
         helperText: trans('createPost.helper_text'),
         postTypeLabel: trans('createPost.post_type_label'),
         postTypeRequired: trans('createPost.post_type_required'),
+        subjectLabel: trans('createPost.subject_label'),
+        subjectHint: trans('createPost.subject_hint'),
+        subjectRequired: trans('createPost.subject_required'),
         shareMaterial: trans('createPost.share_material'),
         askQuestion: trans('createPost.ask_question'),
         languageLabel: trans('createPost.language_label'),
@@ -52,15 +84,18 @@ export default function CreatePostPage() {
         dragDropTitle: trans('createPost.drag_drop_title'),
         dragDropSubtitle: trans('createPost.drag_drop_subtitle'),
         pdfLabel: trans('createPost.pdf_label'),
+        fileTypeLimit: trans('createPost.file_type_limit'),
         supportedFormat: trans('createPost.supported_format'),
         publishing: trans('createPost.publishing'),
         publishPost: trans('createPost.publish_post'),
     };
+    const { subjects = [] } = usePage<CreatePostPageProps>().props;
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const attachmentsRef = useRef<LocalAttachment[]>([]);
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [selectedPostType, setSelectedPostType] = useState<string>('');
+    const [selectedSubject, setSelectedSubject] = useState<string>('');
     const [selectedLanguage, setSelectedLanguage] = useState<string>('');
     const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -93,12 +128,13 @@ export default function CreatePostPage() {
         title.trim().length > 0 &&
         content.trim().length > 0 &&
         selectedPostType.trim().length > 0 &&
+        selectedSubject.trim().length > 0 &&
         selectedLanguage.trim().length > 0 &&
         !isSubmitting;
 
     const appendFiles = (incomingFiles: FileList | File[]) => {
         setFileError(null);
-        
+
         const validFiles = Array.from(incomingFiles).filter((file) => {
             if (!(file.type.startsWith('image/') || file.type === 'application/pdf')) {
                 return false;
@@ -110,6 +146,13 @@ export default function CreatePostPage() {
             return true;
         });
 
+        const selectedKinds = new Set(validFiles.map((file) => (file.type === 'application/pdf' ? 'pdf' : 'image')));
+
+        if (selectedKinds.size > 1) {
+            setFileError(t.fileTypeLimit);
+            return;
+        }
+
         if (validFiles.length === 0) {
             if (!fileError) {
                 setFileError('No valid files selected. Please select images or PDFs under 20MB.');
@@ -118,6 +161,14 @@ export default function CreatePostPage() {
         }
 
         setAttachments((prev) => {
+            const currentKind = prev[0]?.type ?? null;
+            const batchKind = validFiles[0].type === 'application/pdf' ? 'pdf' : 'image';
+
+            if (currentKind && currentKind !== batchKind) {
+                setFileError(t.fileTypeLimit);
+                return prev;
+            }
+
             const existingKeys = new Set(
                 prev.map((item) => `${item.file.name}-${item.file.size}-${item.file.lastModified}`)
             );
@@ -185,6 +236,7 @@ export default function CreatePostPage() {
         formData.append('title', title.trim());
         formData.append('content', content.trim());
         formData.append('post_type', selectedPostType);
+        formData.append('subject_id', selectedSubject);
         formData.append('language_code', selectedLanguage);
 
         attachments.forEach((attachment) => {
@@ -202,6 +254,7 @@ export default function CreatePostPage() {
                 setTitle('');
                 setContent('');
                 setSelectedPostType('');
+                setSelectedSubject('');
                 setSelectedLanguage('');
                 setAttachments([]);
             },
@@ -292,6 +345,44 @@ export default function CreatePostPage() {
                         </div>
 
                         <div className="space-y-3">
+                            <div className="space-y-1">
+                                <p className="text-base font-medium text-zinc-700">{t.subjectLabel}</p>
+                                <p className="text-sm text-zinc-500">{t.subjectHint}</p>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                {subjects.map((subject) => {
+                                    const isSelected = selectedSubject === String(subject?.id);
+                                    const translatedSubjectName = trans(`subjects.${subject?.name}`) || subject?.name;
+                                    const SubjectIcon = getSubjectIcon(subject?.name);
+
+                                    return (
+                                        <button
+                                            key={subject?.id}
+                                            type="button"
+                                            onClick={() => setSelectedSubject(String(subject?.id))}
+                                            className={`rounded-2xl border px-4 py-3 text-left transition flex items-center ${
+                                                isSelected
+                                                    ? 'border-rose-500 bg-rose-50 text-rose-700 shadow-[0_0_0_1px_rgba(244,63,94,0.1)]'
+                                                    : 'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50'
+                                            }`}
+                                            aria-pressed={isSelected}
+                                        >
+                                            <SubjectIcon className="h-5 w-5 mr-2 text-rose-500" />
+                                            <div className="flex-1 min-w-0">
+                                                <span className="block text-sm font-medium truncate">{translatedSubjectName}</span>
+                                                <span className="mt-1 block text-xs text-zinc-500">
+                                                    {isSelected ? 'Selected' : 'Tap to choose'}
+                                                </span>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-sm text-zinc-500">{t.subjectRequired}</p>
+                            <input type="hidden" name="subject_id" value={selectedSubject} required />
+                        </div>
+
+                        <div className="space-y-3">
                             <p className="text-base font-medium text-zinc-700">{t.languageLabel}</p>
                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                 {LANGUAGE_OPTIONS.map((language) => {
@@ -371,6 +462,9 @@ export default function CreatePostPage() {
                                 <p className="text-base font-semibold text-zinc-800">{t.dragDropTitle}</p>
                                 <p className="mt-1 text-sm text-zinc-500">
                                     {t.dragDropSubtitle}
+                                </p>
+                                <p className="mt-2 text-xs text-zinc-400">
+                                    {t.fileTypeLimit}
                                 </p>
                             </div>
 

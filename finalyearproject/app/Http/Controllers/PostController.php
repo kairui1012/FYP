@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use App\Models\Language;
 use App\Models\Post;
+use App\Models\Subject;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,15 @@ use Inertia\Response;
 class PostController extends Controller
 {
     private const POST_TYPES = ['material', 'question'];
+
+    public function create(): Response
+    {
+        return Inertia::render('createPostPage', [
+            'subjects' => Subject::query()
+                ->orderBy('name')
+                ->get(['id', 'name']),
+        ]);
+    }
 
     public function index(Request $request): Response
     {
@@ -54,6 +64,7 @@ class PostController extends Controller
             ->with([
                 'user:id,name',
                 'user.socialAccounts:id,user_id,avatar',
+                'subject:id,name',
                 'language:id,code,name',
             ])
             ->withCount(['likes', 'comments', 'saves'])
@@ -83,10 +94,19 @@ class PostController extends Controller
             'title' => ['required', 'string', 'max:150'],
             'content' => ['required', 'string', 'max:2000'],
             'post_type' => ['required', 'string', Rule::in(self::POST_TYPES)],
+            'subject_id' => ['required', 'integer', Rule::exists('subjects', 'id')],
             'language_code' => ['required', 'string', Rule::exists('languages', 'code')],
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['file', 'mimetypes:image/jpeg,image/png,image/webp,image/gif,application/pdf', 'max:10240'],
         ]);
+
+        $subject = Subject::query()->find($validated['subject_id']);
+
+        if (! $subject) {
+            throw ValidationException::withMessages([
+                'subject_id' => 'The selected subject is invalid.',
+            ]);
+        }
 
         $language = Language::query()
             ->where('code', $validated['language_code'])
@@ -104,12 +124,13 @@ class PostController extends Controller
             $storedAttachments[] = $file->store('posts', 'public');
         }
 
-        DB::transaction(function () use ($request, $validated, $language, $storedAttachments): void {
+        DB::transaction(function () use ($request, $validated, $language, $storedAttachments, $subject): void {
             Post::query()->create([
                 'user_id' => $request->user()->id,
                 'title' => $validated['title'],
                 'content' => $validated['content'],
                 'post_type' => $validated['post_type'],
+                'subject_id' => $subject->id,
                 'language_id' => $language->id,
                 'image' => count($storedAttachments) > 0 ? $storedAttachments : null,
             ]);
@@ -131,6 +152,7 @@ class PostController extends Controller
         $post->load([
             'user:id,name',
             'user.socialAccounts:id,user_id,avatar',
+            'subject:id,name',
             'language:id,code,name',
             'comments' => fn ($query) => $query
                 ->oldest('created_at')
@@ -180,6 +202,10 @@ class PostController extends Controller
             'language' => $post->language ? [
                 'code' => $post->language->code,
                 'name' => $post->language->name,
+            ] : null,
+            'subject' => $post->subject ? [
+                'id' => $post->subject->id,
+                'name' => $post->subject->name,
             ] : null,
             'likes_count' => $post->likes_count,
             'comments_count' => $post->comments_count,

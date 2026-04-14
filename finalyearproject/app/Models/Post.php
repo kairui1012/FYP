@@ -11,6 +11,7 @@ class Post extends Model
         'title',
         'content',
         'post_type',
+        'subject_id',
         'language_id',
         'image',
     ];
@@ -40,5 +41,10 @@ class Post extends Model
 
     public function language() {
         return $this->belongsTo(Language::class);
+    }
+
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class);
     }
 }

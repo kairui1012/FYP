@@ -5,6 +5,7 @@ return [
     'questions' => '问题',
     'learning_materials' => '学习资料',
     'popular' => '热门',
+    'leaderboard' => '排行榜',
     'following' => '关注中',
     'login' => '登录',
     'register' => '注册',

@@ -66,6 +66,10 @@ function getPostTypeBadgeProps(type: string) {
     return { bg: 'bg-violet-100', text: 'text-violet-700' };
 }
 
+function getSubjectBadgeProps() {
+    return { bg: 'bg-slate-100', text: 'text-slate-700' };
+}
+
 function trans(key: string, page: any) {
     const parts = key.split('.');
     let obj = page.props?.lang;
@@ -313,6 +317,14 @@ export default function HomePage({ posts = [] }: HomePageProps) {
                                                             </span>
                                                         );
                                                     })()}
+                                                    {post.subject?.name ? (() => {
+                                                        const { bg, text } = getSubjectBadgeProps();
+                                                        return (
+                                                            <span className={`rounded-full px-2 py-0.5 font-medium ${bg} ${text}`}>
+                                                                {post.subject.name}
+                                                            </span>
+                                                        );
+                                                    })() : null}
                                                 </div>
                                             </div>
                                         </div>

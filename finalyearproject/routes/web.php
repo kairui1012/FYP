@@ -9,6 +9,7 @@ use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfilePageController;
 use App\Http\Controllers\PostSaveController;
+use App\Http\Controllers\LeaderboardController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -31,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/homePage', [PostController::class, 'index'])->name('homePage');
     Route::get('/questions', [PostController::class, 'questions'])->name('questionsPage');
     Route::get('/learning-materials', [PostController::class, 'learningMaterials'])->name('learningMaterialsPage');
+    Route::get('/following', [FollowerController::class, 'index'])->name('followingPage');
     Route::post('/profilePage/cover', [ProfilePageController::class, 'updateCover'])->name('profilePage.cover.update');
     Route::get('/profilePage/{user?}', [ProfilePageController::class, 'show'])->whereNumber('user')->name('profilePage');
     Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
@@ -38,7 +40,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::post('/comments/{comment}/like', [CommentLikeController::class, 'toggle'])->name('comments.like.toggle');
     Route::inertia('popularPage', 'popularPage')->name('popularPage');
-    Route::inertia('createPostPage', 'createPostPage')->name('createPostPage');
+    Route::get('/createPostPage', [PostController::class, 'create'])->name('createPostPage');
+    Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::post('/posts/{posts}/like',[LikeController::class,'toggle'])->name('like.toggle');
     Route::post('/posts/{post}/save', [PostSaveController::class, 'toggle'])->name('posts.save.toggle');

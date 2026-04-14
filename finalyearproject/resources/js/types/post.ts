@@ -3,6 +3,11 @@ export type PostLanguage = {
     name: string;
 } | null;
 
+export type PostSubject = {
+    id: number;
+    name: string;
+} | null;
+
 export type CommentMention = {
     id: number;
     name: string;
@@ -49,6 +54,7 @@ export type PostItem = {
     title: string;
     content: string;
     post_type: 'material' | 'question' | string;
+    subject?: PostSubject;
     image: string[] | null;
     created_at: string;
     language?: PostLanguage;

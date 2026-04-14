@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'General Studies' => 'Pengajian Umum',
+    'Mathematics' => 'Matematik',
+    'Additional Mathematics' => 'Matematik Tambahan',
+    'Physics' => 'Fizik',
+    'Chemistry' => 'Kimia',
+    'Biology' => 'Biologi',
+    'Science' => 'Sains',
+    'Computer Science' => 'Sains Komputer',
+    'Islamic Studies' => 'Pengajian Islam',
+    'Moral Studies' => 'Pendidikan Moral',
+    'Malay Language' => 'Bahasa Melayu',
+    'English Language' => 'Bahasa Inggeris',
+    'Chinese Language' => 'Bahasa Cina',
+    'Tamil Language' => 'Bahasa Tamil',
+    'History' => 'Sejarah',
+    'Geography' => 'Geografi',
+    'Civics and Citizenship' => 'Kemasyarakatan dan Kewarganegaraan',
+    'Economics' => 'Ekonomi',
+    'Accounting' => 'Perakaunan',
+    'Business Studies' => 'Perdagangan',
+    'Art' => 'Seni',
+    'Music' => 'Muzik',
+    'Physical Education' => 'Pendidikan Jasmani',
+    'Design and Technology' => 'Reka Bentuk dan Teknologi',
+];
