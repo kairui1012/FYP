@@ -47,6 +47,10 @@ class HandleInertiaRequests extends Middleware
             syncLangFiles('aiTranslate'),
             syncLangFiles('leaderboard'),
             syncLangFiles('subjects'),
+            syncLangFiles('category'),
+            syncLangFiles('achievement'),
+            syncLangFiles('bookmark'),
+            syncLangFiles('popular'),
         );
 
         return [

@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\AchievementsController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentLikeController;
+use App\Http\Controllers\BookmarkFolderController;
 use App\Http\Controllers\FollowerController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\LocaleController;
@@ -38,14 +40,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
     Route::get('/posts/{post}/comments/mentions', [CommentController::class, 'mentionables'])->name('comments.mentionables');
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
-    Route::post('/comments/{comment}/like', [CommentLikeController::class, 'toggle'])->name('comments.like.toggle');
-    Route::inertia('popularPage', 'popularPage')->name('popularPage');
+    Route::post('/comments/{comment}/vote', [CommentLikeController::class, 'toggle'])->name('comments.vote.toggle');
+    Route::get('/popularPage', [PostController::class, 'popular'])->name('popularPage');
     Route::get('/createPostPage', [PostController::class, 'create'])->name('createPostPage');
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::post('/posts/{posts}/like',[LikeController::class,'toggle'])->name('like.toggle');
     Route::post('/posts/{post}/save', [PostSaveController::class, 'toggle'])->name('posts.save.toggle');
     Route::post('/users/{user}/follow', [FollowerController::class, 'toggle'])->name('users.follow.toggle');
+    Route::post('/bookmarks/folders', [BookmarkFolderController::class, 'store'])->name('bookmarks.folders.store');
+    Route::patch('/bookmarks/folders/{bookmarkFolder}', [BookmarkFolderController::class, 'update'])->name('bookmarks.folders.update');
+    Route::delete('/bookmarks/folders/{bookmarkFolder}', [BookmarkFolderController::class, 'destroy'])->name('bookmarks.folders.destroy');
+    Route::post('/bookmarks/posts/{post}/move', [BookmarkFolderController::class, 'movePost'])->name('bookmarks.posts.move');
+    
+    // New pages routes
+    Route::get('/achievements', [AchievementsController::class, 'index'])->name('achievements');
+    Route::get('/categories', [PostController::class, 'categories'])->name('categories');
+    Route::get('/bookmarks', [PostController::class, 'bookmarks'])->name('bookmarks');
 });
 
 Route::get('/login/google', [GoogleAuthController::class, 'redirectToProvider'])->name('login.google');

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Post extends Model
 {
@@ -11,6 +13,7 @@ class Post extends Model
         'title',
         'content',
         'post_type',
+        'quiz_data',
         'subject_id',
         'language_id',
         'image',
@@ -20,6 +23,7 @@ class Post extends Model
     {
         return [
             'image' => 'array',
+            'quiz_data' => 'array',
         ];
     }
 
@@ -37,6 +41,18 @@ class Post extends Model
 
     public function saves() {
         return $this->hasMany(PostSave::class);
+    }
+
+    public function bookmarkItems(): HasMany
+    {
+        return $this->hasMany(BookmarkItem::class);
+    }
+
+    public function bookmarkFolders(): BelongsToMany
+    {
+        return $this->belongsToMany(BookmarkFolder::class, 'bookmark_items')
+            ->withPivot(['id', 'user_id', 'created_at', 'updated_at'])
+            ->withTimestamps();
     }
 
     public function language() {

@@ -3,6 +3,11 @@
 return [
     'community_title' => 'Community Leaderboard',
     'community_subtitle' => 'Top contributors in various community activities',
+    'weekly_hot' => 'This Week Hot',
+    'total_ranking' => 'Total Ranking',
+    'weekly_refresh' => 'Weekly refresh',
+    'top_three' => 'Top 3',
+    'ranking_list' => 'Ranking List',
     'top_liked_posts' => 'Top Liked Posts',
     'most_commented_posts' => 'Most Commented Posts',
     'top_comment_contributors' => 'Top Comment Contributors',

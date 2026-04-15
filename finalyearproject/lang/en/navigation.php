@@ -1,12 +1,12 @@
 <?php
 
 return [
-    'home' => 'Home',
-    'questions' => 'Questions',
-    'learning_materials' => 'Learning Materials',
-    'popular' => 'Popular',
-    'leaderboard' => 'Leaderboard',
-    'following' => 'Following',
+    'home' => 'Study Home',
+    'questions' => 'Learning Q&A',
+    'learning_materials' => 'Course Library',
+    'popular' => 'Learning Trends',
+    'leaderboard' => 'Study Leaderboard',
+    'following' => 'Study Circle',
     'login' => 'Login',
     'register' => 'Register',
     'repository' => 'Repository',
@@ -18,7 +18,7 @@ return [
     'profile' => 'Profile',
     'settings' => 'Settings',
     'log_out' => 'Log out',
-    'navigation_menu' => 'Navigation menu',
+    'navigation_menu' => 'Study Navigation',
     'share' => 'Share',
     'save' => 'Save',
     'saved' => 'Saved',
@@ -26,4 +26,7 @@ return [
     'following_action' => 'Following',
     'share_link_copied' => 'Link copied!',
     'share_link_copy_failed' => 'Failed to copy link.',
+    'categories' => 'Subject Categories',
+    'achievements' => 'Learning Milestones',
+    'bookmarks' => 'My Study Folder',
 ];

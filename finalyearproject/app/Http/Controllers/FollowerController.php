@@ -61,10 +61,10 @@ class FollowerController extends Controller
                 'user.socialAccounts:id,user_id,avatar',
                 'language:id,code,name',
             ])
-            ->withCount(['likes', 'comments', 'saves'])
+            ->withCount(['likes', 'comments', 'bookmarkItems as saves_count'])
             ->withExists([
                 'likes as is_liked' => fn ($query) => $query->where('user_id', Auth::id()),
-                'saves as is_saved' => fn ($query) => $query->where('user_id', Auth::id()),
+                'bookmarkItems as is_saved' => fn ($query) => $query->where('user_id', Auth::id()),
             ])
             ->latest()
             ->get()

@@ -31,4 +31,7 @@ return [
     'floor_label' => 'Floor :floor',
     'like' => 'Like',
     'liked' => 'Liked',
+    'upvote' => 'Upvote',
+    'downvote' => 'Downvote',
+    'score' => 'Score',
 ];

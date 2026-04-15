@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\User;
+use App\Services\AchievementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,10 @@ use Inertia\Response;
 
 class ProfilePageController extends Controller
 {
+    public function __construct(private readonly AchievementService $achievementService)
+    {
+    }
+
     public function show(Request $request, ?User $user = null): Response
     {
         /** @var User $viewer */
@@ -30,6 +35,19 @@ class ProfilePageController extends Controller
         $isFollowing = $viewer->id !== $profileUser->id
             ? $viewer->following()->where('following_id', $profileUser->id)->exists()
             : false;
+
+        $achievementData = $this->achievementService->syncUser($profileUser);
+        $earnedBadges = collect($achievementData['earned_badges'])
+            ->map(fn ($badge) => [
+                'id' => $badge->id,
+                'key' => $badge->key,
+                'name' => $badge->name,
+                'description' => $badge->description,
+                'icon' => $badge->icon,
+                'points_required' => $badge->points_required,
+                'awarded_at' => $badge->pivot?->awarded_at ? (string) $badge->pivot->awarded_at : null,
+            ])
+            ->values();
 
         $posts = Post::query()
             ->where('user_id', $profileUser->id)
@@ -59,6 +77,8 @@ class ProfilePageController extends Controller
                 'avatar' => $avatar,
                 'cover_image' => $profileUser->profile?->cover_image ?? $profileUser->cover_image,
                 'is_following' => $isFollowing,
+                'points' => $achievementData['points'],
+                'badges' => $earnedBadges,
             ],
             'can_edit_cover' => $viewer->id === $profileUser->id,
             'posts' => $posts,

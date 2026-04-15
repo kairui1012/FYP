@@ -21,7 +21,8 @@ import type {
 } from '@/types';
 import {
     AtSign,
-    Heart,
+    ChevronDown,
+    ChevronUp,
     ImagePlus,
     LoaderCircle,
     Send,
@@ -149,7 +150,7 @@ export function CommentSection({
         id: number;
         name: string;
     } | null>(null);
-    const [likingCommentIds, setLikingCommentIds] = useState<number[]>([]);
+    const [votingCommentIds, setVotingCommentIds] = useState<number[]>([]);
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -445,13 +446,16 @@ export function CommentSection({
                 : null;
 
             if (!response.ok) {
+                const fallbackText = responseType.includes('application/json')
+                    ? ''
+                    : await response.text().catch(() => '');
                 const nextError =
                     Object.values(payload?.errors ?? {})
                         .flat()
                         .find(Boolean) ??
                     (response.status >= 500
                         ? t.serverErrorPost
-                        : t.failedPost);
+                        : fallbackText.trim() || t.failedPost);
 
                 setErrorMessage(nextError);
                 toast.error(nextError);
@@ -483,7 +487,9 @@ export function CommentSection({
             resetComposer();
             toast.success(t.commentPosted);
         } catch (error) {
-            const nextError = t.genericPostError;
+            const nextError = error instanceof Error && error.message.trim() !== ''
+                ? error.message
+                : t.genericPostError;
             setErrorMessage(nextError);
             toast.error(nextError);
         } finally {
@@ -502,8 +508,8 @@ export function CommentSection({
         });
     };
 
-    const handleToggleCommentLike = async (commentId: number) => {
-        if (likingCommentIds.includes(commentId)) {
+    const handleToggleCommentVote = async (commentId: number, direction: 'up' | 'down') => {
+        if (votingCommentIds.includes(commentId)) {
             return;
         }
 
@@ -511,38 +517,76 @@ export function CommentSection({
             document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
                 ?.content ?? '';
 
-        setLikingCommentIds((previous) => [...previous, commentId]);
+        setVotingCommentIds((previous) => [...previous, commentId]);
 
         try {
-            const response = await fetch(`/comments/${commentId}/like`, {
+            const response = await fetch(`/comments/${commentId}/vote`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
+                    'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': csrfToken,
                     'X-Requested-With': 'XMLHttpRequest',
                 },
+                body: JSON.stringify({ direction }),
             });
 
             if (!response.ok) {
-                throw new Error('Failed to toggle comment like.');
+                const responseType = response.headers.get('content-type') ?? '';
+                let nextError = trans(page, 'comment.generic_post_error');
+
+                if (responseType.includes('application/json')) {
+                    const payload = (await response.json().catch(() => null)) as
+                        | { message?: string; errors?: Record<string, string[]> }
+                        | null;
+
+                    nextError =
+                        Object.values(payload?.errors ?? {})
+                            .flat()
+                            .find(Boolean) ??
+                        payload?.message ??
+                        nextError;
+                } else {
+                    const text = await response.text().catch(() => '');
+                    if (text.trim() !== '') {
+                        nextError = text.trim();
+                    }
+                }
+
+                throw new Error(nextError);
             }
 
             const payload = (await response.json()) as {
-                liked: boolean;
-                likes_count: number;
+                vote: number | null;
+                is_upvoted: boolean;
+                is_downvoted: boolean;
+                upvotes_count: number;
+                downvotes_count: number;
+                score: number;
             };
 
             setComments((previous) =>
-                updateCommentTree(previous, commentId, (item) => ({
-                    ...item,
-                    is_liked: payload.liked,
-                    likes_count: payload.likes_count,
-                })),
+                sortCommentTree(
+                    updateCommentTree(previous, commentId, (item) => ({
+                        ...item,
+                        user_vote: payload.vote ?? 0,
+                        is_liked: payload.is_upvoted,
+                        is_upvoted: payload.is_upvoted,
+                        is_downvoted: payload.is_downvoted,
+                        likes_count: payload.upvotes_count,
+                        upvotes_count: payload.upvotes_count,
+                        downvotes_count: payload.downvotes_count,
+                        score: payload.score,
+                    })),
+                ),
             );
-        } catch {
-            toast.error(t.genericPostError);
+        } catch (error) {
+            const nextError = error instanceof Error && error.message.trim() !== ''
+                ? error.message
+                : t.genericPostError;
+            toast.error(nextError);
         } finally {
-            setLikingCommentIds((previous) =>
+            setVotingCommentIds((previous) =>
                 previous.filter((id) => id !== commentId),
             );
         }
@@ -569,8 +613,9 @@ export function CommentSection({
                     floor={floor}
                     depth={depth}
                     onReply={() => handleReplyClick(comment)}
-                    onToggleLike={() => void handleToggleCommentLike(comment.id)}
-                    liking={likingCommentIds.includes(comment.id)}
+                        onUpvote={() => void handleToggleCommentVote(comment.id, 'up')}
+                        onDownvote={() => void handleToggleCommentVote(comment.id, 'down')}
+                        voting={votingCommentIds.includes(comment.id)}
                 />
 
                 {comment.replies && comment.replies.length > 0
@@ -682,7 +727,7 @@ export function CommentSection({
                                         )
                                     }
                                     placeholder={t.writePlaceholder}
-                                    className="min-h-[84px] w-full resize-none rounded-xl border-0 bg-zinc-100 px-5 py-4 text-base leading-7 text-zinc-800 outline-none transition placeholder:text-zinc-500 focus:bg-zinc-200/80 focus:ring-0"
+                                    className="min-h-21 w-full resize-none rounded-xl border-0 bg-zinc-100 px-5 py-4 text-base leading-7 text-zinc-800 outline-none transition placeholder:text-zinc-500 focus:bg-zinc-200/80 focus:ring-0"
                                 />
 
                                 {activeMention && (
@@ -835,27 +880,60 @@ function CommentCard({
     floor,
     depth,
     onReply,
-    onToggleLike,
-    liking,
+    onUpvote,
+    onDownvote,
+    voting,
     className,
 }: {
     comment: CommentItem;
     floor: number;
     depth: number;
     onReply: () => void;
-    onToggleLike: () => void;
-    liking: boolean;
+    onUpvote: () => void;
+    onDownvote: () => void;
+    voting: boolean;
     className?: string;
 }) {
     const page = usePage<SharedPageProps>();
     const userName = comment.user?.name ?? trans(page, 'comment.unknown_user');
-    const likeText = comment.is_liked
-        ? trans(page, 'comment.liked')
-        : trans(page, 'comment.like');
+    const score = comment.score ?? ((comment.upvotes_count ?? 0) - (comment.downvotes_count ?? 0));
+    const scoreColor = score > 0 ? 'text-emerald-600' : score < 0 ? 'text-rose-600' : 'text-zinc-700';
+    const isUpvoted = Boolean(comment.is_upvoted ?? comment.is_liked);
+    const isDownvoted = Boolean(comment.is_downvoted);
 
     return (
         <article className={cn('py-4', className)}>
             <div className="flex items-start gap-3">
+                <div className="mt-0.5 inline-flex flex-col items-center overflow-hidden rounded-full border border-zinc-200 bg-white">
+                    <button
+                        type="button"
+                        onClick={onUpvote}
+                        disabled={voting}
+                        className={cn(
+                            'inline-flex cursor-pointer items-center justify-center px-2.5 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60',
+                            isUpvoted ? 'bg-emerald-50 text-emerald-700' : 'text-zinc-600 hover:bg-zinc-50',
+                        )}
+                        aria-label={trans(page, 'comment.upvote')}
+                    >
+                        <ChevronUp className={cn('h-4 w-4', isUpvoted ? 'text-emerald-600' : '')} />
+                    </button>
+                    <div className={cn('px-2.5 py-1 text-xs font-semibold', scoreColor)}>
+                        {score}
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onDownvote}
+                        disabled={voting}
+                        className={cn(
+                            'inline-flex cursor-pointer items-center justify-center px-2.5 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60',
+                            isDownvoted ? 'bg-rose-50 text-rose-700' : 'text-zinc-600 hover:bg-zinc-50',
+                        )}
+                        aria-label={trans(page, 'comment.downvote')}
+                    >
+                        <ChevronDown className={cn('h-4 w-4', isDownvoted ? 'text-rose-600' : '')} />
+                    </button>
+                </div>
+
                 <Link
                     href={
                         comment.user?.id
@@ -935,29 +1013,16 @@ function CommentCard({
                         </div>
                     )}
 
-                    <div className="mt-3 flex items-center gap-4">
-                        <button
-                            type="button"
-                            onClick={onReply}
-                            className="text-xs font-medium text-zinc-500 transition hover:text-zinc-800"
-                        >
-                            {trans(page, 'comment.reply')}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={onToggleLike}
-                            disabled={liking}
-                            className="inline-flex items-center gap-1 text-xs font-medium text-zinc-500 transition hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            <Heart
-                                className={cn(
-                                    'h-3.5 w-3.5',
-                                    comment.is_liked ? 'fill-rose-500 text-rose-500' : '',
-                                )}
-                            />
-                            <span>{likeText}</span>
-                            <span>{comment.likes_count ?? 0}</span>
-                        </button>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <div className="inline-flex items-center overflow-hidden rounded-full border border-zinc-200 bg-white">
+                            <button
+                                type="button"
+                                onClick={onReply}
+                                className="inline-flex cursor-pointer items-center justify-center px-2.5 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900"
+                            >
+                                {trans(page, 'comment.reply')}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1012,6 +1077,29 @@ function updateCommentTree(
             replies: updateCommentTree(item.replies, commentId, updater),
         };
     });
+}
+
+function sortCommentTree(items: CommentItem[]): CommentItem[] {
+    const scoreOf = (item: CommentItem) => (item.score ?? ((item.upvotes_count ?? 0) - (item.downvotes_count ?? 0)));
+
+    return [...items]
+        .sort((left, right) => {
+            const scoreDelta = scoreOf(right) - scoreOf(left);
+            if (scoreDelta !== 0) {
+                return scoreDelta;
+            }
+
+            const upvoteDelta = (right.upvotes_count ?? 0) - (left.upvotes_count ?? 0);
+            if (upvoteDelta !== 0) {
+                return upvoteDelta;
+            }
+
+            return new Date(left.created_at).getTime() - new Date(right.created_at).getTime();
+        })
+        .map((item) => ({
+            ...item,
+            replies: item.replies ? sortCommentTree(item.replies) : item.replies,
+        }));
 }
 
 function renderCommentContent(

@@ -30,6 +30,12 @@ export type CommentItem = {
     mentions?: CommentMention[] | null;
     created_at: string;
     likes_count?: number;
+    upvotes_count?: number;
+    downvotes_count?: number;
+    score?: number;
+    user_vote?: number;
+    is_upvoted?: boolean;
+    is_downvoted?: boolean;
     is_liked?: boolean;
     replies?: CommentItem[];
     user?: CommentUser;
@@ -49,14 +55,23 @@ export type PostUser = {
     is_following?: boolean;
 } | null;
 
+export type QuizData = {
+    options: [string, string, string, string] | string[];
+    answer_index: number;
+} | null;
+
 export type PostItem = {
     id: number;
     title: string;
     content: string;
-    post_type: 'material' | 'question' | string;
+    post_type: 'material' | 'question' | 'quiz' | string;
+    quiz_data?: QuizData;
     subject?: PostSubject;
     image: string[] | null;
     created_at: string;
+    saved_at?: string | null;
+    bookmark_folder_id?: number | null;
+    bookmark_item_id?: number | null;
     language?: PostLanguage;
     user?: PostUser;
     likes_count?: number;
@@ -65,4 +80,11 @@ export type PostItem = {
     is_liked?: boolean;
     is_saved?: boolean;
     comments?: CommentItem[] | null;
+};
+
+export type BookmarkFolderItem = {
+    id: number;
+    name: string;
+    is_default: boolean;
+    items_count: number;
 };

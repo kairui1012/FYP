@@ -20,6 +20,9 @@ return [
     'no_posts_yet' => 'Belum ada kiriman.',
     'likes' => 'suka',
     'comments' => 'komen',
+    'points' => 'Mata',
+    'badges' => 'Lencana',
+    'no_badges_yet' => 'Belum ada lencana.',
     'attachment_single' => 'lampiran',
     'attachment_plural' => 'lampiran',
 ];

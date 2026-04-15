@@ -1,12 +1,12 @@
 <?php
 
 return [
-    'home' => '首页',
-    'questions' => '问题',
-    'learning_materials' => '学习资料',
-    'popular' => '热门',
-    'leaderboard' => '排行榜',
-    'following' => '关注中',
+    'home' => '学习首页',
+    'questions' => '学习问答',
+    'learning_materials' => '课程资料库',
+    'popular' => '学习热点',
+    'leaderboard' => '学习榜单',
+    'following' => '同学动态',
     'login' => '登录',
     'register' => '注册',
     'repository' => '代码仓库',
@@ -18,7 +18,7 @@ return [
     'profile' => '个人资料',
     'settings' => '设置',
     'log_out' => '退出登录',
-    'navigation_menu' => '导航菜单',
+    'navigation_menu' => '学习导航',
     'share' => '分享',
     'save' => '收藏',
     'saved' => '已收藏',
@@ -26,4 +26,7 @@ return [
     'following_action' => '已关注',
     'share_link_copied' => '链接已复制！',
     'share_link_copy_failed' => '复制链接失败。',
+    'categories' => '学科分类',
+    'achievements' => '学习成就',
+    'bookmarks' => '我的学习夹',
 ];

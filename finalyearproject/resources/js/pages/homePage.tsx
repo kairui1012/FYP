@@ -6,24 +6,42 @@ import { BtnComment } from '@/components/ui/btn-comment';
 import { BtnFollow } from '@/components/ui/btn-follow';
 import { BtnLike } from '@/components/ui/btn-like';
 import { BtnShare } from '@/components/ui/btn-share';
-import { formatTimeAgo, getLanguageLabel } from '@/lib/post-utils';
+import { BtnSave } from '@/components/ui/btn-save';
+import { formatTimeAgo } from '@/lib/post-utils';
 import AppLayout from '@/layouts/app-layout';
 import { homePage } from '@/routes';
 import type { BreadcrumbItem, PostItem } from '@/types';
 import { usePage } from '@inertiajs/react';
 import like from '@/routes/like';
+import { formatFormulaText } from '@/lib/formula-display';
 
 type PostFooterProps = {
     likes: number;
     liked: boolean;
     loading?: boolean;
+    saves: number;
+    saved: boolean;
+    saveLoading?: boolean;
     comments: number;
     postId: number;
     onLike: (postId: number) => void;
     onComment: (postId: number) => void;
+    onSave: (postId: number) => void;
 };
 
-function PostFooter({ likes, liked, loading = false, comments, postId, onLike, onComment }: PostFooterProps) {
+function PostFooter({
+    likes,
+    liked,
+    loading = false,
+    saves,
+    saved,
+    saveLoading = false,
+    comments,
+    postId,
+    onLike,
+    onComment,
+    onSave,
+}: PostFooterProps) {
     return (
         <div className="mt-2 flex items-center gap-3 text-sm text-zinc-900">
             <BtnLike
@@ -37,6 +55,12 @@ function PostFooter({ likes, liked, loading = false, comments, postId, onLike, o
                 count={comments}
                 className="mb-2"
                 onClick={() => onComment(postId)}
+            />
+            <BtnSave
+                count={saves}
+                saved={saved}
+                loading={saveLoading}
+                onClick={() => onSave(postId)}
             />
             <BtnShare className="mb-2" />
         </div>
@@ -62,6 +86,7 @@ function getLangBadgeProps(code: string) {
 }
 
 function getPostTypeBadgeProps(type: string) {
+    if (type === 'quiz') return { bg: 'bg-amber-100', text: 'text-amber-700' };
     if (type === 'question') return { bg: 'bg-emerald-100', text: 'text-emerald-700' };
     return { bg: 'bg-violet-100', text: 'text-violet-700' };
 }
@@ -98,6 +123,18 @@ export default function HomePage({ posts = [] }: HomePageProps) {
         )
     );
     const [likingPostIds, setLikingPostIds] = useState<number[]>([]);
+    const [saveStateByPost, setSaveStateByPost] = useState<Record<number, { saved: boolean; savesCount: number }>>(
+        () => Object.fromEntries(
+            posts.map((post) => [
+                post.id,
+                {
+                    saved: Boolean(post.is_saved),
+                    savesCount: post.saves_count ?? 0,
+                },
+            ])
+        )
+    );
+    const [savingPostIds, setSavingPostIds] = useState<number[]>([]);
     const [followStateByUser, setFollowStateByUser] = useState<Record<number, boolean>>(() => {
         const states: Record<number, boolean> = {};
         posts.forEach((post) => {
@@ -114,7 +151,7 @@ export default function HomePage({ posts = [] }: HomePageProps) {
     };
 
     const goToPostComments = (postId: number) => {
-        router.visit(`/posts/${postId}#comments`);
+        router.visit(`/posts/${postId}?focus=comments`);
     };
 
     const handleLike = async (postId: number) => {
@@ -166,6 +203,67 @@ export default function HomePage({ posts = [] }: HomePageProps) {
                 setLikingPostIds((prev) => prev.filter((id) => id !== postId));
             },
         });
+    };
+
+    const handleSave = async (postId: number) => {
+        if (savingPostIds.includes(postId)) {
+            return;
+        }
+
+        const previous = saveStateByPost[postId] ?? { saved: false, savesCount: 0 };
+        const optimisticSaved = !previous.saved;
+        const optimisticSavesCount = Math.max(
+            0,
+            previous.savesCount + (optimisticSaved ? 1 : -1)
+        );
+
+        setSavingPostIds((prev) => [...prev, postId]);
+        setSaveStateByPost((prev) => ({
+            ...prev,
+            [postId]: {
+                saved: optimisticSaved,
+                savesCount: optimisticSavesCount,
+            },
+        }));
+
+        const csrfToken =
+            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+                ?.content ?? '';
+
+        try {
+            const response = await fetch(`/posts/${postId}/save`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to toggle save.');
+            }
+
+            const payload = (await response.json()) as {
+                saved: boolean;
+                saves_count: number;
+            };
+
+            setSaveStateByPost((prev) => ({
+                ...prev,
+                [postId]: {
+                    saved: payload.saved,
+                    savesCount: payload.saves_count,
+                },
+            }));
+        } catch {
+            setSaveStateByPost((prev) => ({
+                ...prev,
+                [postId]: previous,
+            }));
+        } finally {
+            setSavingPostIds((prev) => prev.filter((id) => id !== postId));
+        }
     };
 
     const handleFollowToggle = async (userId: number) => {
@@ -295,11 +393,17 @@ export default function HomePage({ posts = [] }: HomePageProps) {
 
                                                 <div className="flex items-center gap-1.5 text-sm text-zinc-500">
                                                     {(() => {
-                                                        const type = post.post_type === 'question' ? 'question' : 'material';
+                                                        const type = post.post_type === 'quiz'
+                                                            ? 'quiz'
+                                                            : post.post_type === 'question'
+                                                                ? 'question'
+                                                                : 'material';
                                                         const { bg, text } = getPostTypeBadgeProps(type);
-                                                        const label = type === 'question'
-                                                            ? trans('createPost.ask_question', page)
-                                                            : trans('createPost.share_material', page);
+                                                        const label = type === 'quiz'
+                                                            ? trans('createPost.create_quiz', page)
+                                                            : type === 'question'
+                                                                ? trans('createPost.ask_question', page)
+                                                                : trans('createPost.share_material', page);
 
                                                         return (
                                                             <span className={`rounded-full px-2 py-0.5 font-medium ${bg} ${text}`}>
@@ -334,7 +438,7 @@ export default function HomePage({ posts = [] }: HomePageProps) {
                                         {post.title}
                                     </h2>
                                     <p className="mb-2 text-base font-medium leading-6 whitespace-pre-wrap text-zinc-700">
-                                        {post.content}
+                                        {formatFormulaText(post.content ?? '')}
                                     </p>
 
                                     <Suspense fallback={<div className="h-48 rounded-xl bg-zinc-100" />}>
@@ -346,6 +450,10 @@ export default function HomePage({ posts = [] }: HomePageProps) {
                                         liked: Boolean(post.is_liked),
                                         likesCount: post.likes_count ?? 0,
                                     };
+                                    const saveState = saveStateByPost[post.id] ?? {
+                                        saved: Boolean(post.is_saved),
+                                        savesCount: post.saves_count ?? 0,
+                                    };
 
                                     return (
                                 <PostFooter
@@ -353,9 +461,13 @@ export default function HomePage({ posts = [] }: HomePageProps) {
                                     likes={likeState.likesCount}
                                     liked={likeState.liked}
                                     loading={likingPostIds.includes(post.id)}
+                                    saves={saveState.savesCount}
+                                    saved={saveState.saved}
+                                    saveLoading={savingPostIds.includes(post.id)}
                                     comments={post.comments_count ?? 0}
                                     onLike={handleLike}
                                     onComment={goToPostComments}
+                                    onSave={handleSave}
                                 />
                                     );
                                 })()}

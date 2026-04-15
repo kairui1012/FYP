@@ -4,12 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Like;
 use App\Models\Post;
+use App\Services\AchievementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class LikeController extends Controller
 {
+    public function __construct(private readonly AchievementService $achievementService)
+    {
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -34,6 +39,10 @@ class LikeController extends Controller
         }
 
         $likesCount = $posts->likes()->count();
+
+        if ($posts->user) {
+            $this->achievementService->syncUser($posts->user);
+        }
 
         if ($request->expectsJson()) {
             return response()->json([

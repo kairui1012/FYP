@@ -31,4 +31,7 @@ return [
     'floor_label' => '第 :floor 楼',
     'like' => '点赞',
     'liked' => '已点赞',
+    'upvote' => '赞同',
+    'downvote' => '反对',
+    'score' => '分数',
 ];

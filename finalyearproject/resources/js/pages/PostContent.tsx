@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { lazy, Suspense, useEffect, useState, type ReactElement, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState, type ReactElement, type ReactNode } from 'react';
 import { CommentSection } from '@/components/comment-section';
 const PostAttachments = lazy(() => import('@/components/post-attachments').then(m => ({ default: m.PostAttachments })));
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,6 +15,7 @@ import { BtnSave } from '@/components/ui/btn-save';
 import { BtnShare } from '@/components/ui/btn-share';
 import like from '@/routes/like';
 import { BtnAiTranslate } from '@/components/ui/btn-ai-translate';
+import { formatFormulaText } from '@/lib/formula-display';
 
 type PostContentProps = {
     post: PostItem;
@@ -28,6 +29,7 @@ function getLangBadgeProps(code: string) {
 }
 
 function getPostTypeBadgeProps(type: string) {
+    if (type === 'quiz') return { bg: 'bg-amber-100', text: 'text-amber-700' };
     if (type === 'question') return { bg: 'bg-emerald-100', text: 'text-emerald-700' };
     return { bg: 'bg-violet-100', text: 'text-violet-700' };
 }
@@ -49,6 +51,42 @@ function trans(key: string, page: any) {
     return typeof obj === 'string' ? obj : key;
 }
 
+function scrollCommentsInAppContent(commentsSection: HTMLElement | null) {
+    if (!commentsSection) {
+        return;
+    }
+
+    let container: HTMLElement | null = commentsSection.parentElement;
+    while (container) {
+        const { overflowY } = window.getComputedStyle(container);
+        const isScrollable =
+            (overflowY === 'auto' || overflowY === 'scroll') &&
+            container.scrollHeight > container.clientHeight;
+
+        if (isScrollable) {
+            break;
+        }
+
+        container = container.parentElement;
+    }
+
+    const headerOffset = 96;
+
+    if (!container) {
+        const top = commentsSection.getBoundingClientRect().top + window.scrollY - headerOffset;
+        window.scrollTo({ top, behavior: 'smooth' });
+        return;
+    }
+
+    const top =
+        commentsSection.getBoundingClientRect().top -
+        container.getBoundingClientRect().top +
+        container.scrollTop -
+        headerOffset;
+
+    container.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+}
+
 
 
 export default function PostContent({ post }: PostContentProps) {
@@ -66,6 +104,24 @@ export default function PostContent({ post }: PostContentProps) {
     const [saving, setSaving] = useState(false);
     const [isFollowingAuthor, setIsFollowingAuthor] = useState(Boolean(post.user?.is_following));
     const [followingAuthorLoading, setFollowingAuthorLoading] = useState(false);
+    const [selectedQuizOption, setSelectedQuizOption] = useState<string>('');
+    const [quizResultState, setQuizResultState] = useState<'correct' | 'wrong' | null>(null);
+    const displayedContent = formatFormulaText(translated?.content ?? post.content ?? '');
+    const quizData = useMemo(() => {
+        const options = Array.isArray(post.quiz_data?.options)
+            ? post.quiz_data.options.filter((value): value is string => typeof value === 'string')
+            : [];
+        const answerIndex = Number(post.quiz_data?.answer_index);
+
+        if (options.length !== 4 || Number.isNaN(answerIndex) || answerIndex < 0 || answerIndex > 3) {
+            return null;
+        }
+
+        return {
+            options,
+            answerIndex,
+        };
+    }, [post.quiz_data]);
 
     useEffect(() => {
         document.documentElement.classList.remove('nprogress-busy');
@@ -84,17 +140,43 @@ export default function PostContent({ post }: PostContentProps) {
     }, [post.comments?.length, post.comments_count, post.is_liked, post.likes_count, post.is_saved, post.saves_count, post.user?.is_following]);
 
     useEffect(() => {
-        if (window.location.hash !== '#comments') {
+        setSelectedQuizOption('');
+        setQuizResultState(null);
+    }, [post.id]);
+
+    useEffect(() => {
+        const url = new URL(window.location.href);
+        const shouldFocusComments =
+            window.location.hash === '#comments' ||
+            url.searchParams.get('focus') === 'comments';
+
+        if (!shouldFocusComments) {
             return;
         }
 
-        const scrollToComments = () => {
-            document
-                .getElementById('comments')
-                ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        };
+        const firstFrame = requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                scrollCommentsInAppContent(document.getElementById('comments'));
+            });
+        });
 
-        requestAnimationFrame(scrollToComments);
+        const clearHashTimeout = window.setTimeout(() => {
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.hash = '';
+            cleanUrl.searchParams.delete('focus');
+            const query = cleanUrl.searchParams.toString();
+
+            window.history.replaceState(
+                null,
+                '',
+                `${cleanUrl.pathname}${query ? `?${query}` : ''}`,
+            );
+        }, 420);
+
+        return () => {
+            cancelAnimationFrame(firstFrame);
+            window.clearTimeout(clearHashTimeout);
+        };
     }, [post.id]);
 
     const handleLike = (postId: number) => {
@@ -230,18 +312,23 @@ export default function PostContent({ post }: PostContentProps) {
             return;
         }
 
-        if (window.location.hash !== '#comments') {
-            window.history.replaceState(null, '', `${window.location.pathname}#comments`);
+        scrollCommentsInAppContent(commentsSection);
+    };
+
+    const handleCheckQuizAnswer = () => {
+        if (!quizData || selectedQuizOption === '') {
+            return;
         }
 
-        commentsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const chosenIndex = Number(selectedQuizOption);
+        setQuizResultState(chosenIndex === quizData.answerIndex ? 'correct' : 'wrong');
     };
 
     return (
         <>
             <Head title={translated?.title ?? post.title} />
 
-            <div className="w-full bg-white pb-20">
+            <div className="w-full bg-white pb-40">
                 <div className="mx-auto w-full max-w-3xl ">
                     <div className="flex items-center justify-between px-4 pt-7 pb-6">
                         <div className="mb-5 flex items-center gap-6">
@@ -299,11 +386,17 @@ export default function PostContent({ post }: PostContentProps) {
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-zinc-500">
                                         {(() => {
-                                            const type = post.post_type === 'question' ? 'question' : 'material';
+                                            const type = post.post_type === 'quiz'
+                                                ? 'quiz'
+                                                : post.post_type === 'question'
+                                                    ? 'question'
+                                                    : 'material';
                                             const { bg, text } = getPostTypeBadgeProps(type);
-                                            const label = type === 'question'
-                                                ? trans('createPost.ask_question', page)
-                                                : trans('createPost.share_material', page);
+                                            const label = type === 'quiz'
+                                                ? trans('createPost.create_quiz', page)
+                                                : type === 'question'
+                                                    ? trans('createPost.ask_question', page)
+                                                    : trans('createPost.share_material', page);
 
                                             return (
                                                 <span className={`rounded-full px-2 py-0.5 font-medium ${bg} ${text}`}>
@@ -337,11 +430,69 @@ export default function PostContent({ post }: PostContentProps) {
                     <h1 className="px-4 pt-2 pb-7 text-2xl font-bold leading-snug text-zinc-950">
                         {translated?.title ?? post.title}
                     </h1>
-                    {(translated?.content ?? post.content) && (
+                    {displayedContent && (
                         <p className="px-4 pb-7 text-base leading-7 whitespace-pre-wrap text-zinc-700">
-                            {translated?.content ?? post.content}
+                            {displayedContent}
                         </p>
                     )}
+                    {post.post_type === 'quiz' && quizData ? (
+                        <div className="mx-4 mb-7 rounded-2xl border border-amber-200 bg-amber-50/40 p-4">
+                            <p className="text-sm font-semibold text-amber-800">
+                                {trans('createPost.quiz_take_label', page)}
+                            </p>
+                            <div className="mt-3 space-y-2">
+                                {quizData.options.map((option, index) => {
+                                    const optionLabel = String.fromCharCode(65 + index);
+
+                                    return (
+                                        <label
+                                            key={optionLabel}
+                                            className="flex cursor-pointer items-center gap-3 rounded-xl border border-amber-200 bg-white px-3 py-2 text-sm text-zinc-700"
+                                        >
+                                            <input
+                                                type="radio"
+                                                name={`quiz-option-${post.id}`}
+                                                value={index}
+                                                checked={selectedQuizOption === String(index)}
+                                                onChange={(event) => {
+                                                    setSelectedQuizOption(event.target.value);
+                                                    setQuizResultState(null);
+                                                }}
+                                                className="h-4 w-4 accent-amber-600"
+                                            />
+                                            <span className="font-semibold text-amber-700">{optionLabel}.</span>
+                                            <span>{option}</span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={handleCheckQuizAnswer}
+                                className="mt-4 rounded-full border border-amber-500 bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600"
+                            >
+                                {trans('createPost.quiz_check_answer', page)}
+                            </button>
+
+                            {selectedQuizOption === '' ? (
+                                <p className="mt-2 text-xs text-amber-700">{trans('createPost.quiz_select_required', page)}</p>
+                            ) : null}
+
+                            {quizResultState === 'correct' ? (
+                                <p className="mt-3 text-sm font-semibold text-emerald-700">
+                                    {trans('createPost.quiz_correct', page)}
+                                </p>
+                            ) : null}
+
+                            {quizResultState === 'wrong' ? (
+                                <p className="mt-3 text-sm font-semibold text-rose-700">
+                                    {trans('createPost.quiz_wrong', page)} {trans('createPost.quiz_correct_answer_prefix', page)}{' '}
+                                    {String.fromCharCode(65 + quizData.answerIndex)}.
+                                </p>
+                            ) : null}
+                        </div>
+                    ) : null}
                     <Suspense fallback={<div className="h-64 rounded-xl bg-zinc-100" />}>
                         <PostAttachments files={post.image} />
                     </Suspense>
@@ -366,7 +517,7 @@ export default function PostContent({ post }: PostContentProps) {
                         onTranslate={setTranslated}
                     />
                     <div className=" w-full border-t border-zinc-200 my-10"></div>
-                    <div id="comments">
+                    <div id="comments" className="scroll-mt-40 pb-32">
                         <CommentSection
                             post={post}
                             onCommentsCountChange={setCommentsCount}

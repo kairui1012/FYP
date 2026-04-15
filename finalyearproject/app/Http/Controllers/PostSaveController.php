@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BookmarkFolder;
+use App\Models\BookmarkItem;
 use App\Models\Post;
-use App\Models\PostSave;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -11,8 +12,11 @@ class PostSaveController extends Controller
 {
     public function toggle(Request $request, Post $post): JsonResponse
     {
-        $existingSave = PostSave::query()
-            ->where('user_id', $request->user()->id)
+        $user = $request->user();
+        $defaultFolder = BookmarkFolder::defaultFor($user);
+
+        $existingSave = BookmarkItem::query()
+            ->where('user_id', $user->id)
             ->where('post_id', $post->id)
             ->first();
 
@@ -21,8 +25,9 @@ class PostSaveController extends Controller
         if ($existingSave) {
             $existingSave->delete();
         } else {
-            PostSave::query()->create([
-                'user_id' => $request->user()->id,
+            BookmarkItem::query()->create([
+                'user_id' => $user->id,
+                'bookmark_folder_id' => $defaultFolder->id,
                 'post_id' => $post->id,
             ]);
             $isSaved = true;
@@ -30,7 +35,7 @@ class PostSaveController extends Controller
 
         return response()->json([
             'saved' => $isSaved,
-            'saves_count' => $post->saves()->count(),
+            'saves_count' => $post->bookmarkItems()->count(),
         ]);
     }
 }

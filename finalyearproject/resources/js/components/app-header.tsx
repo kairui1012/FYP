@@ -61,14 +61,14 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'questions',
-        href: '/questions',
-        icon: CircleHelp,
-    },
-    {
         title: 'learning_materials',
         href: '/learning-materials',
         icon: BookOpen,
+    },
+    {
+        title: 'questions',
+        href: '/questions',
+        icon: CircleHelp,
     },
 ];
 

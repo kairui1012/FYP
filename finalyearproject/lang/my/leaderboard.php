@@ -3,6 +3,11 @@
 return [
     'community_title' => 'Papan Ketingkatan Komuniti',
     'community_subtitle' => 'Penyumbang teratas dalam pelbagai aktiviti komuniti',
+    'weekly_hot' => 'Paling Hangat Minggu Ini',
+    'total_ranking' => 'Kedudukan Keseluruhan',
+    'weekly_refresh' => 'Dikemas kini mingguan',
+    'top_three' => '3 Teratas',
+    'ranking_list' => 'Senarai Kedudukan',
     'top_liked_posts' => 'Kiriman Teratas Disukai',
     'most_commented_posts' => 'Kiriman Paling Banyak Dikomen',
     'top_comment_contributors' => 'Penyumbang Komen Teratas',

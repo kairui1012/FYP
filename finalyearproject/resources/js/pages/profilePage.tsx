@@ -14,6 +14,16 @@ type ProfileUser = {
     avatar?: string | null;
     cover_image?: string | null;
     is_following?: boolean;
+    points?: number;
+    badges?: {
+        id: number;
+        key: string;
+        name: string;
+        description: string;
+        icon?: string | null;
+        points_required: number;
+        awarded_at?: string | null;
+    }[];
 };
 
 type ProfilePost = {
@@ -61,6 +71,9 @@ export default function ProfilePage() {
         comments: trans('profile.comments'),
         attachmentSingle: trans('profile.attachment_single'),
         attachmentPlural: trans('profile.attachment_plural'),
+        points: trans('profile.points'),
+        badges: trans('profile.badges'),
+        noBadgesYet: trans('profile.no_badges_yet'),
     };
     const displayName = profileUser.name?.trim() || t.defaultUserName;
     const firstLetter = displayName.charAt(0).toUpperCase();
@@ -363,6 +376,9 @@ export default function ProfilePage() {
                                 <p className="text-sm text-zinc-500">
                                     @user-{profileUser.id}
                                 </p>
+                                <p className="mt-1 inline-flex items-center rounded-sm bg-zinc-900 px-2 py-1 text-xs font-semibold text-white">
+                                    {t.points}: {profileUser.points ?? 0}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -406,6 +422,31 @@ export default function ProfilePage() {
                                     onTranslate={setTranslatedAbout}
                                 />
                             ) : null}
+                        </div>
+                    </div>
+
+                    <div className="border-t border-zinc-200" />
+
+                    <div className="grid gap-6 py-6 md:grid-cols-[180px_1fr] md:gap-10">
+                        <p className="text-sm font-medium tracking-wide text-zinc-400 uppercase">
+                            {t.badges}
+                        </p>
+                        <div>
+                            {profileUser.badges && profileUser.badges.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {profileUser.badges.map((badge) => (
+                                        <span
+                                            key={badge.id}
+                                            className="inline-flex items-center rounded-sm bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800"
+                                            title={badge.description}
+                                        >
+                                            {badge.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-zinc-500">{t.noBadgesYet}</p>
+                            )}
                         </div>
                     </div>
 

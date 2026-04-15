@@ -30,6 +30,10 @@ class SetLocale
 
         syncLangFiles('navigation');
         syncLangFiles('createPost');
+        syncLangFiles('category');
+        syncLangFiles('achievement');
+        syncLangFiles('bookmark');
+        syncLangFiles('popular');
 
         return $next($request);
     }

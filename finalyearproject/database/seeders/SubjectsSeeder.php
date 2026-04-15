@@ -25,6 +25,8 @@ class SubjectsSeeder extends Seeder
             'History',
             'Geography',
             'English',
+            'Chinese',
+            'Malay',
         ];
 
         foreach ($subjects as $subject) {

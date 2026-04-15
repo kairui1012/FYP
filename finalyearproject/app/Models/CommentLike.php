@@ -9,7 +9,15 @@ class CommentLike extends Model
     protected $fillable = [
         'user_id',
         'comment_id',
+        'vote',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'vote' => 'integer',
+        ];
+    }
 
     public function user()
     {

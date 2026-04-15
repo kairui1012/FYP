@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'English' => '语文',
+    'Chinese' => '华语',
+    'Malay' => '马来语',
+    'Business' => '商业',
     'General Studies' => '通识教育',
     'Mathematics' => '数学',
     'Additional Mathematics' => '附加数学',
@@ -12,7 +16,7 @@ return [
     'Islamic Studies' => '伊斯兰研究',
     'Moral Studies' => '道德教育',
     'Malay Language' => '马来语',
-    'English Language' => '英语',
+    'English Language' => '语文',
     'Chinese Language' => '华语',
     'Tamil Language' => '泰米尔语',
     'History' => '历史',

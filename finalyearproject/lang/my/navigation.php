@@ -1,12 +1,12 @@
 <?php
 
 return [
-    'home' => 'Laman utama',
-    'questions' => 'Soalan',
-    'learning_materials' => 'Bahan Pembelajaran',
-    'popular' => 'Popular',
-    'leaderboard' => 'Papan Pendahulu',
-    'following' => 'Diikuti',
+    'home' => 'Laman Pembelajaran',
+    'questions' => 'Soal Jawab Pembelajaran',
+    'learning_materials' => 'Perpustakaan Kursus',
+    'popular' => 'Trend Pembelajaran',
+    'leaderboard' => 'Papan Kedudukan Belajar',
+    'following' => 'Rakan Belajar',
     'login' => 'Log masuk',
     'register' => 'Daftar',
     'repository' => 'Repositori',
@@ -18,7 +18,7 @@ return [
     'profile' => 'Profil',
     'settings' => 'Tetapan',
     'log_out' => 'Log keluar',
-    'navigation_menu' => 'Menu navigasi',
+    'navigation_menu' => 'Navigasi Pembelajaran',
     'share' => 'Kongsi',
     'save' => 'Simpan',
     'saved' => 'Disimpan',
@@ -26,4 +26,7 @@ return [
     'following_action' => 'Mengikuti',
     'share_link_copied' => 'Pautan telah disalin!',
     'share_link_copy_failed' => 'Gagal menyalin pautan.',
+    'categories' => 'Kategori Subjek',
+    'achievements' => 'Pencapaian Pembelajaran',
+    'bookmarks' => 'Folder Belajar Saya',
 ];

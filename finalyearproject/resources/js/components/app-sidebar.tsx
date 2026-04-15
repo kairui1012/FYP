@@ -1,4 +1,4 @@
-import { BookOpen, ChevronLeft, ChevronRight, CircleHelp, Flame, HomeIcon, Users, Trophy } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, CircleHelp, Flame, Folder, Trophy, Star, HomeIcon, Users, Bookmark } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { reactLang } from '@erag/lang-sync-inertia';
 import { NavMain } from '@/components/nav-main';
@@ -72,14 +72,14 @@ export function AppSidebar({ className }: AppSidebarProps) {
             icon: HomeIcon,
         },
         {
-            title: trans('navigation.questions'),
-            href: '/questions',
-            icon: CircleHelp,
-        },
-        {
             title: trans('navigation.learning_materials'),
             href: '/learning-materials',
             icon: BookOpen,
+        },
+        {
+            title: trans('navigation.questions'),
+            href: '/questions',
+            icon: CircleHelp,
         },
         {
             title: trans('navigation.popular'),
@@ -87,14 +87,29 @@ export function AppSidebar({ className }: AppSidebarProps) {
             icon: Flame,
         },
         {
+            title: trans('navigation.following'),
+            href: '/following',
+            icon: Users,
+        },
+        {
+            title: trans('navigation.bookmarks'),
+            href: '/bookmarks',
+            icon: Bookmark,
+        },
+        {
             title: trans('navigation.leaderboard'),
             href: '/leaderboard',
             icon: Trophy,
         },
         {
-            title: trans('navigation.following'),
-            href: '/following',
-            icon: Users,
+            title: trans('navigation.achievements'),
+            href: '/achievements',
+            icon: Star,
+        },
+        {
+            title: trans('navigation.categories'),
+            href: '/categories',
+            icon: Folder,
         },
     ];
     const { state, setOpen } = useSidebar();

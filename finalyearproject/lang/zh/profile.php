@@ -20,6 +20,9 @@ return [
     'no_posts_yet' => '还没有帖子。',
     'likes' => '赞',
     'comments' => '评论',
+    'points' => '积分',
+    'badges' => '徽章',
+    'no_badges_yet' => '还没有徽章。',
     'attachment_single' => '个附件',
     'attachment_plural' => '个附件',
 ];

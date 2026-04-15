@@ -20,6 +20,9 @@ return [
     'no_posts_yet' => 'No posts yet.',
     'likes' => 'likes',
     'comments' => 'comments',
+    'points' => 'Points',
+    'badges' => 'Badges',
+    'no_badges_yet' => 'No badges yet.',
     'attachment_single' => 'attachment',
     'attachment_plural' => 'attachments',
 ];

@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Models\CommentLike;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -133,17 +136,18 @@ class CommentController extends Controller
         ]);
 
         if ($request->expectsJson()) {
-            $refreshedComments = $post->comments()
-                ->with([
-                    'user:id,name',
-                    'user.socialAccounts:id,user_id,avatar',
-                ])
-                ->withCount('likes')
-                ->withExists([
-                    'likes as is_liked' => fn ($query) => $query->where('user_id', Auth::id()),
-                ])
-                ->oldest('created_at')
-                ->get();
+            $supportsCommentVotes = $this->supportsCommentVotes();
+
+            try {
+                $refreshedComments = $this->buildRefreshedCommentsQuery($post, $supportsCommentVotes)->get();
+            } catch (QueryException $exception) {
+                if (! $supportsCommentVotes || ! $this->isVoteColumnMissingException($exception)) {
+                    throw $exception;
+                }
+
+                $supportsCommentVotes = false;
+                $refreshedComments = $this->buildRefreshedCommentsQuery($post, false)->get();
+            }
 
             return response()->json([
                 'comment' => $this->serializeComment($comment),
@@ -153,6 +157,53 @@ class CommentController extends Controller
         }
 
         return back();
+    }
+
+    private function buildRefreshedCommentsQuery(Post $post, bool $supportsCommentVotes)
+    {
+        $refreshedComments = $post->comments()
+            ->with([
+                'user:id,name',
+                'user.socialAccounts:id,user_id,avatar',
+            ]);
+
+        if ($supportsCommentVotes) {
+            return $refreshedComments
+                ->with([
+                    'votes:id,user_id,comment_id,vote',
+                ])
+                ->withCount([
+                    'votes as upvotes_count' => fn ($voteQuery) => $voteQuery->where('vote', 1),
+                    'votes as downvotes_count' => fn ($voteQuery) => $voteQuery->where('vote', -1),
+                ])
+                ->withExists([
+                    'votes as is_upvoted' => fn ($voteQuery) => $voteQuery->where('user_id', Auth::id())->where('vote', 1),
+                    'votes as is_downvoted' => fn ($voteQuery) => $voteQuery->where('user_id', Auth::id())->where('vote', -1),
+                ]);
+        }
+
+        return $refreshedComments
+            ->withCount('likes')
+            ->withExists([
+                'likes as is_liked' => fn ($likeQuery) => $likeQuery->where('user_id', Auth::id()),
+            ]);
+    }
+
+    private function supportsCommentVotes(): bool
+    {
+        try {
+            return Schema::hasColumn('comment_likes', 'vote');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    private function isVoteColumnMissingException(QueryException $exception): bool
+    {
+        $message = strtolower($exception->getMessage());
+
+        return str_contains($message, "unknown column 'vote'")
+            || str_contains($message, 'unknown column `vote`');
     }
 
     private function normalizeMentions(mixed $encodedMentions, string $content): array
@@ -226,6 +277,11 @@ class CommentController extends Controller
 
     private function serializeComment(Comment $comment): array
     {
+        $upvotesCount = (int) ($comment->upvotes_count ?? $comment->likes_count ?? 0);
+        $downvotesCount = (int) ($comment->downvotes_count ?? 0);
+        $score = $upvotesCount - $downvotesCount;
+        $userVote = $comment->relationLoaded('votes') ? (int) ($comment->votes->first()?->vote ?? 0) : (int) ($comment->is_liked ?? 0);
+
         return [
             'id' => $comment->id,
             'parent_id' => $comment->parent_id,
@@ -234,8 +290,14 @@ class CommentController extends Controller
             'attachments' => $comment->attachments,
             'mentions' => $comment->mentions,
             'created_at' => optional($comment->created_at)->toISOString(),
-            'likes_count' => (int) ($comment->likes_count ?? 0),
-            'is_liked' => (bool) ($comment->is_liked ?? false),
+            'likes_count' => $upvotesCount,
+            'upvotes_count' => $upvotesCount,
+            'downvotes_count' => $downvotesCount,
+            'score' => $score,
+            'user_vote' => $userVote,
+            'is_liked' => $userVote === 1,
+            'is_upvoted' => $userVote === 1,
+            'is_downvoted' => $userVote === -1,
             'replies' => [],
             'user' => $comment->user ? [
                 'id' => $comment->user->id,
@@ -249,6 +311,9 @@ class CommentController extends Controller
     {
         return $comments
             ->filter(fn (Comment $comment) => $comment->parent_id === $parentId)
+            ->sort(function (Comment $left, Comment $right) {
+                return $this->compareComments($left, $right);
+            })
             ->values()
             ->map(function (Comment $comment) use ($comments, $depth) {
                 $comment->setAttribute('depth', $depth);
@@ -259,6 +324,25 @@ class CommentController extends Controller
                 ];
             })
             ->all();
+    }
+
+    private function compareComments(Comment $left, Comment $right): int
+    {
+        $leftScore = (int) ($left->upvotes_count ?? 0) - (int) ($left->downvotes_count ?? 0);
+        $rightScore = (int) ($right->upvotes_count ?? 0) - (int) ($right->downvotes_count ?? 0);
+
+        if ($leftScore !== $rightScore) {
+            return $rightScore <=> $leftScore;
+        }
+
+        $leftUpvotes = (int) ($left->upvotes_count ?? 0);
+        $rightUpvotes = (int) ($right->upvotes_count ?? 0);
+
+        if ($leftUpvotes !== $rightUpvotes) {
+            return $rightUpvotes <=> $leftUpvotes;
+        }
+
+        return ($left->created_at?->getTimestamp() ?? 0) <=> ($right->created_at?->getTimestamp() ?? 0);
     }
 
     private function resolveAvatar(User $user): ?string

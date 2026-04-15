@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -24,6 +25,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'points',
     ];
 
     /**
@@ -49,6 +51,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'points' => 'integer',
         ];
     }
 
@@ -84,6 +87,16 @@ class User extends Authenticatable
         return $this->hasMany(PostSave::class);
     }
 
+    public function bookmarkFolders(): HasMany
+    {
+        return $this->hasMany(BookmarkFolder::class);
+    }
+
+    public function bookmarkItems(): HasMany
+    {
+        return $this->hasMany(BookmarkItem::class);
+    }
+
     public function following()
     {
         return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id');
@@ -92,5 +105,12 @@ class User extends Authenticatable
     public function followers()
     {
         return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id');
+    }
+
+    public function badges(): BelongsToMany
+    {
+        return $this->belongsToMany(Badge::class)
+            ->withPivot(['awarded_at'])
+            ->withTimestamps();
     }
 }

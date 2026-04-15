@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'English' => 'Bahasa Inggeris',
+    'Chinese' => 'Bahasa Cina',
+    'Malay' => 'Bahasa Melayu',
+    'Business' => 'Perniagaan',
     'General Studies' => 'Pengajian Umum',
     'Mathematics' => 'Matematik',
     'Additional Mathematics' => 'Matematik Tambahan',

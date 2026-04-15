@@ -45,4 +45,19 @@ class Comment extends Model
     {
         return $this->hasMany(CommentLike::class);
     }
+
+    public function votes()
+    {
+        return $this->hasMany(CommentLike::class);
+    }
+
+    public function upvotes()
+    {
+        return $this->votes()->where('vote', 1);
+    }
+
+    public function downvotes()
+    {
+        return $this->votes()->where('vote', -1);
+    }
 }

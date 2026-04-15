@@ -31,4 +31,7 @@ return [
     'floor_label' => 'Tingkat :floor',
     'like' => 'Suka',
     'liked' => 'Disukai',
+    'upvote' => 'Naikkan undi',
+    'downvote' => 'Turunkan undi',
+    'score' => 'Skor',
 ];

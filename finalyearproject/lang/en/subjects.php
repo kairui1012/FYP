@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'English' => 'English',
+    'Chinese' => 'Chinese',
+    'Malay' => 'Malay',
+    'Business' => 'Business',
     'General Studies' => 'General Studies',
     'Mathematics' => 'Mathematics',
     'Additional Mathematics' => 'Additional Mathematics',
