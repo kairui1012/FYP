@@ -18,7 +18,7 @@ return [
     'profile' => 'Profile',
     'settings' => 'Settings',
     'log_out' => 'Log out',
-    'navigation_menu' => 'Study Navigation',
+    'navigation_menu' => 'Navigation',
     'share' => 'Share',
     'save' => 'Save',
     'saved' => 'Saved',

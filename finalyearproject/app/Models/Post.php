@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -15,6 +16,7 @@ class Post extends Model
         'post_type',
         'quiz_data',
         'subject_id',
+        'lesson_id',
         'language_id',
         'image',
     ];
@@ -62,5 +64,10 @@ class Post extends Model
     public function subject()
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    public function lesson(): BelongsTo
+    {
+        return $this->belongsTo(Lesson::class);
     }
 }

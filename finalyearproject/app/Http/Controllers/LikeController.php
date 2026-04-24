@@ -5,14 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Like;
 use App\Models\Post;
 use App\Services\AchievementService;
+use App\Services\ProgressService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class LikeController extends Controller
 {
-    public function __construct(private readonly AchievementService $achievementService)
-    {
+    public function __construct(
+        private readonly AchievementService $achievementService,
+        private readonly ProgressService $progressService,
+    ) {
     }
 
     /**
@@ -42,6 +45,7 @@ class LikeController extends Controller
 
         if ($posts->user) {
             $this->achievementService->syncUser($posts->user);
+            $this->progressService->syncLikesReceived($posts->user);
         }
 
         if ($request->expectsJson()) {

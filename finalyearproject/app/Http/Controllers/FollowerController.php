@@ -97,6 +97,7 @@ class FollowerController extends Controller
         return inertia('homePage', [
             'posts' => $posts,
             'postTypeFilter' => null,
+            'pageContext' => 'following',
         ]);
     }
 }

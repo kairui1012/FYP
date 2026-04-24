@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Achievement;
 use App\Models\User;
+use App\Models\UserAchievement;
+use App\Models\UserProgress;
 use App\Services\AchievementService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -22,29 +25,100 @@ class AchievementsController extends Controller
 
         $result = $this->achievementService->syncUser($user);
 
+        $progress   = UserProgress::query()->where('user_id', $user->id)->first();
+        $achievements = $this->buildAchievementsData($user, $progress);
+
         return Inertia::render('AchievementsPage', [
+            // ── Legacy badge props (kept for backward compat) ─────────────
             'summary' => [
-                'points' => $result['points'],
-                'posts_count' => $result['posts_count'],
+                'points'               => $result['points'],
+                'posts_count'          => $result['posts_count'],
                 'likes_received_count' => $result['likes_received_count'],
             ],
             'badges' => collect($result['earned_badges'])->map(fn ($badge) => [
-                'id' => $badge->id,
-                'key' => $badge->key,
-                'name' => $badge->name,
-                'description' => $badge->description,
-                'icon' => $badge->icon,
+                'id'              => $badge->id,
+                'key'             => $badge->key,
+                'name'            => $badge->name,
+                'description'     => $badge->description,
+                'icon'            => $badge->icon,
                 'points_required' => $badge->points_required,
-                'awarded_at' => $badge->pivot?->awarded_at ? (string) $badge->pivot->awarded_at : null,
+                'awarded_at'      => $badge->pivot?->awarded_at ? (string) $badge->pivot->awarded_at : null,
             ])->values(),
             'next_badge' => $result['next_badge'] ? [
-                'id' => $result['next_badge']->id,
-                'key' => $result['next_badge']->key,
-                'name' => $result['next_badge']->name,
-                'description' => $result['next_badge']->description,
-                'icon' => $result['next_badge']->icon,
+                'id'              => $result['next_badge']->id,
+                'key'             => $result['next_badge']->key,
+                'name'            => $result['next_badge']->name,
+                'description'     => $result['next_badge']->description,
+                'icon'            => $result['next_badge']->icon,
                 'points_required' => $result['next_badge']->points_required,
             ] : null,
+            // ── Progress-based achievement props ──────────────────────────
+            'achievements' => $achievements,
+            'user_progress' => $progress ? [
+                'total_questions_answered' => $progress->total_questions_answered,
+                'total_questions_posted'   => $progress->total_questions_posted,
+                'quizzes_completed'        => $progress->quizzes_completed,
+                'correct_answers_count'    => $progress->correct_answers_count,
+                'total_likes_received'     => $progress->total_likes_received,
+                'improvement_score'        => $progress->improvement_score,
+                'accuracy_pct'             => $progress->total_questions_answered > 0
+                    ? (int) round(($progress->correct_answers_count / $progress->total_questions_answered) * 100)
+                    : 0,
+            ] : null,
         ]);
+    }
+
+    private function buildAchievementsData(User $user, ?UserProgress $progress): array
+    {
+        $earned = UserAchievement::query()
+            ->where('user_id', $user->id)
+            ->get(['achievement_key', 'achieved_at'])
+            ->keyBy('achievement_key');
+
+        $accuracyPct = ($progress && $progress->total_questions_answered > 0)
+            ? (int) round(($progress->correct_answers_count / $progress->total_questions_answered) * 100)
+            : 0;
+
+        return Achievement::query()
+            ->orderBy('category')
+            ->orderBy('threshold')
+            ->get()
+            ->map(function (Achievement $achievement) use ($progress, $earned, $accuracyPct) {
+                $current    = $this->resolveMetricValue($achievement->metric, $progress, $accuracyPct);
+                $userAch    = $earned->get($achievement->key);
+                $progressPct = $achievement->threshold > 0
+                    ? min(100, (int) round(($current / $achievement->threshold) * 100))
+                    : 0;
+
+                return [
+                    'key'          => $achievement->key,
+                    'category'     => $achievement->category,
+                    'icon'         => $achievement->icon,
+                    'threshold'    => $achievement->threshold,
+                    'current'      => $current,
+                    'progress_pct' => $progressPct,
+                    'achieved'     => $userAch !== null,
+                    'achieved_at'  => $userAch ? (string) $userAch->achieved_at : null,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function resolveMetricValue(string $metric, ?UserProgress $progress, int $accuracyPct): int
+    {
+        if (! $progress) {
+            return 0;
+        }
+
+        return match ($metric) {
+            'total_questions_answered' => $progress->total_questions_answered,
+            'total_questions_posted'   => $progress->total_questions_posted,
+            'correct_answers_count'    => $progress->correct_answers_count,
+            'accuracy_pct'             => $accuracyPct,
+            'improvement_score'        => max(0, $progress->improvement_score),
+            'total_likes_received'     => $progress->total_likes_received,
+            default                    => 0,
+        };
     }
 }

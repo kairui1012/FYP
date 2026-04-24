@@ -1,21 +1,29 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { lazy, Suspense, useEffect, useMemo, useState, type ReactElement, type ReactNode } from 'react';
+import { ArrowLeft, Loader2, Sparkles } from 'lucide-react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { CommentSection } from '@/components/comment-section';
-const PostAttachments = lazy(() => import('@/components/post-attachments').then(m => ({ default: m.PostAttachments })));
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatTimeAgo } from '@/lib/post-utils';
-import AppLayout from '@/layouts/app-layout';
-import { homePage } from '@/routes';
-import type { BreadcrumbItem, PostItem } from '@/types';
-import { ArrowLeft } from 'lucide-react';
+import { BtnAiTranslate } from '@/components/ui/btn-ai-translate';
+import { cn } from '@/lib/utils';
+import { explainAnswer } from '@/lib/ai-explain';
 import { BtnComment } from '@/components/ui/btn-comment';
 import { BtnFollow } from '@/components/ui/btn-follow';
 import { BtnLike } from '@/components/ui/btn-like';
 import { BtnSave } from '@/components/ui/btn-save';
 import { BtnShare } from '@/components/ui/btn-share';
-import like from '@/routes/like';
-import { BtnAiTranslate } from '@/components/ui/btn-ai-translate';
+import AppLayout from '@/layouts/app-layout';
 import { formatFormulaText } from '@/lib/formula-display';
+import { formatTimeAgo } from '@/lib/post-utils';
+import { homePage } from '@/routes';
+import like from '@/routes/like';
+import type { BreadcrumbItem, PostItem } from '@/types';
+
+const PostAttachments = lazy(() =>
+    import('@/components/post-attachments').then((m) => ({
+        default: m.PostAttachments,
+    })),
+);
 
 type PostContentProps = {
     post: PostItem;
@@ -24,13 +32,15 @@ type PostContentProps = {
 function getLangBadgeProps(code: string) {
     if (code === 'en') return { bg: 'bg-blue-100', text: 'text-blue-700' };
     if (code === 'zh') return { bg: 'bg-red-100', text: 'text-red-700' };
-    if (code === 'bm' || code === 'my') return { bg: 'bg-yellow-100', text: 'text-yellow-700' };
+    if (code === 'bm' || code === 'my')
+        return { bg: 'bg-yellow-100', text: 'text-yellow-700' };
     return { bg: 'bg-gray-200', text: 'text-gray-700' };
 }
 
 function getPostTypeBadgeProps(type: string) {
     if (type === 'quiz') return { bg: 'bg-amber-100', text: 'text-amber-700' };
-    if (type === 'question') return { bg: 'bg-emerald-100', text: 'text-emerald-700' };
+    if (type === 'question')
+        return { bg: 'bg-emerald-100', text: 'text-emerald-700' };
     return { bg: 'bg-violet-100', text: 'text-violet-700' };
 }
 
@@ -73,7 +83,10 @@ function scrollCommentsInAppContent(commentsSection: HTMLElement | null) {
     const headerOffset = 96;
 
     if (!container) {
-        const top = commentsSection.getBoundingClientRect().top + window.scrollY - headerOffset;
+        const top =
+            commentsSection.getBoundingClientRect().top +
+            window.scrollY -
+            headerOffset;
         window.scrollTo({ top, behavior: 'smooth' });
         return;
     }
@@ -87,12 +100,24 @@ function scrollCommentsInAppContent(commentsSection: HTMLElement | null) {
     container.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
 }
 
-
-
 export default function PostContent({ post }: PostContentProps) {
     const page = usePage();
-    const currentUserId = (page.props as { auth?: { user?: { id?: number } } }).auth?.user?.id;
-    const [translated, setTranslated] = useState<{ title: string; content: string } | null>(null);
+    const currentUserId = (page.props as { auth?: { user?: { id?: number } } })
+        .auth?.user?.id;
+    const isOwner = Boolean(currentUserId && post.user?.id === currentUserId);
+
+    const [translated, setTranslated] = useState<{
+        title: string;
+        content: string;
+    } | null>(null);
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [editTitle, setEditTitle] = useState(post.title);
+    const [editContent, setEditContent] = useState(post.content ?? '');
+    const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+    const [editLoading, setEditLoading] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const [isLiked, setIsLiked] = useState(Boolean(post.is_liked));
     const [likesCount, setLikesCount] = useState(post.likes_count ?? 0);
     const [commentsCount, setCommentsCount] = useState(
@@ -102,18 +127,34 @@ export default function PostContent({ post }: PostContentProps) {
     const [savesCount, setSavesCount] = useState(post.saves_count ?? 0);
     const [liking, setLiking] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [isFollowingAuthor, setIsFollowingAuthor] = useState(Boolean(post.user?.is_following));
+    const [isFollowingAuthor, setIsFollowingAuthor] = useState(
+        Boolean(post.user?.is_following),
+    );
     const [followingAuthorLoading, setFollowingAuthorLoading] = useState(false);
     const [selectedQuizOption, setSelectedQuizOption] = useState<string>('');
-    const [quizResultState, setQuizResultState] = useState<'correct' | 'wrong' | null>(null);
-    const displayedContent = formatFormulaText(translated?.content ?? post.content ?? '');
+    const [quizResultState, setQuizResultState] = useState<
+        'correct' | 'wrong' | null
+    >(null);
+    const [isLoadingAI, setIsLoadingAI] = useState(false);
+    const [aiResponse, setAiResponse] = useState<string | null>(null);
+    const [aiError, setAiError] = useState<string | null>(null);
+    const displayedContent = formatFormulaText(
+        translated?.content ?? post.content ?? '',
+    );
     const quizData = useMemo(() => {
         const options = Array.isArray(post.quiz_data?.options)
-            ? post.quiz_data.options.filter((value): value is string => typeof value === 'string')
+            ? post.quiz_data.options.filter(
+                  (value): value is string => typeof value === 'string',
+              )
             : [];
         const answerIndex = Number(post.quiz_data?.answer_index);
 
-        if (options.length !== 4 || Number.isNaN(answerIndex) || answerIndex < 0 || answerIndex > 3) {
+        if (
+            options.length !== 4 ||
+            Number.isNaN(answerIndex) ||
+            answerIndex < 0 ||
+            answerIndex > 3
+        ) {
             return null;
         }
 
@@ -137,11 +178,21 @@ export default function PostContent({ post }: PostContentProps) {
         setIsSaved(Boolean(post.is_saved));
         setSavesCount(post.saves_count ?? 0);
         setIsFollowingAuthor(Boolean(post.user?.is_following));
-    }, [post.comments?.length, post.comments_count, post.is_liked, post.likes_count, post.is_saved, post.saves_count, post.user?.is_following]);
+    }, [
+        post.comments?.length,
+        post.comments_count,
+        post.is_liked,
+        post.likes_count,
+        post.is_saved,
+        post.saves_count,
+        post.user?.is_following,
+    ]);
 
     useEffect(() => {
         setSelectedQuizOption('');
         setQuizResultState(null);
+        setAiResponse(null);
+        setAiError(null);
     }, [post.id]);
 
     useEffect(() => {
@@ -190,33 +241,41 @@ export default function PostContent({ post }: PostContentProps) {
 
         setLiking(true);
         setIsLiked(optimisticLiked);
-        setLikesCount((count) => Math.max(0, count + (optimisticLiked ? 1 : -1)));
+        setLikesCount((count) =>
+            Math.max(0, count + (optimisticLiked ? 1 : -1)),
+        );
 
-        router.post(like.toggle.url({ posts: postId }), {}, {
-            preserveScroll: true,
-            preserveState: true,
-            only: ['post'],
-            onError: () => {
-                setIsLiked(previousLiked);
-                setLikesCount(previousLikesCount);
-            },
-            onSuccess: (page) => {
-                const nextPost = (page.props as { post?: PostItem }).post;
+        router.post(
+            like.toggle.url({ posts: postId }),
+            {},
+            {
+                preserveScroll: true,
+                preserveState: true,
+                only: ['post'],
+                onError: () => {
+                    setIsLiked(previousLiked);
+                    setLikesCount(previousLikesCount);
+                },
+                onSuccess: (page) => {
+                    const nextPost = (page.props as { post?: PostItem }).post;
 
-                if (!nextPost) {
-                    return;
-                }
+                    if (!nextPost) {
+                        return;
+                    }
 
-                setIsLiked(Boolean(nextPost.is_liked));
-                setLikesCount(nextPost.likes_count ?? 0);
-                setCommentsCount(
-                    nextPost.comments_count ?? nextPost.comments?.length ?? 0,
-                );
+                    setIsLiked(Boolean(nextPost.is_liked));
+                    setLikesCount(nextPost.likes_count ?? 0);
+                    setCommentsCount(
+                        nextPost.comments_count ??
+                            nextPost.comments?.length ??
+                            0,
+                    );
+                },
+                onFinish: () => {
+                    setLiking(false);
+                },
             },
-            onFinish: () => {
-                setLiking(false);
-            },
-        });
+        );
     };
 
     const handleSave = async (postId: number) => {
@@ -230,7 +289,9 @@ export default function PostContent({ post }: PostContentProps) {
 
         setSaving(true);
         setIsSaved(optimisticSaved);
-        setSavesCount((count) => Math.max(0, count + (optimisticSaved ? 1 : -1)));
+        setSavesCount((count) =>
+            Math.max(0, count + (optimisticSaved ? 1 : -1)),
+        );
 
         const csrfToken =
             document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
@@ -296,13 +357,60 @@ export default function PostContent({ post }: PostContentProps) {
                 throw new Error('Follow toggle failed.');
             }
 
-            const payload = (await response.json()) as { is_following: boolean };
+            const payload = (await response.json()) as {
+                is_following: boolean;
+            };
             setIsFollowingAuthor(payload.is_following);
         } catch {
             setIsFollowingAuthor(previous);
         } finally {
             setFollowingAuthorLoading(false);
         }
+    };
+
+    const handleEditStart = () => {
+        setEditTitle(post.title);
+        setEditContent(post.content ?? '');
+        setEditErrors({});
+        setIsEditing(true);
+    };
+
+    const handleEditCancel = () => {
+        setIsEditing(false);
+        setEditErrors({});
+    };
+
+    const handleEditSave = () => {
+        setEditLoading(true);
+        setEditErrors({});
+
+        router.patch(
+            `/posts/${post.id}`,
+            { title: editTitle, content: editContent },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setIsEditing(false);
+                },
+                onError: (errors) => {
+                    setEditErrors(errors as Record<string, string>);
+                },
+                onFinish: () => {
+                    setEditLoading(false);
+                },
+            },
+        );
+    };
+
+    const handleDeleteConfirm = () => {
+        setDeleteLoading(true);
+
+        router.delete(`/posts/${post.id}`, {
+            onError: () => {
+                setDeleteLoading(false);
+                setShowDeleteModal(false);
+            },
+        });
     };
 
     const handleCommentClick = () => {
@@ -315,13 +423,61 @@ export default function PostContent({ post }: PostContentProps) {
         scrollCommentsInAppContent(commentsSection);
     };
 
-    const handleCheckQuizAnswer = () => {
+    const handleCheckQuizAnswer = async () => {
         if (!quizData || selectedQuizOption === '') {
             return;
         }
 
         const chosenIndex = Number(selectedQuizOption);
-        setQuizResultState(chosenIndex === quizData.answerIndex ? 'correct' : 'wrong');
+        const isCorrect = chosenIndex === quizData.answerIndex;
+        setQuizResultState(isCorrect ? 'correct' : 'wrong');
+
+        const csrfToken =
+            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+                ?.content ?? '';
+
+        // Always POST — backend records the attempt for progress tracking regardless of correctness.
+        try {
+            await fetch(`/posts/${post.id}/complete-quiz`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    answer_index: chosenIndex,
+                }),
+            });
+        } catch {
+            // Ignore sync failures; answer feedback already shows to the user.
+        }
+    };
+
+    const handleAiAnswer = async () => {
+        if (!quizData || selectedQuizOption === '' || isLoadingAI) return;
+
+        setAiError(null);
+        setAiResponse(null);
+        setIsLoadingAI(true);
+
+        try {
+            const userAnswerText = quizData.options[Number(selectedQuizOption)];
+            const correctAnswerText = quizData.options[quizData.answerIndex];
+            const explanation = await explainAnswer({
+                question: post.title,
+                userAnswer: userAnswerText,
+                correctAnswer: correctAnswerText,
+            });
+            setAiResponse(explanation);
+        } catch (err) {
+            setAiError(
+                err instanceof Error ? err.message : trans('createPost.quiz_ai_error', page),
+            );
+        } finally {
+            setIsLoadingAI(false);
+        }
     };
 
     return (
@@ -329,29 +485,30 @@ export default function PostContent({ post }: PostContentProps) {
             <Head title={translated?.title ?? post.title} />
 
             <div className="w-full bg-white pb-40">
-                <div className="mx-auto w-full max-w-3xl ">
+                <div className="mx-auto w-full max-w-3xl">
                     <div className="flex items-center justify-between px-4 pt-7 pb-6">
                         <div className="mb-5 flex items-center gap-6">
                             <Link
                                 href={homePage()}
-                                className="flex h-10 w-10 items-center justify-center rounded-full 
-                                cursor-pointer
-                                bg-background text-foreground 
-                                border-2 border-sidebar-border
-                                hover:border-2 hover:border-[#e27193]
-                                hover:bg-linear-to-r from-[#ef99b0] to-[#e27193] hover:text-white"                            
+                                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-2 border-sidebar-border bg-background from-[#ef99b0] to-[#e27193] text-foreground hover:border-2 hover:border-[#e27193] hover:bg-linear-to-r hover:text-white"
                             >
                                 <ArrowLeft className="h-4 w-4" />
                             </Link>
                             <Link
-                                href={post.user?.id ? `/profilePage/${post.user.id}` : '/profilePage'}
+                                href={
+                                    post.user?.id
+                                        ? `/profilePage/${post.user.id}`
+                                        : '/profilePage'
+                                }
                                 className="peer group/avatar cursor-pointer"
                             >
                                 <Avatar className="h-11 w-11 shrink-0 overflow-hidden ring-2 ring-transparent transition-colors group-hover/avatar:ring-[#ef99b0]">
                                     {post.user?.avatar ? (
                                         <AvatarImage
                                             src={post.user.avatar}
-                                            alt={post.user?.name ?? 'User avatar'}
+                                            alt={
+                                                post.user?.name ?? 'User avatar'
+                                            }
                                         />
                                     ) : null}
                                     <AvatarFallback className="bg-zinc-200 text-base font-bold text-zinc-700">
@@ -365,12 +522,18 @@ export default function PostContent({ post }: PostContentProps) {
                                 <div className="min-w-0 flex-1">
                                     <div className="mb-4 flex flex-wrap items-center gap-3 text-base">
                                         <Link
-                                            href={post.user?.id ? `/profilePage/${post.user.id}` : '/profilePage'}
-                                            className="cursor-pointer font-semibold text-zinc-900 transition-colors hover:text-[#de6b89] peer-hover:text-[#de6b89]"
+                                            href={
+                                                post.user?.id
+                                                    ? `/profilePage/${post.user.id}`
+                                                    : '/profilePage'
+                                            }
+                                            className="cursor-pointer font-semibold text-zinc-900 transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89]"
                                         >
                                             {post.user?.name ?? 'Unknown User'}
                                         </Link>
-                                        {post.user?.id && currentUserId && post.user.id !== currentUserId ? (
+                                        {post.user?.id &&
+                                        currentUserId &&
+                                        post.user.id !== currentUserId ? (
                                             <BtnFollow
                                                 following={isFollowingAuthor}
                                                 loading={followingAuthorLoading}
@@ -380,69 +543,148 @@ export default function PostContent({ post }: PostContentProps) {
                                             />
                                         ) : null}
                                         <span className="text-zinc-400">•</span>
-                                        <span className="text-zinc-500 text-sm">
+                                        <span className="text-sm text-zinc-500">
                                             {formatTimeAgo(post.created_at)}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-zinc-500">
                                         {(() => {
-                                            const type = post.post_type === 'quiz'
-                                                ? 'quiz'
-                                                : post.post_type === 'question'
-                                                    ? 'question'
-                                                    : 'material';
-                                            const { bg, text } = getPostTypeBadgeProps(type);
-                                            const label = type === 'quiz'
-                                                ? trans('createPost.create_quiz', page)
-                                                : type === 'question'
-                                                    ? trans('createPost.ask_question', page)
-                                                    : trans('createPost.share_material', page);
+                                            const type =
+                                                post.post_type === 'quiz'
+                                                    ? 'quiz'
+                                                    : post.post_type ===
+                                                        'question'
+                                                      ? 'question'
+                                                      : 'material';
+                                            const { bg, text } =
+                                                getPostTypeBadgeProps(type);
+                                            const label =
+                                                type === 'quiz'
+                                                    ? trans(
+                                                          'createPost.create_quiz',
+                                                          page,
+                                                      )
+                                                    : type === 'question'
+                                                      ? trans(
+                                                            'createPost.ask_question',
+                                                            page,
+                                                        )
+                                                      : trans(
+                                                            'createPost.share_material',
+                                                            page,
+                                                        );
 
                                             return (
-                                                <span className={`rounded-full px-2 py-0.5 font-medium ${bg} ${text}`}>
+                                                <span
+                                                    className={`rounded-full px-2 py-0.5 font-medium ${bg} ${text}`}
+                                                >
                                                     {label}
                                                 </span>
                                             );
                                         })()}
                                         {(() => {
-                                            const code = post.language?.code || 'en';
-                                            const { bg, text } = getLangBadgeProps(code);
-                                            const label = trans(`language_label.${code}`, page);
+                                            const code =
+                                                post.language?.code || 'en';
+                                            const { bg, text } =
+                                                getLangBadgeProps(code);
+                                            const label = trans(
+                                                `language_label.${code}`,
+                                                page,
+                                            );
                                             return (
-                                                <span className={`rounded-full px-2 py-0.5 font-medium ${bg} ${text}`}>
+                                                <span
+                                                    className={`rounded-full px-2 py-0.5 font-medium ${bg} ${text}`}
+                                                >
                                                     {label}
                                                 </span>
                                             );
                                         })()}
-                                        {post.subject?.name ? (() => {
-                                            const { bg, text } = getSubjectBadgeProps();
-                                            return (
-                                                <span className={`rounded-full px-2 py-0.5 font-medium ${bg} ${text}`}>
-                                                    {post.subject.name}
-                                                </span>
-                                            );
-                                        })() : null}
+                                        {post.subject?.name
+                                            ? (() => {
+                                                  const { bg, text } =
+                                                      getSubjectBadgeProps();
+                                                  return (
+                                                      <span
+                                                          className={`rounded-full px-2 py-0.5 font-medium ${bg} ${text}`}
+                                                      >
+                                                          {post.subject.name}
+                                                      </span>
+                                                  );
+                                              })()
+                                            : null}
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <h1 className="px-4 pt-2 pb-7 text-2xl font-bold leading-snug text-zinc-950">
-                        {translated?.title ?? post.title}
-                    </h1>
-                    {displayedContent && (
-                        <p className="px-4 pb-7 text-base leading-7 whitespace-pre-wrap text-zinc-700">
-                            {displayedContent}
-                        </p>
+                    {isEditing ? (
+                        <div className="px-4 pt-2 pb-4">
+                            <input
+                                type="text"
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.target.value)}
+                                maxLength={150}
+                                className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-2xl font-bold text-zinc-950 focus:border-[#e27193] focus:outline-none"
+                            />
+                            {editErrors.title && (
+                                <p className="mt-1 text-sm text-rose-600">{editErrors.title}</p>
+                            )}
+                        </div>
+                    ) : (
+                        <h1 className="px-4 pt-2 pb-7 text-2xl leading-snug font-bold text-zinc-950">
+                            {translated?.title ?? post.title}
+                        </h1>
+                    )}
+                    {isEditing ? (
+                        <div className="px-4 pb-6">
+                            <textarea
+                                value={editContent}
+                                onChange={(e) => setEditContent(e.target.value)}
+                                maxLength={2000}
+                                rows={10}
+                                className="w-full resize-y rounded-xl border border-zinc-300 px-3 py-2 text-base leading-7 text-zinc-700 focus:border-[#e27193] focus:outline-none"
+                            />
+                            {editErrors.content && (
+                                <p className="mt-1 text-sm text-rose-600">{editErrors.content}</p>
+                            )}
+                            <div className="mt-3 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleEditSave}
+                                    disabled={editLoading}
+                                    className="rounded-full bg-[#e27193] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#d05a7e] disabled:opacity-60"
+                                >
+                                    {editLoading
+                                        ? trans('createPost.saving', page)
+                                        : trans('createPost.save_changes', page)}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleEditCancel}
+                                    disabled={editLoading}
+                                    className="rounded-full bg-zinc-200 px-5 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-300 disabled:opacity-60"
+                                >
+                                    {trans('createPost.cancel', page)}
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        displayedContent && (
+                            <p className="px-4 pb-7 text-base leading-7 whitespace-pre-wrap text-zinc-700">
+                                {displayedContent}
+                            </p>
+                        )
                     )}
                     {post.post_type === 'quiz' && quizData ? (
-                        <div className="mx-4 mb-7 rounded-2xl border border-amber-200 bg-amber-50/40 p-4">
+                        <div className="mx-4 mb-7 rounded-2xl border-[1.5px] border-amber-300 bg-amber-50/40 p-4">
                             <p className="text-sm font-semibold text-amber-800">
                                 {trans('createPost.quiz_take_label', page)}
                             </p>
                             <div className="mt-3 space-y-2">
                                 {quizData.options.map((option, index) => {
-                                    const optionLabel = String.fromCharCode(65 + index);
+                                    const optionLabel = String.fromCharCode(
+                                        65 + index,
+                                    );
 
                                     return (
                                         <label
@@ -453,30 +695,70 @@ export default function PostContent({ post }: PostContentProps) {
                                                 type="radio"
                                                 name={`quiz-option-${post.id}`}
                                                 value={index}
-                                                checked={selectedQuizOption === String(index)}
+                                                checked={
+                                                    selectedQuizOption ===
+                                                    String(index)
+                                                }
                                                 onChange={(event) => {
-                                                    setSelectedQuizOption(event.target.value);
+                                                    setSelectedQuizOption(
+                                                        event.target.value,
+                                                    );
                                                     setQuizResultState(null);
+                                                    setAiResponse(null);
+                                                    setAiError(null);
                                                 }}
                                                 className="h-4 w-4 accent-amber-600"
                                             />
-                                            <span className="font-semibold text-amber-700">{optionLabel}.</span>
+                                            <span className="font-semibold text-amber-700">
+                                                {optionLabel}.
+                                            </span>
                                             <span>{option}</span>
                                         </label>
                                     );
                                 })}
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={handleCheckQuizAnswer}
-                                className="mt-4 rounded-full border border-amber-500 bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600"
-                            >
-                                {trans('createPost.quiz_check_answer', page)}
-                            </button>
+                            <div className="mt-4 flex flex-wrap items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        void handleCheckQuizAnswer();
+                                    }}
+                                    className="rounded-full border border-amber-500 bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600"
+                                >
+                                    {trans('createPost.quiz_check_answer', page)}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        void handleAiAnswer();
+                                    }}
+                                    disabled={isLoadingAI || selectedQuizOption === ''}
+                                    className={cn(
+                                        'inline-flex items-center gap-2 rounded-full border-2 border-[#ef99b0] bg-linear-to-r from-[#ef99b0] to-[#e27193] px-4 py-2 text-sm font-semibold text-white transition-all duration-200',
+                                        'hover:border-[#d85380] hover:from-[#f5c4d6] hover:to-[#f39db8] hover:text-black',
+                                        'disabled:cursor-not-allowed disabled:opacity-60',
+                                    )}
+                                >
+                                    {isLoadingAI ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Sparkles className="h-4 w-4" />
+                                    )}
+                                    {isLoadingAI
+                                        ? trans('createPost.quiz_ai_loading', page)
+                                        : trans('createPost.quiz_ai_answer', page)}
+                                </button>
+                            </div>
 
                             {selectedQuizOption === '' ? (
-                                <p className="mt-2 text-xs text-amber-700">{trans('createPost.quiz_select_required', page)}</p>
+                                <p className="mt-2 text-xs text-amber-700">
+                                    {trans(
+                                        'createPost.quiz_select_required',
+                                        page,
+                                    )}
+                                </p>
                             ) : null}
 
                             {quizResultState === 'correct' ? (
@@ -487,13 +769,42 @@ export default function PostContent({ post }: PostContentProps) {
 
                             {quizResultState === 'wrong' ? (
                                 <p className="mt-3 text-sm font-semibold text-rose-700">
-                                    {trans('createPost.quiz_wrong', page)} {trans('createPost.quiz_correct_answer_prefix', page)}{' '}
-                                    {String.fromCharCode(65 + quizData.answerIndex)}.
+                                    {trans('createPost.quiz_wrong', page)}{' '}
+                                    {trans(
+                                        'createPost.quiz_correct_answer_prefix',
+                                        page,
+                                    )}{' '}
+                                    {String.fromCharCode(
+                                        65 + quizData.answerIndex,
+                                    )}
+                                    .
                                 </p>
+                            ) : null}
+
+                            {(aiResponse !== null || aiError !== null) ? (
+                                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-800">
+                                        {trans('createPost.quiz_ai_suggestion', page)}
+                                    </p>
+                                    {aiError !== null ? (
+                                        <p className="text-sm text-rose-600">{aiError}</p>
+                                    ) : (
+                                        <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700">
+                                            {aiResponse}
+                                        </p>
+                                    )}
+                                    <p className="mt-3 text-xs italic text-zinc-400">
+                                        {trans('createPost.quiz_ai_disclaimer', page)}
+                                    </p>
+                                </div>
                             ) : null}
                         </div>
                     ) : null}
-                    <Suspense fallback={<div className="h-64 rounded-xl bg-zinc-100" />}>
+                    <Suspense
+                        fallback={
+                            <div className="h-64 rounded-xl bg-zinc-100" />
+                        }
+                    >
                         <PostAttachments files={post.image} />
                     </Suspense>
                     <PostFooter
@@ -508,15 +819,22 @@ export default function PostContent({ post }: PostContentProps) {
                         saves={savesCount}
                         saveLoading={saving}
                         onComment={handleCommentClick}
+                        isOwner={isOwner}
+                        onEdit={handleEditStart}
+                        onDelete={() => setShowDeleteModal(true)}
+                        editLabel={trans('createPost.edit_post', page)}
+                        deleteLabel={trans('createPost.delete_post', page)}
                     />
-                    
-                    <BtnAiTranslate
-                        className='my-3'
-                        title={post.title}
-                        content={post.content ?? ''}
-                        onTranslate={setTranslated}
-                    />
-                    <div className=" w-full border-t border-zinc-200 my-10"></div>
+
+                    <div className="my-3 flex flex-wrap items-center gap-3 px-4">
+                        <BtnAiTranslate
+                            className="my-0"
+                            title={post.title}
+                            content={post.content ?? ''}
+                            onTranslate={setTranslated}
+                        />
+                    </div>
+                    <div className="my-10 w-full border-t border-zinc-200"></div>
                     <div id="comments" className="scroll-mt-40 pb-32">
                         <CommentSection
                             post={post}
@@ -525,6 +843,44 @@ export default function PostContent({ post }: PostContentProps) {
                     </div>
                 </div>
             </div>
+            {showDeleteModal && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+                    onClick={() => { if (!deleteLoading) setShowDeleteModal(false); }}
+                >
+                    <div
+                        className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h2 className="mb-2 text-lg font-bold text-zinc-900">
+                            {trans('createPost.delete_confirm_title', page)}
+                        </h2>
+                        <p className="mb-6 text-sm text-zinc-600">
+                            {trans('createPost.delete_confirm_message', page)}
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setShowDeleteModal(false)}
+                                disabled={deleteLoading}
+                                className="rounded-full bg-zinc-200 px-5 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-300 disabled:opacity-60"
+                            >
+                                {trans('createPost.cancel', page)}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleDeleteConfirm}
+                                disabled={deleteLoading}
+                                className="rounded-full bg-rose-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-60"
+                            >
+                                {deleteLoading
+                                    ? trans('createPost.deleting', page)
+                                    : trans('createPost.delete_confirm_yes', page)}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
@@ -558,10 +914,31 @@ type PostFooterProps = {
     onSave: (postId: number) => void;
     onComment: () => void;
     comments: number;
+    isOwner: boolean;
+    onEdit: () => void;
+    onDelete: () => void;
+    editLabel: string;
+    deleteLabel: string;
 };
 
-
-function PostFooter({ postId, likes, saves, liked, saved, loading = false, saveLoading = false, onLike, onSave, comments, onComment }: PostFooterProps) {
+function PostFooter({
+    postId,
+    likes,
+    saves,
+    liked,
+    saved,
+    loading = false,
+    saveLoading = false,
+    onLike,
+    onSave,
+    comments,
+    onComment,
+    isOwner,
+    onEdit,
+    onDelete,
+    editLabel,
+    deleteLabel,
+}: PostFooterProps) {
     return (
         <div className="mt-7 mb-3 flex flex-wrap items-center gap-5 px-4 text-sm text-zinc-900">
             <BtnLike
@@ -570,10 +947,7 @@ function PostFooter({ postId, likes, saves, liked, saved, loading = false, saveL
                 loading={loading}
                 onClick={() => onLike(postId)}
             />
-            <BtnComment
-                count={comments}
-                onClick={onComment}
-            />
+            <BtnComment count={comments} onClick={onComment} />
             <BtnSave
                 count={saves}
                 saved={saved}
@@ -581,6 +955,24 @@ function PostFooter({ postId, likes, saves, liked, saved, loading = false, saveL
                 onClick={() => onSave(postId)}
             />
             <BtnShare postId={postId} />
+            {isOwner && (
+                <>
+                    <button
+                        type="button"
+                        onClick={onEdit}
+                        className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-zinc-200 px-3.5 py-1.5 text-sm font-semibold text-zinc-600 transition-colors select-none hover:bg-linear-to-r hover:from-blue-400 hover:to-blue-500 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+                    >
+                        {editLabel}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onDelete}
+                        className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-zinc-200 px-3.5 py-1.5 text-sm font-semibold text-zinc-600 transition-colors select-none hover:bg-linear-to-r hover:from-rose-400 hover:to-rose-500 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-200"
+                    >
+                        {deleteLabel}
+                    </button>
+                </>
+            )}
         </div>
     );
 }

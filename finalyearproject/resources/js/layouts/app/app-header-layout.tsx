@@ -8,7 +8,6 @@ import type { AppLayoutProps } from '@/types';
 
 export default function AppHeaderLayout({
     children,
-    breadcrumbs,
 }: AppLayoutProps) {
     const page = usePage();
     const locale = (page.props as { locale?: string }).locale ?? 'en';
@@ -46,7 +45,7 @@ export default function AppHeaderLayout({
         <AppShell variant="sidebar">
             <div className="flex h-screen w-full flex-col overflow-hidden">
                 <div className="fixed inset-x-0 top-0 z-50 w-full bg-background">
-                    <AppHeader key={`header-${locale}`} breadcrumbs={breadcrumbs} />
+                    <AppHeader key={`header-${locale}`} />
                 </div>
                 <div className="flex min-h-0 flex-1 pt-16">
                     <AppSidebar key={`sidebar-${locale}`} className="top-16" />

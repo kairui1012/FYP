@@ -18,7 +18,7 @@ return [
     'profile' => 'Profil',
     'settings' => 'Tetapan',
     'log_out' => 'Log keluar',
-    'navigation_menu' => 'Navigasi Pembelajaran',
+    'navigation_menu' => 'Navigasi',
     'share' => 'Kongsi',
     'save' => 'Simpan',
     'saved' => 'Disimpan',

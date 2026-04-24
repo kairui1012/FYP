@@ -3,86 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
-use App\Models\CommentLike;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CommentController extends Controller
 {
-    public function mentionables(Request $request, Post $post): JsonResponse
-    {
-        $query = trim((string) $request->query('query', ''));
-
-        if ($query !== '') {
-            $users = User::query()
-                ->with(['socialAccounts:id,user_id,avatar'])
-                ->where('name', 'like', '%' . $query . '%')
-                ->orderBy('name')
-                ->limit(8)
-                ->get();
-        } else {
-            $priorityIds = collect([
-                $request->user()?->id,
-                $post->user_id,
-            ])
-                ->filter()
-                ->merge(
-                    $post->comments()
-                        ->latest()
-                        ->limit(20)
-                        ->pluck('user_id'),
-                )
-                ->unique()
-                ->values();
-
-            $priorityUsers = User::query()
-                ->with(['socialAccounts:id,user_id,avatar'])
-                ->whereIn('id', $priorityIds)
-                ->get()
-                ->sortBy(fn (User $user) => $priorityIds->search($user->id))
-                ->values();
-
-            $fallbackUsers = collect();
-
-            if ($priorityUsers->count() < 8) {
-                $fallbackUsers = User::query()
-                    ->with(['socialAccounts:id,user_id,avatar'])
-                    ->whereNotIn('id', $priorityUsers->pluck('id'))
-                    ->orderBy('name')
-                    ->limit(8 - $priorityUsers->count())
-                    ->get();
-            }
-
-            $users = $priorityUsers
-                ->concat($fallbackUsers)
-                ->take(8)
-                ->values();
-        }
-
-        return response()->json([
-            'data' => $users
-                ->map(fn (User $user) => $this->serializeMentionable($user))
-                ->values()
-                ->all(),
-        ]);
-    }
-
     public function store(Request $request, Post $post)
     {
         $validated = $request->validate([
-            'content' => ['nullable', 'string', 'max:1000'],
+            'content' => ['required', 'string', 'max:1000'],
             'parent_id' => ['nullable', 'integer', 'exists:comments,id'],
-            'attachments' => ['nullable', 'array', 'max:4'],
-            'attachments.*' => ['file', 'image', 'mimetypes:image/jpeg,image/png,image/webp,image/gif', 'max:5120'],
-            'mentions' => ['nullable', 'string'],
         ]);
 
         $parentId = isset($validated['parent_id'])
@@ -103,36 +41,25 @@ class CommentController extends Controller
         }
 
         $content = trim((string) ($validated['content'] ?? ''));
-        $uploadedAttachments = $request->file('attachments', []);
 
-        if ($content === '' && count($uploadedAttachments) === 0) {
+        if ($content === '') {
             throw ValidationException::withMessages([
-                'content' => 'Please write a comment or add at least one image.',
+                'content' => 'Please write a comment before posting.',
             ]);
         }
-
-        $storedAttachments = [];
-
-        foreach ($uploadedAttachments as $file) {
-            $storedAttachments[] = $file->store('comments', 'public');
-        }
-
-        $mentions = $this->normalizeMentions(
-            $request->input('mentions'),
-            $content,
-        );
 
         $comment = $post->comments()->create([
             'user_id' => Auth::id(),
             'parent_id' => $parentId,
             'content' => $content,
-            'attachments' => count($storedAttachments) > 0 ? $storedAttachments : null,
-            'mentions' => count($mentions) > 0 ? $mentions : null,
         ]);
 
         $comment->load([
             'user:id,name',
             'user.socialAccounts:id,user_id,avatar',
+            'parent:id,user_id',
+            'parent.user:id,name',
+            'parent.user.socialAccounts:id,user_id,avatar',
         ]);
 
         if ($request->expectsJson()) {
@@ -159,12 +86,132 @@ class CommentController extends Controller
         return back();
     }
 
+    public function update(Request $request, Comment $comment): JsonResponse
+    {
+        if ((int) $comment->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'content' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $content = trim((string) ($validated['content'] ?? ''));
+
+        if ($content === '') {
+            throw ValidationException::withMessages([
+                'content' => 'Please write a comment before updating.',
+            ]);
+        }
+
+        $comment->update([
+            'content' => $content,
+        ]);
+
+        $post = $comment->post;
+        if (! $post) {
+            return response()->json([
+                'comments' => [],
+                'comments_count' => 0,
+            ]);
+        }
+
+        $supportsCommentVotes = $this->supportsCommentVotes();
+
+        try {
+            $refreshedComments = $this->buildRefreshedCommentsQuery($post, $supportsCommentVotes)->get();
+        } catch (QueryException $exception) {
+            if (! $supportsCommentVotes || ! $this->isVoteColumnMissingException($exception)) {
+                throw $exception;
+            }
+
+            $supportsCommentVotes = false;
+            $refreshedComments = $this->buildRefreshedCommentsQuery($post, false)->get();
+        }
+
+        return response()->json([
+            'comments_count' => $post->comments()->count(),
+            'comments' => $this->buildCommentTree($refreshedComments),
+        ]);
+    }
+
+    public function destroy(Comment $comment): JsonResponse
+    {
+        if ((int) $comment->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        $post = $comment->post;
+        if (! $post) {
+            return response()->json([
+                'comments' => [],
+                'comments_count' => 0,
+            ]);
+        }
+
+        DB::transaction(function () use ($comment): void {
+            $commentIds = $this->collectCommentBranchIds($comment->id);
+
+            DB::table('comment_likes')
+                ->whereIn('comment_id', $commentIds)
+                ->delete();
+
+            Comment::query()
+                ->whereIn('id', $commentIds)
+                ->delete();
+        });
+
+        $supportsCommentVotes = $this->supportsCommentVotes();
+
+        try {
+            $refreshedComments = $this->buildRefreshedCommentsQuery($post, $supportsCommentVotes)->get();
+        } catch (QueryException $exception) {
+            if (! $supportsCommentVotes || ! $this->isVoteColumnMissingException($exception)) {
+                throw $exception;
+            }
+
+            $supportsCommentVotes = false;
+            $refreshedComments = $this->buildRefreshedCommentsQuery($post, false)->get();
+        }
+
+        return response()->json([
+            'comments_count' => $post->comments()->count(),
+            'comments' => $this->buildCommentTree($refreshedComments),
+        ]);
+    }
+
+    private function collectCommentBranchIds(int $rootCommentId): array
+    {
+        $allIds = [$rootCommentId];
+        $frontier = [$rootCommentId];
+
+        while (count($frontier) > 0) {
+            $children = Comment::query()
+                ->whereIn('parent_id', $frontier)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
+            if (count($children) === 0) {
+                break;
+            }
+
+            $allIds = [...$allIds, ...$children];
+            $frontier = $children;
+        }
+
+        return array_values(array_unique($allIds));
+    }
+
     private function buildRefreshedCommentsQuery(Post $post, bool $supportsCommentVotes)
     {
         $refreshedComments = $post->comments()
             ->with([
                 'user:id,name',
                 'user.socialAccounts:id,user_id,avatar',
+                'parent:id,user_id',
+                'parent.user:id,name',
+                'parent.user.socialAccounts:id,user_id,avatar',
             ]);
 
         if ($supportsCommentVotes) {
@@ -206,75 +253,6 @@ class CommentController extends Controller
             || str_contains($message, 'unknown column `vote`');
     }
 
-    private function normalizeMentions(mixed $encodedMentions, string $content): array
-    {
-        if (! is_string($encodedMentions) || trim($encodedMentions) === '') {
-            return [];
-        }
-
-        $decodedMentions = json_decode($encodedMentions, true);
-
-        if (! is_array($decodedMentions)) {
-            return [];
-        }
-
-        $mentionedUserIds = collect($decodedMentions)
-            ->map(
-                fn ($mention) => is_array($mention)
-                    ? (int) ($mention['id'] ?? 0)
-                    : 0,
-            )
-            ->filter()
-            ->unique()
-            ->values();
-
-        if ($mentionedUserIds->isEmpty()) {
-            return [];
-        }
-
-        $users = User::query()
-            ->with(['socialAccounts:id,user_id,avatar'])
-            ->whereIn('id', $mentionedUserIds)
-            ->get()
-            ->keyBy('id');
-
-        return $mentionedUserIds
-            ->map(function (int $userId) use ($users, $content) {
-                /** @var User|null $user */
-                $user = $users->get($userId);
-
-                if (! $user) {
-                    return null;
-                }
-
-                $handle = $this->buildHandle($user);
-
-                if (! Str::contains($content, '@' . $handle)) {
-                    return null;
-                }
-
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'handle' => $handle,
-                    'avatar' => $this->resolveAvatar($user),
-                ];
-            })
-            ->filter()
-            ->values()
-            ->all();
-    }
-
-    private function serializeMentionable(User $user): array
-    {
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'handle' => $this->buildHandle($user),
-            'avatar' => $this->resolveAvatar($user),
-        ];
-    }
-
     private function serializeComment(Comment $comment): array
     {
         $upvotesCount = (int) ($comment->upvotes_count ?? $comment->likes_count ?? 0);
@@ -298,6 +276,11 @@ class CommentController extends Controller
             'is_liked' => $userVote === 1,
             'is_upvoted' => $userVote === 1,
             'is_downvoted' => $userVote === -1,
+            'reply_to_user' => $comment->parent?->user ? [
+                'id' => $comment->parent->user->id,
+                'name' => $comment->parent->user->name,
+                'avatar' => $this->resolveAvatar($comment->parent->user),
+            ] : null,
             'replies' => [],
             'user' => $comment->user ? [
                 'id' => $comment->user->id,
@@ -356,19 +339,4 @@ class CommentController extends Controller
             ?->avatar;
     }
 
-    private function buildHandle(User $user): string
-    {
-        $base = Str::of($user->name)
-            ->lower()
-            ->ascii()
-            ->replaceMatches('/[^a-z0-9]+/', '-')
-            ->trim('-')
-            ->value();
-
-        if ($base === '') {
-            $base = 'user';
-        }
-
-        return $base . '-' . $user->id;
-    }
 }

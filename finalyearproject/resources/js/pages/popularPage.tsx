@@ -1,7 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { reactLang } from '@erag/lang-sync-inertia';
-import { CalendarClock, CalendarDays, CalendarRange, Flame } from 'lucide-react';
+import { CalendarClock, CalendarDays, CalendarRange, Check, ChevronDown, Flame } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnComment } from '@/components/ui/btn-comment';
@@ -9,6 +9,7 @@ import { BtnFollow } from '@/components/ui/btn-follow';
 import { BtnLike } from '@/components/ui/btn-like';
 import { BtnSave } from '@/components/ui/btn-save';
 import { BtnShare } from '@/components/ui/btn-share';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatFormulaText } from '@/lib/formula-display';
 import { formatTimeAgo, getLanguageLabel } from '@/lib/post-utils';
 import { popularPage } from '@/routes';
@@ -93,6 +94,7 @@ export default function PopularPage() {
 
     const [posts, setPosts] = useState<PostItem[]>(props.posts ?? []);
     const [activeRange, setActiveRange] = useState<PopularRange>(props.activeRange ?? 'week');
+    const [isRangeOpen, setIsRangeOpen] = useState(false);
     const [likingPostIds, setLikingPostIds] = useState<number[]>([]);
     const [savingPostIds, setSavingPostIds] = useState<number[]>([]);
     const [likeStateByPost, setLikeStateByPost] = useState<Record<number, { liked: boolean; likesCount: number }>>({});
@@ -144,6 +146,10 @@ export default function PopularPage() {
         setActiveRange(props.activeRange ?? 'week');
     }, [props.activeRange]);
 
+    useEffect(() => {
+        setIsRangeOpen(false);
+    }, [props.activeRange]);
+
     const rangeOptions = useMemo(
         () => [
             { value: 'today' as const, label: trans('popular.today'), icon: CalendarClock },
@@ -158,6 +164,8 @@ export default function PopularPage() {
         () => posts.reduce((sum, post) => sum + (post.likes_count ?? 0), 0),
         [posts]
     );
+    const activeRangeOption = rangeOptions.find((option) => option.value === activeRange) ?? rangeOptions[0];
+    const ActiveRangeIcon = activeRangeOption.icon;
 
     const goToPost = (postId: number) => {
         router.get(`/posts/${postId}`);
@@ -323,52 +331,81 @@ export default function PopularPage() {
             <Head title={trans('navigation.popular')} />
             <div className="pb-8">
                 <div className="mx-auto w-full max-w-3xl space-y-2 p-4 md:p-6 md:pb-10">
-                    <section className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-800">
-                                <Flame className="h-4 w-4 text-zinc-600" />
-                                <span>{trans('navigation.popular')}</span>
+                    <section className="rounded-[28px] border border-[#f0d6dd] bg-linear-to-r from-[#fff7f3] via-white to-[#f9f5ff] p-4 shadow-[0_24px_70px_-38px_rgba(226,113,147,0.55)]">
+                        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                            <div>
+                                <div className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/85 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-[#c1607f] shadow-sm">
+                                    <Flame className="h-3.5 w-3.5" />
+                                    {trans('navigation.popular')}
+                                </div>
+                                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-zinc-500">
+                                    <span>
+                                        {trans('popular.posts')}: <span className="font-semibold text-zinc-800">{posts.length}</span>
+                                    </span>
+                                    <span>
+                                        {trans('popular.likes')}: <span className="font-semibold text-zinc-800">{totalLikes}</span>
+                                    </span>
+                                </div>
                             </div>
 
-                            <div className="text-xs text-zinc-500">
-                                <span>{trans('popular.posts')}: <span className="font-semibold text-zinc-700">{posts.length}</span></span>
-                                <span className="mx-2 text-zinc-300">|</span>
-                                <span>{trans('popular.likes')}: <span className="font-semibold text-zinc-700">{totalLikes}</span></span>
-                            </div>
-                        </div>
-
-                        <div className="mt-3 flex flex-wrap gap-2">
-                            {rangeOptions.map((option) => {
-                                const Icon = option.icon;
-                                const isActive = activeRange === option.value;
-
-                                return (
+                            <Collapsible open={isRangeOpen} onOpenChange={setIsRangeOpen} className="w-full md:w-auto">
+                                <CollapsibleTrigger asChild>
                                     <button
-                                        key={option.value}
                                         type="button"
-                                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                                            isActive
-                                                ? 'border-zinc-400 bg-zinc-100 text-zinc-900'
-                                                : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900'
-                                        }`}
-                                        onClick={() => {
-                                            setActiveRange(option.value);
-                                            loadRange(option.value);
-                                        }}
+                                        className="inline-flex w-full items-center justify-between gap-3 rounded-2xl border border-white/80 bg-white/90 px-4 py-3 text-left shadow-sm transition hover:border-[#e9c2cf] hover:bg-white md:min-w-[220px]"
                                     >
-                                        <Icon className="h-4 w-4 text-zinc-500" />
-                                        {option.label}
+                                        <span className="min-w-0">
+                                            <span className="block text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400">
+                                                Time Range
+                                            </span>
+                                            <span className="mt-1 flex items-center gap-2 text-sm font-semibold text-zinc-900">
+                                                <ActiveRangeIcon className="h-4 w-4 text-[#d46586]" />
+                                                {activeRangeOption.label}
+                                            </span>
+                                        </span>
+                                        <ChevronDown className={`h-4 w-4 shrink-0 text-zinc-500 transition ${isRangeOpen ? 'rotate-180' : ''}`} />
                                     </button>
-                                );
-                            })}
+                                </CollapsibleTrigger>
+
+                                <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+                                    <div className="mt-3 grid gap-2 rounded-3xl border border-white/80 bg-white/80 p-3 shadow-sm backdrop-blur">
+                                        {rangeOptions.map((option) => {
+                                            const Icon = option.icon;
+                                            const isActive = activeRange === option.value;
+
+                                            return (
+                                                <button
+                                                    key={option.value}
+                                                    type="button"
+                                                    className={`flex items-center justify-between rounded-2xl px-3 py-3 text-sm transition ${
+                                                        isActive
+                                                            ? 'bg-[#fff1f5] text-zinc-900 ring-1 ring-[#f3ccd8]'
+                                                            : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900'
+                                                    }`}
+                                                    onClick={() => {
+                                                        setActiveRange(option.value);
+                                                        loadRange(option.value);
+                                                    }}
+                                                >
+                                                    <span className="flex items-center gap-3 font-medium">
+                                                        <span className={`rounded-xl p-2 ${isActive ? 'bg-white text-[#d46586]' : 'bg-zinc-100 text-zinc-500'}`}>
+                                                            <Icon className="h-4 w-4" />
+                                                        </span>
+                                                        {option.label}
+                                                    </span>
+                                                    {isActive ? <Check className="h-4 w-4 text-[#d46586]" /> : null}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </CollapsibleContent>
+                            </Collapsible>
                         </div>
                     </section>
 
                     {posts.length === 0 ? (
-                        <div className="rounded-3xl border border-zinc-600 bg-white p-10 text-center text-zinc-500">
-                            <Flame className="mx-auto h-12 w-12 text-zinc-400" />
-                            <h2 className="mt-4 text-xl font-semibold text-zinc-900">{trans('popular.no_posts')}</h2>
-                            <p className="mt-2 text-zinc-500">{trans('popular.try_other_range')}</p>
+                        <div className="border border-dashed border-zinc-300 bg-white px-6 py-16 text-center text-3xl text-zinc-500">
+                            <p>{trans('popular.no_posts')}</p>
                         </div>
                     ) : (
                         <div className="space-y-2">

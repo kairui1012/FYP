@@ -113,4 +113,14 @@ class User extends Authenticatable
             ->withPivot(['awarded_at'])
             ->withTimestamps();
     }
+
+    public function progress(): HasOne
+    {
+        return $this->hasOne(UserProgress::class);
+    }
+
+    public function userAchievements(): HasMany
+    {
+        return $this->hasMany(UserAchievement::class);
+    }
 }

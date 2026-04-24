@@ -15,7 +15,6 @@ class Profile extends Model
      */
     protected $fillable = [
         'user_id',
-        'cover_image',
     ];
 
     public function user(): BelongsTo

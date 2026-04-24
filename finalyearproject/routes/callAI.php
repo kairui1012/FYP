@@ -123,3 +123,104 @@ Route::post('/translate', function (Request $request) {
     }
 
 })->middleware(['web', 'throttle:30,1']);
+
+Route::post('/ai-explain', function (Request $request) {
+    $request->validate([
+        'question'       => 'required|string|max:500',
+        'user_answer'    => 'required|string|max:300',
+        'correct_answer' => 'required|string|max:300',
+        'provider'       => 'required|in:deepseek,gemini',
+    ]);
+
+    $question      = $request->input('question');
+    $userAnswer    = $request->input('user_answer');
+    $correctAnswer = $request->input('correct_answer');
+    $provider      = $request->input('provider');
+    $isCorrect     = $userAnswer === $correctAnswer;
+
+    $currentLocale = app()->getLocale();
+    $lang = match ($currentLocale) {
+        'zh'    => 'Chinese (Simplified)',
+        'my'    => 'Malay',
+        default => 'English',
+    };
+
+    $wrongPart = $isCorrect
+        ? ''
+        : "2. Briefly explain why \"{$userAnswer}\" is incorrect.\n";
+
+    $prompt = "You are a helpful tutor. Respond entirely in {$lang}. Plain text only — no markdown.\n\n"
+        . "Quiz question: {$question}\n"
+        . "Correct answer: {$correctAnswer}\n"
+        . ($isCorrect ? '' : "Student's answer: {$userAnswer}\n")
+        . "\nProvide a concise educational explanation (3–5 sentences):\n"
+        . "1. Explain WHY \"{$correctAnswer}\" is the correct answer.\n"
+        . $wrongPart;
+
+    try {
+        $explanation = match ($provider) {
+
+            'deepseek' => (function () use ($prompt) {
+                $res = Http::withToken(config('services.deepseek.key'))
+                    ->timeout(20)
+                    ->post('https://api.deepseek.com/v1/chat/completions', [
+                        'model'       => 'deepseek-chat',
+                        'messages'    => [
+                            ['role' => 'system', 'content' => 'You are a helpful tutor. Always respond in plain text with no markdown formatting.'],
+                            ['role' => 'user',   'content' => $prompt],
+                        ],
+                        'temperature' => 0.4,
+                    ]);
+
+                if (!$res->successful()) {
+                    throw new \Exception('DeepSeek error: ' . $res->status());
+                }
+
+                $text = $res->json('choices.0.message.content');
+
+                if (!is_string($text) || trim($text) === '') {
+                    throw new \Exception('DeepSeek returned empty explanation');
+                }
+
+                return trim($text);
+            })(),
+
+            'gemini' => (function () use ($prompt) {
+                $res = Http::withQueryParameters(['key' => config('services.gemini.key')])
+                    ->timeout(20)
+                    ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', [
+                        'contents' => [
+                            ['parts' => [['text' => $prompt]]],
+                        ],
+                        'generationConfig' => [
+                            'temperature' => 0.4,
+                        ],
+                    ]);
+
+                if (!$res->successful()) {
+                    throw new \Exception('Gemini error: ' . $res->status());
+                }
+
+                $text = $res->json('candidates.0.content.parts.0.text');
+
+                if (!is_string($text) || trim($text) === '') {
+                    throw new \Exception('Gemini returned empty explanation');
+                }
+
+                return trim($text);
+            })(),
+        };
+
+        return response()->json([
+            'explanation' => $explanation,
+            'provider'    => $provider,
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'error'    => $e->getMessage(),
+            'provider' => $provider,
+        ], 502);
+    }
+
+})->middleware(['web', 'throttle:20,1']);

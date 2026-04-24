@@ -4,7 +4,6 @@ import { lazy, Suspense } from 'react';
 import {
     Bell,
     BookOpen,
-    CircleHelp,
     Folder,
     LayoutGrid,
     Menu,
@@ -12,7 +11,6 @@ import {
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
-import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { BtnCreatePost } from '@/components/ui/btn-create-post';
@@ -23,52 +21,25 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-    NavigationMenu,
-    NavigationMenuItem,
-    NavigationMenuList,
-    navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu';
-import {
     Sheet,
     SheetContent,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { UserMenuContent } from '@/components/user-menu-content';
-import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
-import { cn, toUrl } from '@/lib/utils';
+import { toUrl } from '@/lib/utils';
 import { homePage } from '@/routes';
-import type { BreadcrumbItem, NavItem } from '@/types';
+import type { NavItem } from '@/types';
 
 const BtnChangeLang = lazy(() => import('@/components/ui/btn-change-lang').then((module) => ({ default: module.BtnChangeLang })));
-
-type Props = {
-    breadcrumbs?: BreadcrumbItem[];
-};
 
 const mainNavItems: NavItem[] = [
     {
         title: 'home',
         href: homePage(),
         icon: LayoutGrid,
-    },
-    {
-        title: 'learning_materials',
-        href: '/learning-materials',
-        icon: BookOpen,
-    },
-    {
-        title: 'questions',
-        href: '/questions',
-        icon: CircleHelp,
     },
 ];
 
@@ -85,15 +56,12 @@ const rightNavItems: NavItem[] = [
     },
 ];
 
-const activeItemStyles =
-    'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
-
-export function AppHeader({ breadcrumbs = [] }: Props) {
+export function AppHeader() {
     const page = usePage();
     const { trans } = reactLang();
     const { auth } = page.props as typeof page.props & { locale?: string };
     const getInitials = useInitials();
-    const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
+
     return (
         <>
             <div className="border-b border-sidebar-border/80">
@@ -179,10 +147,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                         </div>
                     </div>
 
-                    {/* Desktop Navigation */}
-
                     <div className="ml-auto flex items-center space-x-4">
-
                         <Button
                             variant="ghost"
                             size="icon"
@@ -226,13 +191,6 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     </div>
                 </div>
             </div>
-            {/* {breadcrumbs.length > 1 && (
-                <div className="flex w-full border-b border-sidebar-border/70">
-                    <div className="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
-                        <Breadcrumbs breadcrumbs={breadcrumbs} />
-                    </div>
-                </div>
-            )} */}
         </>
     );
 }

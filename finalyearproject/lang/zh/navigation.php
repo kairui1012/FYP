@@ -18,7 +18,7 @@ return [
     'profile' => '个人资料',
     'settings' => '设置',
     'log_out' => '退出登录',
-    'navigation_menu' => '学习导航',
+    'navigation_menu' => '导航',
     'share' => '分享',
     'save' => '收藏',
     'saved' => '已收藏',

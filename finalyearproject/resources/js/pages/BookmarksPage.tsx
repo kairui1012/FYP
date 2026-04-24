@@ -389,19 +389,8 @@ export default function BookmarksPage() {
                             </section>
 
                             {posts.length === 0 ? (
-                                <section className="rounded-3xl border border-dashed border-zinc-300 bg-white p-10 text-center">
-                                    <Bookmark className="mx-auto h-12 w-12 text-zinc-400" />
-                                    <h2 className="mt-4 text-xl font-semibold text-zinc-900">
-                                        {trans('bookmark.no_bookmarks')}
-                                    </h2>
-                                    <p className="mt-2 text-zinc-500">{trans('bookmark.save_posts')}</p>
-                                    <button
-                                        type="button"
-                                        className="mt-6 rounded-full bg-zinc-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-zinc-700"
-                                        onClick={() => router.visit('/homePage')}
-                                    >
-                                        {trans('bookmark.discover_posts')}
-                                    </button>
+                                <section className="border border-dashed border-zinc-300 bg-white px-6 py-16 text-center text-3xl text-zinc-500">
+                                    <p>{trans('bookmark.no_bookmarks')}</p>
                                 </section>
                             ) : (
                                 <div className="space-y-4">

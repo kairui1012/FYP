@@ -8,6 +8,12 @@ export type PostSubject = {
     name: string;
 } | null;
 
+export type PostLesson = {
+    id: number;
+    title: string;
+    sequence: number;
+} | null;
+
 export type CommentMention = {
     id: number;
     name: string;
@@ -16,6 +22,12 @@ export type CommentMention = {
 };
 
 export type CommentUser = {
+    id: number;
+    name: string;
+    avatar?: string | null;
+} | null;
+
+export type CommentReplyUser = {
     id: number;
     name: string;
     avatar?: string | null;
@@ -37,6 +49,7 @@ export type CommentItem = {
     is_upvoted?: boolean;
     is_downvoted?: boolean;
     is_liked?: boolean;
+    reply_to_user?: CommentReplyUser;
     replies?: CommentItem[];
     user?: CommentUser;
 };
@@ -74,6 +87,8 @@ export type PostItem = {
     bookmark_item_id?: number | null;
     language?: PostLanguage;
     user?: PostUser;
+    lesson?: PostLesson;
+    is_lesson_completed?: boolean;
     likes_count?: number;
     comments_count?: number;
     saves_count?: number;
