@@ -37,7 +37,7 @@ type QuizReviewItem = {
     is_correct?: boolean;
 };
 
-type FolderButtonTone = 'default' | 'correct' | 'wrong';
+type FolderButtonTone = 'default' | 'quiz' | 'correct' | 'wrong';
 
 type BookmarksPageProps = {
     posts?: PostItem[];
@@ -118,6 +118,7 @@ export default function BookmarksPage() {
     const isQuizFolder = studyMode === 'completed' || studyMode === 'correct' || studyMode === 'wrong';
 
     const [creatingFolder, setCreatingFolder] = useState(false);
+    const [showCreateFolderForm, setShowCreateFolderForm] = useState(false);
     const [folderName, setFolderName] = useState('');
     const [renamingFolderId, setRenamingFolderId] = useState<number | null>(null);
     const [renameValue, setRenameValue] = useState('');
@@ -159,6 +160,7 @@ export default function BookmarksPage() {
             if (!response.ok) throw new Error('Failed to create folder.');
             const payload = (await response.json()) as { folder?: BookmarkFolderItem };
             setFolderName('');
+            setShowCreateFolderForm(false);
             refreshCurrentFolder(payload.folder?.id ?? activeFolderId);
         } finally {
             setCreatingFolder(false);
@@ -237,7 +239,7 @@ export default function BookmarksPage() {
 
             <div className="w-full max-w-none p-4 pb-24 md:p-6 md:pb-24">
                 <div className="mx-auto w-full max-w-6xl space-y-5">
-                    <section className="overflow-hidden rounded-[30px] border border-zinc-200 bg-white p-6 shadow-sm">
+                    <section className="px-1 py-2">
                         <div className="flex flex-wrap items-start justify-between gap-6">
                             <div className="max-w-2xl">
                                 <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
@@ -248,147 +250,78 @@ export default function BookmarksPage() {
                                 </p>
                             </div>
 
-                            <div className="grid w-full gap-3 sm:grid-cols-2 lg:max-w-xl">
-                                <StatCard
-                                    icon={<Bookmark className="h-5 w-5" />}
+                            <div className="flex w-full flex-wrap items-center gap-2.5 lg:justify-end">
+                                <StatusPill
+                                    icon={<Bookmark className="h-4 w-4" />}
                                     label="Saved Posts"
                                     value={totalSaves}
                                 />
-                                <StatCard
-                                    icon={<BookOpen className="h-5 w-5" />}
+                                <StatusPill
+                                    icon={<BookOpen className="h-4 w-4" />}
                                     label="Saved Quizzes"
                                     value={savedQuizzesCount}
                                 />
                             </div>
                         </div>
-
-                        <div className="mt-6 flex flex-wrap gap-3">
-                            <FolderButton
-                                active={!isQuizFolder}
-                                icon={<Bookmark className="h-3.5 w-3.5" />}
-                                label={trans('bookmark.study_folder_all')}
-                                count={totalSaves}
-                                onClick={() => refreshCurrentFolder(activeFolderId)}
-                            />
-                            <FolderButton
-                                active={isQuizFolder}
-                                icon={<BookOpen className="h-3.5 w-3.5" />}
-                                label={trans('bookmark.quiz_folder')}
-                                onClick={() => navigateQuizFolder(activeQuizMode)}
-                            />
-                        </div>
-
-                        {isQuizFolder ? (
-                            <div className="mt-4 flex flex-wrap gap-3 border-t border-zinc-200 pt-4">
-                                <FolderButton
-                                    active={activeQuizMode === 'completed'}
-                                    icon={<BookOpen className="h-3.5 w-3.5" />}
-                                    label={trans('bookmark.study_folder_completed')}
-                                    count={completedCount}
-                                    onClick={() => navigateQuizFolder('completed')}
-                                />
-                                <FolderButton
-                                    active={activeQuizMode === 'correct'}
-                                    icon={<CheckCircle2 className="h-3.5 w-3.5" />}
-                                    label={trans('bookmark.study_folder_correct')}
-                                    count={correctCount}
-                                    tone="correct"
-                                    onClick={() => navigateQuizFolder('correct')}
-                                />
-                                <FolderButton
-                                    active={activeQuizMode === 'wrong'}
-                                    icon={<XCircle className="h-3.5 w-3.5" />}
-                                    label={trans('bookmark.study_folder_wrong')}
-                                    count={wrongCount}
-                                    tone="wrong"
-                                    onClick={() => navigateQuizFolder('wrong')}
-                                />
-                            </div>
-                        ) : folders.length > 0 ? (
-                            <div className="mt-4 flex flex-wrap gap-3 border-t border-zinc-200 pt-4">
-                                {folders.map((folder) => (
-                                    <FolderButton
-                                        key={folder.id}
-                                        active={folder.id === activeFolderId}
-                                        icon={<Folder className="h-3.5 w-3.5" />}
-                                        label={folder.name}
-                                        count={folder.items_count}
-                                        onClick={() => refreshCurrentFolder(folder.id)}
-                                    />
-                                ))}
-                            </div>
-                        ) : null}
                     </section>
 
-                    {isQuizFolder ? (
-                        <section className="rounded-[28px] border border-zinc-200 bg-white p-5 shadow-sm md:p-6">
-                            <div className="flex flex-wrap items-start justify-between gap-4 border-b border-zinc-100 pb-4">
-                                <div>
-                                    <h2 className="text-xl font-semibold text-zinc-900">
-                                        {activeQuizMode === 'completed'
-                                            ? trans('bookmark.study_folder_completed')
-                                            : activeQuizMode === 'correct'
-                                                ? trans('bookmark.study_folder_correct')
-                                                : trans('bookmark.study_folder_wrong')}
-                                    </h2>
-                                    <p className="mt-1 text-sm text-zinc-500">
-                                        {activeQuizMode === 'completed'
-                                            ? trans('bookmark.quiz_completed_description')
-                                            : activeQuizMode === 'correct'
-                                                ? trans('bookmark.quiz_correct_description')
-                                                : trans('bookmark.quiz_wrong_description')}
-                                    </p>
+                    <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
+                        <aside className="space-y-5">
+                            <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                                    {trans('bookmark.folders_title')}
+                                </p>
+                                <div className="mt-3 space-y-1">
+                                    <SidebarFolderItem
+                                        active={!isQuizFolder}
+                                        icon={<Bookmark className="h-3.5 w-3.5" />}
+                                        label={trans('bookmark.study_folder_all')}
+                                        count={totalSaves}
+                                        onClick={() => refreshCurrentFolder(activeFolderId)}
+                                    />
+                                    <SidebarFolderItem
+                                        active={isQuizFolder}
+                                        icon={<BookOpen className="h-3.5 w-3.5" />}
+                                        label={trans('bookmark.quiz_folder')}
+                                        tone="quiz"
+                                        onClick={() => navigateQuizFolder(activeQuizMode)}
+                                    />
+                                    {isQuizFolder ? (
+                                        <div className="ml-5 mt-1 space-y-1 border-l border-zinc-200 pl-3">
+                                            <SidebarFolderItem
+                                                active={activeQuizMode === 'completed'}
+                                                icon={<BookOpen className="h-3.5 w-3.5" />}
+                                                label={trans('bookmark.study_folder_completed')}
+                                                count={completedCount}
+                                                compact
+                                                onClick={() => navigateQuizFolder('completed')}
+                                            />
+                                            <SidebarFolderItem
+                                                active={activeQuizMode === 'correct'}
+                                                icon={<CheckCircle2 className="h-3.5 w-3.5" />}
+                                                label={trans('bookmark.study_folder_correct')}
+                                                count={correctCount}
+                                                tone="correct"
+                                                compact
+                                                onClick={() => navigateQuizFolder('correct')}
+                                            />
+                                            <SidebarFolderItem
+                                                active={activeQuizMode === 'wrong'}
+                                                icon={<XCircle className="h-3.5 w-3.5" />}
+                                                label={trans('bookmark.study_folder_wrong')}
+                                                count={wrongCount}
+                                                tone="wrong"
+                                                compact
+                                                onClick={() => navigateQuizFolder('wrong')}
+                                            />
+                                        </div>
+                                    ) : null}
                                 </div>
+                            </section>
 
-                            </div>
-
-                            <div className="mt-5">
-                                {activeQuizMode === 'completed' ? (
-                                    <StudyPostList
-                                        posts={posts}
-                                        studyMode={activeQuizMode}
-                                        trans={trans}
-                                        savingPostIds={savingPostIds}
-                                        onToggleSave={handleToggleSave}
-                                    />
-                                ) : (
-                                    <QuizReviewList
-                                        items={quizReviewItems}
-                                        mode={activeQuizMode}
-                                        trans={trans}
-                                    />
-                                )}
-                            </div>
-                        </section>
-                    ) : (
-                        <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
-                            <aside className="space-y-4">
-                                <section className="rounded-[28px] border border-zinc-200 bg-white p-5 shadow-sm">
-                                    <div className="flex items-center gap-2">
-                                        <FolderPlus className="h-5 w-5 text-zinc-600" />
-                                        <h2 className="text-base font-semibold text-zinc-900">{trans('bookmark.create_folder')}</h2>
-                                    </div>
-                                    <p className="mt-2 text-sm leading-6 text-zinc-500">{trans('bookmark.create_folder_help')}</p>
-                                    <form className="mt-4 space-y-3" onSubmit={handleCreateFolder}>
-                                        <input
-                                            type="text"
-                                            value={folderName}
-                                            onChange={(event) => setFolderName(event.target.value)}
-                                            placeholder={trans('bookmark.folder_name_placeholder')}
-                                            className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
-                                        />
-                                        <button
-                                            type="submit"
-                                            disabled={creatingFolder}
-                                            className={cn('w-full', pinkActionButtonClass)}
-                                        >
-                                            <FolderPlus className="h-4 w-4" />
-                                            {trans('bookmark.create_folder')}
-                                        </button>
-                                    </form>
-                                </section>
-
-                                <section className="rounded-[28px] border border-zinc-200 bg-white p-5 shadow-sm">
+                            {!isQuizFolder ? (
+                                <>
+                                <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
                                     <div className="flex items-center justify-between gap-3">
                                         <h2 className="text-base font-semibold text-zinc-900">{trans('bookmark.folders_title')}</h2>
                                         <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-semibold text-zinc-700">
@@ -397,6 +330,46 @@ export default function BookmarksPage() {
                                     </div>
 
                                     <div className="mt-4 space-y-3">
+                                        <button
+                                            type="button"
+                                            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-900"
+                                            onClick={() => setShowCreateFolderForm((prev) => !prev)}
+                                        >
+                                            <FolderPlus className="h-4 w-4" />
+                                            {trans('bookmark.create_folder')}
+                                        </button>
+
+                                        {showCreateFolderForm ? (
+                                            <form className="space-y-2" onSubmit={handleCreateFolder}>
+                                                <input
+                                                    type="text"
+                                                    value={folderName}
+                                                    onChange={(event) => setFolderName(event.target.value)}
+                                                    placeholder={trans('bookmark.folder_name_placeholder')}
+                                                    className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
+                                                />
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        type="submit"
+                                                        disabled={creatingFolder}
+                                                        className={cn('flex-1', pinkActionButtonClass)}
+                                                    >
+                                                        {trans('bookmark.create_folder')}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-600 transition hover:border-zinc-300 hover:bg-zinc-50"
+                                                        onClick={() => {
+                                                            setShowCreateFolderForm(false);
+                                                            setFolderName('');
+                                                        }}
+                                                    >
+                                                        {trans('bookmark.cancel')}
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        ) : null}
+
                                         {folders.length === 0 ? (
                                             <EmptyState message={trans('bookmark.no_folders')} compact />
                                         ) : (
@@ -404,100 +377,140 @@ export default function BookmarksPage() {
                                                 const isActive = folder.id === activeFolderId;
 
                                                 return (
-                                                    <div
+                                                    <button
                                                         key={folder.id}
+                                                        type="button"
+                                                        onClick={() => refreshCurrentFolder(folder.id)}
                                                         className={cn(
-                                                            'rounded-lg border border-zinc-200 bg-white p-2.5 shadow-sm transition-all',
+                                                            'flex w-full items-start justify-between rounded-lg px-2.5 py-2 text-left transition',
                                                             isActive
-                                                                ? 'border-zinc-400 bg-zinc-50'
-                                                                : 'hover:border-zinc-300 hover:bg-zinc-50',
+                                                                ? 'bg-zinc-100 text-zinc-900'
+                                                                : 'text-zinc-700 hover:bg-zinc-50',
                                                         )}
                                                     >
-                                                        <div className="flex items-start justify-between gap-3">
-                                                            <button
-                                                                type="button"
-                                                                className="min-w-0 flex-1 text-left"
-                                                                onClick={() => refreshCurrentFolder(folder.id)}
-                                                            >
-                                                                <div className="flex flex-wrap items-center gap-2">
-                                                                    <p className="truncate text-sm font-semibold text-zinc-900">{folder.name}</p>
-                                                                    {folder.is_default ? (
-                                                                        <span className="rounded-md border-2 border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] font-semibold text-zinc-700">
-                                                                            {trans('bookmark.default_folder')}
-                                                                        </span>
-                                                                    ) : null}
-                                                                </div>
-                                                                <p className="mt-1 text-xs text-zinc-500">
-                                                                    {folder.items_count} {trans('bookmark.saved_items')}
-                                                                </p>
-                                                            </button>
-
-                                                            {!folder.is_default ? (
-                                                                <div className="flex shrink-0 items-center gap-1.5">
-                                                                    <button
-                                                                        type="button"
-                                                                        className="rounded-lg border border-zinc-200 bg-white p-1.5 text-zinc-500 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-700"
-                                                                        onClick={() => {
-                                                                            setRenamingFolderId(folder.id);
-                                                                            setRenameValue(folder.name);
-                                                                        }}
-                                                                    >
-                                                                        <PencilLine className="h-3.5 w-3.5" />
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="rounded-lg border border-zinc-200 bg-white p-1.5 text-zinc-500 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-700"
-                                                                        onClick={() => {
-                                                                            void handleDeleteFolder(folder.id);
-                                                                        }}
-                                                                    >
-                                                                        <Trash2 className="h-3.5 w-3.5" />
-                                                                    </button>
-                                                                </div>
-                                                            ) : null}
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                <p className="truncate text-sm font-medium">{folder.name}</p>
+                                                                {folder.is_default ? (
+                                                                    <span className="rounded-md border border-zinc-300 bg-zinc-50 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-700">
+                                                                        {trans('bookmark.default_folder')}
+                                                                    </span>
+                                                                ) : null}
+                                                            </div>
+                                                            <p className="mt-1 text-xs text-zinc-500">
+                                                                {folder.items_count} {trans('bookmark.saved_items')}
+                                                            </p>
                                                         </div>
 
-                                                        {renamingFolderId === folder.id ? (
-                                                            <div className="mt-3 space-y-3">
-                                                                <input
-                                                                    type="text"
-                                                                    value={renameValue}
-                                                                    onChange={(event) => setRenameValue(event.target.value)}
-                                                                    className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
-                                                                />
-                                                                <div className="flex flex-wrap gap-2">
-                                                                    <button
-                                                                        type="button"
-                                                                        className={pinkActionButtonClass}
-                                                                        onClick={() => {
-                                                                            void handleRenameFolder(folder.id);
-                                                                        }}
-                                                                    >
-                                                                        {trans('bookmark.rename_folder')}
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="inline-flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-600 transition hover:border-zinc-300 hover:bg-zinc-50"
-                                                                        onClick={() => {
-                                                                            setRenamingFolderId(null);
-                                                                            setRenameValue('');
-                                                                        }}
-                                                                    >
-                                                                        {trans('bookmark.cancel')}
-                                                                    </button>
-                                                                </div>
+                                                        {!folder.is_default ? (
+                                                            <div className="ml-2 flex shrink-0 items-center gap-1.5">
+                                                                <button
+                                                                    type="button"
+                                                                    className="rounded-md p-1.5 text-zinc-500 transition hover:bg-zinc-200 hover:text-zinc-700"
+                                                                    onClick={(event) => {
+                                                                        event.stopPropagation();
+                                                                        setRenamingFolderId(folder.id);
+                                                                        setRenameValue(folder.name);
+                                                                    }}
+                                                                >
+                                                                    <PencilLine className="h-3.5 w-3.5" />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    className="rounded-md p-1.5 text-zinc-500 transition hover:bg-zinc-200 hover:text-zinc-700"
+                                                                    onClick={(event) => {
+                                                                        event.stopPropagation();
+                                                                        void handleDeleteFolder(folder.id);
+                                                                    }}
+                                                                >
+                                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                                </button>
                                                             </div>
                                                         ) : null}
-                                                    </div>
+                                                    </button>
                                                 );
                                             })
                                         )}
+
+                                        {renamingFolderId !== null ? (
+                                            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+                                                <input
+                                                    type="text"
+                                                    value={renameValue}
+                                                    onChange={(event) => setRenameValue(event.target.value)}
+                                                    className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
+                                                />
+                                                <div className="mt-2 flex flex-wrap gap-2">
+                                                    <button
+                                                        type="button"
+                                                        className={pinkActionButtonClass}
+                                                        onClick={() => {
+                                                            void handleRenameFolder(renamingFolderId);
+                                                        }}
+                                                    >
+                                                        {trans('bookmark.rename_folder')}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-600 transition hover:border-zinc-300 hover:bg-zinc-50"
+                                                        onClick={() => {
+                                                            setRenamingFolderId(null);
+                                                            setRenameValue('');
+                                                        }}
+                                                    >
+                                                        {trans('bookmark.cancel')}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : null}
                                     </div>
                                 </section>
-                            </aside>
+                                </>
+                            ) : null}
+                        </aside>
 
-                            <main className="space-y-4">
-                                <section className="rounded-[28px] border border-zinc-200 bg-white p-5 shadow-sm md:p-6">
+                        <main className="space-y-6">
+                            {isQuizFolder ? (
+                                <section className="rounded-[28px] border border-zinc-200 bg-white p-6 shadow-sm md:p-7">
+                                    <div className="flex flex-wrap items-start justify-between gap-4 border-b border-zinc-100 pb-4">
+                                        <div>
+                                            <h2 className="text-xl font-semibold text-zinc-900">
+                                                {activeQuizMode === 'completed'
+                                                    ? trans('bookmark.study_folder_completed')
+                                                    : activeQuizMode === 'correct'
+                                                        ? trans('bookmark.study_folder_correct')
+                                                        : trans('bookmark.study_folder_wrong')}
+                                            </h2>
+                                            <p className="mt-1 text-sm text-zinc-500">
+                                                {activeQuizMode === 'completed'
+                                                    ? trans('bookmark.quiz_completed_description')
+                                                    : activeQuizMode === 'correct'
+                                                        ? trans('bookmark.quiz_correct_description')
+                                                        : trans('bookmark.quiz_wrong_description')}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-6">
+                                        {activeQuizMode === 'completed' ? (
+                                            <StudyPostList
+                                                posts={posts}
+                                                studyMode={activeQuizMode}
+                                                trans={trans}
+                                                savingPostIds={savingPostIds}
+                                                onToggleSave={handleToggleSave}
+                                            />
+                                        ) : (
+                                            <QuizReviewList
+                                                items={quizReviewItems}
+                                                mode={activeQuizMode}
+                                                trans={trans}
+                                            />
+                                        )}
+                                    </div>
+                                </section>
+                            ) : (
+                                <section className="rounded-[28px] border border-zinc-200 bg-white p-6 shadow-sm md:p-7">
                                     <div className="flex flex-wrap items-start justify-between gap-4 border-b border-zinc-100 pb-4">
                                         <div>
                                             <p className="text-sm font-semibold text-zinc-600">{trans('bookmark.study_folder_all')}</p>
@@ -511,7 +524,7 @@ export default function BookmarksPage() {
                                         </span>
                                     </div>
 
-                                    <div className="mt-5">
+                                    <div className="mt-6">
                                         {posts.length === 0 ? (
                                             <EmptyState message={trans('bookmark.no_bookmarks')} />
                                         ) : (
@@ -534,21 +547,22 @@ export default function BookmarksPage() {
                                         )}
                                     </div>
                                 </section>
-                            </main>
-                        </div>
-                    )}
+                            )}
+                        </main>
+                    </div>
                 </div>
             </div>
         </>
     );
 }
 
-function FolderButton({
+function SidebarFolderItem({
     active,
     icon,
     label,
     count,
     tone = 'default',
+    compact = false,
     onClick,
 }: {
     active: boolean;
@@ -556,28 +570,41 @@ function FolderButton({
     label: string;
     count?: number;
     tone?: FolderButtonTone;
+    compact?: boolean;
     onClick: () => void;
 }) {
     const toneClass = tone === 'correct'
         ? (active
-            ? 'border-emerald-600 bg-emerald-50 text-emerald-800 shadow-sm'
-            : 'border-emerald-200 text-emerald-700 hover:border-emerald-400 hover:bg-emerald-50')
+            ? 'border border-emerald-200 bg-emerald-50 text-emerald-800'
+            : 'text-emerald-700 hover:bg-emerald-50')
         : tone === 'wrong'
             ? (active
-                ? 'border-rose-600 bg-rose-50 text-rose-800 shadow-sm'
-                : 'border-rose-200 text-rose-700 hover:border-rose-400 hover:bg-rose-50')
+                ? 'border border-rose-200 bg-rose-50 text-rose-800'
+                : 'text-rose-700 hover:bg-rose-50')
+            : tone === 'quiz'
+                ? (active
+                    ? 'border border-zinc-300 bg-zinc-100 text-zinc-900'
+                    : 'text-zinc-700 hover:bg-zinc-50')
             : (active
-                ? 'border-zinc-700 bg-zinc-100 text-zinc-900 shadow-sm'
-                : 'hover:-translate-y-0.5 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900');
+                ? 'border border-zinc-300 bg-zinc-100 text-zinc-900'
+                : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900');
 
     return (
         <button
             type="button"
             onClick={onClick}
-            className={cn(pinkFolderButtonClass, toneClass)}
+            className={cn(
+                pinkFolderButtonClass,
+                compact
+                    ? 'w-full justify-between rounded-md border-0 bg-transparent px-2 py-1.5 text-[13px]'
+                    : 'w-full justify-between rounded-md border-0 bg-transparent px-2.5 py-2 text-sm',
+                toneClass,
+            )}
         >
+            <span className="inline-flex min-w-0 items-center gap-2">
             {icon}
-            <span>{label}</span>
+                <span className="truncate">{label}</span>
+            </span>
             {typeof count === 'number' ? (
                 <span
                     className={cn(
@@ -586,6 +613,8 @@ function FolderButton({
                             ? (active ? 'bg-emerald-100 text-emerald-800' : 'bg-emerald-100 text-emerald-700')
                             : tone === 'wrong'
                                 ? (active ? 'bg-rose-100 text-rose-800' : 'bg-rose-100 text-rose-700')
+                                : tone === 'quiz'
+                                    ? (active ? 'bg-blue-100 text-blue-800' : 'bg-blue-100 text-blue-700')
                                 : (active ? 'bg-white/60 text-zinc-900' : 'bg-zinc-200 text-zinc-700'),
                     )}
                 >
@@ -596,7 +625,7 @@ function FolderButton({
     );
 }
 
-function StatCard({
+function StatusPill({
     icon,
     label,
     value,
@@ -606,18 +635,10 @@ function StatCard({
     value: number | string;
 }) {
     return (
-        <div className="rounded-xl border border-zinc-200 bg-white px-3 py-2.5 shadow-sm">
-            <div className="flex items-center gap-3">
-                <div
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700"
-                >
-                    {icon}
-                </div>
-                <div>
-                    <p className="text-lg font-semibold text-zinc-900">{value}</p>
-                    <p className="text-xs text-zinc-500">{label}</p>
-                </div>
-            </div>
+        <div className="inline-flex items-center gap-1.5 text-sm">
+            <span className="inline-flex items-center text-zinc-500">{icon}</span>
+            <span className="text-xs font-medium text-zinc-500">{label}</span>
+            <span className="text-sm font-semibold text-zinc-900">{value}</span>
         </div>
     );
 }
@@ -682,7 +703,7 @@ function QuizReviewList({
     }
 
     return (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-4">
             {items.map((item) => (
                 <article
                     key={item.id}
@@ -752,7 +773,7 @@ function QuizReviewList({
                             className="inline-flex items-center gap-2 rounded-2xl border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-50"
                         >
                             <ExternalLink className="h-4 w-4" />
-                            {trans('bookmark.view_post')}
+                            View Quiz
                         </Link>
                     </div>
                 </article>
@@ -890,7 +911,7 @@ function PostCard({
                     className="ml-auto inline-flex items-center gap-1 rounded-2xl border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-600 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-800"
                 >
                     <ExternalLink className="h-3 w-3" />
-                    {trans('bookmark.view_post')}
+                    {showQuizPreview && post.post_type === 'quiz' ? 'View Quiz' : trans('bookmark.view_post')}
                 </Link>
             </div>
 
@@ -915,12 +936,12 @@ function EmptyState({
     return (
         <div
             className={cn(
-                'flex flex-col items-center justify-center rounded-[28px] border border-dashed border-[#f0c8d5] bg-[#fff8fb] px-6 text-center',
-                compact ? 'py-10' : 'py-16',
+                'flex flex-col items-center justify-center rounded-md border-2 border-dashed border-zinc-300 bg-transparent px-6 text-center',
+                compact ? 'py-6' : 'py-10',
             )}
         >
-            <Bookmark className="mb-3 h-10 w-10 text-[#e9a8bd]" />
-            <p className="max-w-md text-sm leading-6 text-zinc-500">{message}</p>
+            <Bookmark className="mb-2 h-7 w-7 text-zinc-400" />
+            <p className="max-w-sm text-sm leading-5 text-zinc-500">{message}</p>
         </div>
     );
 }

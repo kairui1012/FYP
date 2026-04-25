@@ -29,6 +29,7 @@ class PostSerializationService
             'subject' => $this->serializeSubject($post),
             'lesson' => $this->serializeLesson($post),
             'is_lesson_completed' => (bool) ($post->is_lesson_completed ?? false),
+            'quiz_attempts' => is_array($post->quiz_attempts ?? null) ? $post->quiz_attempts : [],
             'likes_count' => $post->likes_count,
             'comments_count' => $post->comments_count,
             'saves_count' => $post->saves_count,

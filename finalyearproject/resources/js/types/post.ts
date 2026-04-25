@@ -85,6 +85,11 @@ export type PostItem = {
     language?: PostLanguage;
     user?: PostUser;
     is_quiz_completed?: boolean;
+    quiz_attempts?: Array<{
+        question_index: number;
+        selected_answer_index: number;
+        is_correct: boolean;
+    }>;
     likes_count?: number;
     comments_count?: number;
     saves_count?: number;

@@ -233,9 +233,35 @@ export default function PostContent({ post }: PostContentProps) {
     ]);
 
     useEffect(() => {
-        setSelectedAnswers({});
-        setResultStates({});
-    }, [post.id]);
+        const attempts = Array.isArray(post.quiz_attempts) ? post.quiz_attempts : [];
+        if (attempts.length === 0) {
+            setSelectedAnswers({});
+            setResultStates({});
+            return;
+        }
+
+        const nextSelected: Record<number, string> = {};
+        const nextResults: Record<number, 'correct' | 'wrong' | null> = {};
+
+        for (const attempt of attempts) {
+            const qIndex = Number(attempt.question_index);
+            const selectedIndex = Number(attempt.selected_answer_index);
+            if (Number.isNaN(qIndex) || Number.isNaN(selectedIndex) || qIndex < 0 || selectedIndex < 0) {
+                continue;
+            }
+
+            const question = quizData?.questions[qIndex];
+            if (!question || selectedIndex >= question.options.length) {
+                continue;
+            }
+
+            nextSelected[qIndex] = String(selectedIndex);
+            nextResults[qIndex] = attempt.is_correct ? 'correct' : 'wrong';
+        }
+
+        setSelectedAnswers(nextSelected);
+        setResultStates(nextResults);
+    }, [post.id, post.quiz_attempts, quizData]);
 
     useEffect(() => {
         const url = new URL(window.location.href);

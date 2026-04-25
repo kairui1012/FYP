@@ -6,6 +6,7 @@ use App\Models\Comment;
 use App\Models\Language;
 use App\Models\Post;
 use App\Models\QuizCompletion;
+use App\Models\QuizMistake;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\AchievementService;
@@ -197,6 +198,10 @@ class PostController extends Controller
         );
 
         $post->setAttribute('is_lesson_completed', false);
+        $post->setAttribute(
+            'quiz_attempts',
+            $userId ? $this->getQuizAttemptsForPost($userId, $post->id) : []
+        );
 
         return Inertia::render('PostContent', [
             'post' => $this->serializationService->serialize($post, $followingIds),
@@ -420,6 +425,29 @@ class PostController extends Controller
 
         return str_contains($message, "unknown column 'vote'")
             || str_contains($message, 'unknown column `vote`');
+    }
+
+    /**
+     * @return array<int, array{question_index: int, selected_answer_index: int, is_correct: bool}>
+     */
+    private function getQuizAttemptsForPost(int $userId, int $postId): array
+    {
+        if (! Schema::hasTable('quiz_mistakes')) {
+            return [];
+        }
+
+        return QuizMistake::query()
+            ->where('user_id', $userId)
+            ->where('post_id', $postId)
+            ->orderBy('question_index')
+            ->get(['question_index', 'selected_answer_index', 'is_correct'])
+            ->map(fn (QuizMistake $attempt) => [
+                'question_index' => (int) $attempt->question_index,
+                'selected_answer_index' => (int) $attempt->selected_answer_index,
+                'is_correct' => (bool) $attempt->is_correct,
+            ])
+            ->values()
+            ->all();
     }
 
 }
