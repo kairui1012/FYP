@@ -3,6 +3,7 @@ import { Send } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { reactLang } from '@erag/lang-sync-inertia';
 import { AttachmentsSection } from '@/components/create-post/attachments-section';
+import { VideoLinkSection } from '@/components/create-post/video-link-section';
 import { ContentComposerSection } from '@/components/create-post/content-composer-section';
 import { LanguageSection } from '@/components/create-post/language-section';
 import { PostTypeSection } from '@/components/create-post/post-type-section';
@@ -29,19 +30,12 @@ import type { PostSubject } from '@/types';
 
 type CreatePostPageProps = {
     subjects?: PostSubject[];
-    lessons?: Array<{
-        id: number;
-        title: string;
-        sequence: number;
-        subject_id: number | null;
-        subject_name: string | null;
-    }>;
 };
 
 export default function CreatePostPage() {
     const { trans } = reactLang();
     const t = buildCreatePostText(trans);
-    const { subjects = [], lessons = [] } = usePage<CreatePostPageProps>().props;
+    const { subjects = [] } = usePage<CreatePostPageProps>().props;
 
     const {
         fileInputRef,
@@ -50,19 +44,25 @@ export default function CreatePostPage() {
         setTitle,
         content,
         setContent,
-        quizOptions,
-        setQuizOptions,
-        quizAnswerIndex,
-        setQuizAnswerIndex,
+        isAnonymous,
+        setIsAnonymous,
+        quizzes,
+        addQuiz,
+        removeQuiz,
+        updateQuizQuestion,
+        updateQuizOption,
+        updateQuizAnswerIndex,
+        addQuizOption,
+        removeQuizOption,
         selectedPostType,
         setSelectedPostType,
         selectedSubject,
         setSelectedSubject,
-        selectedLesson,
-        setSelectedLesson,
         selectedLanguage,
         setSelectedLanguage,
         attachments,
+        videoUrl,
+        setVideoUrl,
         isSubmitting,
         isDragging,
         setIsDragging,
@@ -75,8 +75,6 @@ export default function CreatePostPage() {
         showSymbolPreview,
         previewContent,
         isQuizSelected,
-        isQuestionSelected,
-        filteredLessons,
         mathFormulaPresets,
         physicsSymbolPresets,
         chemistrySymbolPresets,
@@ -89,7 +87,7 @@ export default function CreatePostPage() {
         removeAttachment,
         insertMathSnippet,
         onSubmit,
-    } = useCreatePostForm({ subjects, lessons, t, trans });
+    } = useCreatePostForm({ subjects, t, trans });
 
     return (
         <>
@@ -122,7 +120,7 @@ export default function CreatePostPage() {
                         </div>
 
                         <ContentComposerSection
-                            isQuizSelected={isQuizSelected}
+                            isQuizSelected={false}
                             content={content}
                             onChangeContent={setContent}
                             contentTextareaRef={contentTextareaRef}
@@ -153,21 +151,55 @@ export default function CreatePostPage() {
                             chemistryToolHint={t.chemistryToolHint}
                         />
 
+                        {/* Anonymous Toggle — between content and post type */}
+                        <div className="flex items-start gap-4 rounded-xl bg-zinc-50 px-5 py-4">
+                            <button
+                                type="button"
+                                role="switch"
+                                aria-checked={isAnonymous}
+                                onClick={() => setIsAnonymous((prev) => !prev)}
+                                className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 ${
+                                    isAnonymous ? 'bg-zinc-800' : 'bg-zinc-300'
+                                }`}
+                            >
+                                <span
+                                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm ring-0 transition-transform ${
+                                        isAnonymous ? 'translate-x-5' : 'translate-x-0'
+                                    }`}
+                                />
+                            </button>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-base font-medium text-zinc-800">Post Anonymously</p>
+                                {isAnonymous ? (
+                                    <p className="mt-0.5 text-sm text-zinc-500">
+                                        Your name and avatar will be hidden from others
+                                    </p>
+                                ) : null}
+                            </div>
+                        </div>
+
                         {isQuizSelected ? (
                             <QuizSetupSection
-                                quizOptions={quizOptions}
-                                quizAnswerIndex={quizAnswerIndex}
-                                onChangeOption={(index, value) => {
-                                    setQuizOptions((prev) =>
-                                        prev.map((item, optionIndex) => (optionIndex === index ? value : item))
-                                    );
-                                }}
-                                onChangeAnswerIndex={setQuizAnswerIndex}
+                                quizzes={quizzes}
+                                onAddQuiz={addQuiz}
+                                onRemoveQuiz={removeQuiz}
+                                onUpdateQuestion={updateQuizQuestion}
+                                onUpdateOption={updateQuizOption}
+                                onUpdateAnswerIndex={updateQuizAnswerIndex}
+                                onAddOption={addQuizOption}
+                                onRemoveOption={removeQuizOption}
                                 text={{
                                     quizSectionTitle: t.quizSectionTitle,
                                     quizSectionHint: t.quizSectionHint,
+                                    quizNumberLabel: t.quizNumberLabel,
+                                    quizQuestionInputLabel: t.quizQuestionInputLabel,
+                                    quizQuestionPlaceholder: t.quizQuestionPlaceholder,
                                     quizOptionLabel: t.quizOptionLabel,
                                     quizOptionPlaceholder: t.quizOptionPlaceholder,
+                                    quizAddOption: t.quizAddOption,
+                                    quizRemoveOption: t.quizRemoveOption,
+                                    quizAddQuiz: t.quizAddQuiz,
+                                    quizRemoveQuiz: t.quizRemoveQuiz,
                                     quizAnswerLabel: t.quizAnswerLabel,
                                     quizAnswerPlaceholder: t.quizAnswerPlaceholder,
                                     quizRequiredHint: t.quizRequiredHint,
@@ -198,31 +230,6 @@ export default function CreatePostPage() {
                             pillChoiceIdle={pillChoiceIdle}
                         />
 
-                        {isQuestionSelected ? (
-                            <div className="space-y-3">
-                                <div className="space-y-1">
-                                    <p className="text-base font-medium text-zinc-700">Lesson</p>
-                                    <p className="text-sm text-zinc-500">Select which lesson this question belongs to.</p>
-                                </div>
-                                <select
-                                    value={selectedLesson}
-                                    onChange={(event) => setSelectedLesson(event.target.value)}
-                                    className="w-full rounded-xl border-0 bg-zinc-100 px-5 py-3.5 text-base text-zinc-800 outline-none transition focus:bg-zinc-200/80 focus:ring-0"
-                                    required
-                                >
-                                    <option value="">Select lesson</option>
-                                    {filteredLessons.map((lesson) => (
-                                        <option key={lesson.id} value={lesson.id}>
-                                            {`Lesson ${lesson.sequence}: ${lesson.title}`}
-                                        </option>
-                                    ))}
-                                </select>
-                                {selectedSubject && filteredLessons.length === 0 ? (
-                                    <p className="text-sm text-amber-700">No lessons found for selected subject yet.</p>
-                                ) : null}
-                            </div>
-                        ) : null}
-
                         <LanguageSection
                             languageLabel={t.languageLabel}
                             languageRequired={t.languageRequired}
@@ -252,6 +259,12 @@ export default function CreatePostPage() {
                                 supportedFormat: t.supportedFormat,
                                 previewAlt: t.previewAlt,
                             }}
+                        />
+
+                        <VideoLinkSection
+                            videoUrl={videoUrl}
+                            onChangeVideoUrl={setVideoUrl}
+                            pillIconButton={pillIconButton}
                         />
 
                         <div className="pt-4">

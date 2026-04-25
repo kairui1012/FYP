@@ -53,4 +53,13 @@ return [
 
     'top_contributor_title' => '顶尖贡献者',
     'top_contributor_desc'  => '获得 50 个点赞，彰显卓越的社区影响力。',
+
+    'badge_rookie_author_name' => '新手作者',
+    'badge_rookie_author_desc' => '通过发帖和获得点赞累计 50 积分。',
+    'badge_rising_star_name' => '新星作者',
+    'badge_rising_star_desc' => '通过发帖和获得点赞累计 150 积分。',
+    'badge_community_hero_name' => '社区英雄',
+    'badge_community_hero_desc' => '通过发帖和获得点赞累计 300 积分。',
+    'badge_legend_name' => '传奇作者',
+    'badge_legend_desc' => '通过发帖和获得点赞累计 600 积分。',
 ];

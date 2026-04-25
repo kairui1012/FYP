@@ -1,7 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { reactLang } from '@erag/lang-sync-inertia';
-import { CalendarClock, CalendarDays, CalendarRange, Check, ChevronDown, Flame } from 'lucide-react';
+import { CalendarClock, CalendarDays, CalendarRange, Check, ChevronDown, Flame, Sparkles, TrendingUp } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnComment } from '@/components/ui/btn-comment';
@@ -9,7 +9,6 @@ import { BtnFollow } from '@/components/ui/btn-follow';
 import { BtnLike } from '@/components/ui/btn-like';
 import { BtnSave } from '@/components/ui/btn-save';
 import { BtnShare } from '@/components/ui/btn-share';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatFormulaText } from '@/lib/formula-display';
 import { formatTimeAgo, getLanguageLabel } from '@/lib/post-utils';
 import { popularPage } from '@/routes';
@@ -23,6 +22,7 @@ type PopularRange = 'today' | 'week' | 'month' | 'all';
 type PopularPageProps = {
     posts?: PostItem[];
     activeRange?: PopularRange;
+    activeSort?: 'newest' | 'hottest';
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -94,7 +94,11 @@ export default function PopularPage() {
 
     const [posts, setPosts] = useState<PostItem[]>(props.posts ?? []);
     const [activeRange, setActiveRange] = useState<PopularRange>(props.activeRange ?? 'week');
+    const [activeSort, setActiveSort] = useState<'newest' | 'hottest'>(props.activeSort ?? 'hottest');
     const [isRangeOpen, setIsRangeOpen] = useState(false);
+    const [isSortOpen, setIsSortOpen] = useState(false);
+    const rangeRef = useRef<HTMLDivElement>(null);
+    const sortRef = useRef<HTMLDivElement>(null);
     const [likingPostIds, setLikingPostIds] = useState<number[]>([]);
     const [savingPostIds, setSavingPostIds] = useState<number[]>([]);
     const [likeStateByPost, setLikeStateByPost] = useState<Record<number, { liked: boolean; likesCount: number }>>({});
@@ -147,23 +151,44 @@ export default function PopularPage() {
     }, [props.activeRange]);
 
     useEffect(() => {
+        setActiveSort(props.activeSort ?? 'hottest');
+    }, [props.activeSort]);
+
+    useEffect(() => {
         setIsRangeOpen(false);
     }, [props.activeRange]);
 
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (rangeRef.current && !rangeRef.current.contains(e.target as Node)) {
+                setIsRangeOpen(false);
+            }
+            if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
+                setIsSortOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const rangeOptions = useMemo(
         () => [
-            { value: 'today' as const, label: trans('popular.today'), icon: CalendarClock },
-            { value: 'week' as const, label: trans('popular.week'), icon: CalendarRange },
-            { value: 'month' as const, label: trans('popular.month'), icon: CalendarDays },
-            { value: 'all' as const, label: trans('popular.all'), icon: Flame },
+            { value: 'today' as const, label: 'Today', icon: CalendarClock },
+            { value: 'week' as const, label: 'This Week', icon: CalendarRange },
+            { value: 'month' as const, label: 'This Month', icon: CalendarDays },
+            { value: 'all' as const, label: 'All Time', icon: Flame },
         ],
-        [trans]
+        []
     );
 
-    const totalLikes = useMemo(
-        () => posts.reduce((sum, post) => sum + (post.likes_count ?? 0), 0),
-        [posts]
+    const sortOptions = useMemo(
+        () => [
+            { value: 'hottest' as const, label: 'Hottest', icon: 'fire' as const },
+            { value: 'newest' as const, label: 'Newest', icon: 'sparkles' as const },
+        ],
+        []
     );
+
     const activeRangeOption = rangeOptions.find((option) => option.value === activeRange) ?? rangeOptions[0];
     const ActiveRangeIcon = activeRangeOption.icon;
 
@@ -175,15 +200,15 @@ export default function PopularPage() {
         router.visit(`/posts/${postId}?focus=comments`);
     };
 
-    const loadRange = (range: PopularRange) => {
+    const loadPosts = (range: PopularRange, sort: 'newest' | 'hottest') => {
         router.get(
             popularPage.url({
-                query: { range },
+                query: { range, sort },
             }),
             {},
             {
+                preserveState: true,
                 preserveScroll: true,
-                preserveState: false,
             }
         );
     };
@@ -331,77 +356,118 @@ export default function PopularPage() {
             <Head title={trans('navigation.popular')} />
             <div className="pb-8">
                 <div className="mx-auto w-full max-w-3xl space-y-2 p-4 md:p-6 md:pb-10">
-                    <section className="rounded-[28px] border border-[#f0d6dd] bg-linear-to-r from-[#fff7f3] via-white to-[#f9f5ff] p-4 shadow-[0_24px_70px_-38px_rgba(226,113,147,0.55)]">
-                        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                            <div>
-                                <div className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/85 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-[#c1607f] shadow-sm">
-                                    <Flame className="h-3.5 w-3.5" />
-                                    {trans('navigation.popular')}
-                                </div>
-                                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-zinc-500">
-                                    <span>
-                                        {trans('popular.posts')}: <span className="font-semibold text-zinc-800">{posts.length}</span>
-                                    </span>
-                                    <span>
-                                        {trans('popular.likes')}: <span className="font-semibold text-zinc-800">{totalLikes}</span>
-                                    </span>
-                                </div>
-                            </div>
+                    {/* Filter toolbar */}
+                    <div className="flex items-center justify-between gap-3">
+                        {/* Time Range dropdown */}
+                        <div className="relative" ref={rangeRef}>
+                            <button
+                                type="button"
+                                onClick={() => { setIsRangeOpen((v) => !v); setIsSortOpen(false); }}
+                                className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                            >
+                                <ActiveRangeIcon className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                                {activeRangeOption.label}
+                                <ChevronDown className={`h-4 w-4 text-zinc-400 transition-transform duration-200 ${isRangeOpen ? 'rotate-180' : ''}`} />
+                            </button>
 
-                            <Collapsible open={isRangeOpen} onOpenChange={setIsRangeOpen} className="w-full md:w-auto">
-                                <CollapsibleTrigger asChild>
-                                    <button
-                                        type="button"
-                                        className="inline-flex w-full items-center justify-between gap-3 rounded-2xl border border-white/80 bg-white/90 px-4 py-3 text-left shadow-sm transition hover:border-[#e9c2cf] hover:bg-white md:min-w-[220px]"
-                                    >
-                                        <span className="min-w-0">
-                                            <span className="block text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400">
-                                                Time Range
-                                            </span>
-                                            <span className="mt-1 flex items-center gap-2 text-sm font-semibold text-zinc-900">
-                                                <ActiveRangeIcon className="h-4 w-4 text-[#d46586]" />
-                                                {activeRangeOption.label}
-                                            </span>
-                                        </span>
-                                        <ChevronDown className={`h-4 w-4 shrink-0 text-zinc-500 transition ${isRangeOpen ? 'rotate-180' : ''}`} />
-                                    </button>
-                                </CollapsibleTrigger>
-
-                                <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-                                    <div className="mt-3 grid gap-2 rounded-3xl border border-white/80 bg-white/80 p-3 shadow-sm backdrop-blur">
-                                        {rangeOptions.map((option) => {
-                                            const Icon = option.icon;
-                                            const isActive = activeRange === option.value;
-
-                                            return (
-                                                <button
-                                                    key={option.value}
-                                                    type="button"
-                                                    className={`flex items-center justify-between rounded-2xl px-3 py-3 text-sm transition ${
-                                                        isActive
-                                                            ? 'bg-[#fff1f5] text-zinc-900 ring-1 ring-[#f3ccd8]'
-                                                            : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900'
-                                                    }`}
-                                                    onClick={() => {
-                                                        setActiveRange(option.value);
-                                                        loadRange(option.value);
-                                                    }}
-                                                >
-                                                    <span className="flex items-center gap-3 font-medium">
-                                                        <span className={`rounded-xl p-2 ${isActive ? 'bg-white text-[#d46586]' : 'bg-zinc-100 text-zinc-500'}`}>
-                                                            <Icon className="h-4 w-4" />
-                                                        </span>
-                                                        {option.label}
+                            {isRangeOpen && (
+                                <div className="absolute left-0 top-full z-20 mt-2 w-48 overflow-hidden rounded-2xl border border-white/80 bg-white/95 p-1.5 shadow-[0_12px_30px_rgba(15,23,42,0.08)] backdrop-blur-sm">
+                                    {rangeOptions.map((option) => {
+                                        const Icon = option.icon;
+                                        const isActive = activeRange === option.value;
+                                        return (
+                                            <button
+                                                key={option.value}
+                                                type="button"
+                                                onClick={() => {
+                                                    setActiveRange(option.value);
+                                                    setIsRangeOpen(false);
+                                                    loadPosts(option.value, activeSort);
+                                                }}
+                                                className={`my-0.5 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
+                                                    isActive
+                                                        ? 'bg-neutral-100 font-medium text-neutral-900'
+                                                        : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
+                                                }`}
+                                            >
+                                                <Icon className="h-4 w-4 shrink-0" />
+                                                <span className="flex-1 text-left text-sm font-medium text-neutral-900">{option.label}</span>
+                                                {isActive ? (
+                                                    <span className="flex size-5 items-center justify-center rounded-full bg-[#de6b89]/12 text-[#de6b89]">
+                                                        <Check className="size-3.5" />
                                                     </span>
-                                                    {isActive ? <Check className="h-4 w-4 text-[#d46586]" /> : null}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </CollapsibleContent>
-                            </Collapsible>
+                                                ) : (
+                                                    <span className="size-5 rounded-full border border-transparent" />
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
-                    </section>
+
+                        {/* Sort By dropdown */}
+                        <div className="relative" ref={sortRef}>
+                            {(() => {
+                                const activeSortOption = sortOptions.find((o) => o.value === activeSort) ?? sortOptions[0];
+                                return (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setIsSortOpen((v) => !v); setIsRangeOpen(false); }}
+                                            className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                                        >
+                                            {activeSortOption.icon === 'fire' ? (
+                                                <TrendingUp className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                                            ) : (
+                                                <Sparkles className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                                            )}
+                                            {activeSortOption.label}
+                                            <ChevronDown className={`h-4 w-4 text-zinc-400 transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        {isSortOpen && (
+                                            <div className="absolute right-0 top-full z-20 mt-2 w-44 overflow-hidden rounded-2xl border border-white/80 bg-white/95 p-1.5 shadow-[0_12px_30px_rgba(15,23,42,0.08)] backdrop-blur-sm">
+                                                {sortOptions.map((option) => {
+                                                    const isActive = activeSort === option.value;
+                                                    return (
+                                                        <button
+                                                            key={option.value}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setActiveSort(option.value);
+                                                                setIsSortOpen(false);
+                                                                loadPosts(activeRange, option.value);
+                                                            }}
+                                                            className={`my-0.5 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
+                                                                isActive
+                                                                    ? 'bg-neutral-100 font-medium text-neutral-900'
+                                                                    : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
+                                                            }`}
+                                                        >
+                                                            {option.icon === 'fire' ? (
+                                                                <TrendingUp className="h-4 w-4 shrink-0" />
+                                                            ) : (
+                                                                <Sparkles className="h-4 w-4 shrink-0" />
+                                                            )}
+                                                            <span className="flex-1 text-left text-sm font-medium text-neutral-900">{option.label}</span>
+                                                            {isActive ? (
+                                                                <span className="flex size-5 items-center justify-center rounded-full bg-[#de6b89]/12 text-[#de6b89]">
+                                                                    <Check className="size-3.5" />
+                                                                </span>
+                                                            ) : (
+                                                                <span className="size-5 rounded-full border border-transparent" />
+                                                            )}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </>
+                                );
+                            })()}
+                        </div>
+                    </div>
 
                     {posts.length === 0 ? (
                         <div className="border border-dashed border-zinc-300 bg-white px-6 py-16 text-center text-3xl text-zinc-500">
@@ -410,16 +476,6 @@ export default function PopularPage() {
                     ) : (
                         <div className="space-y-2">
                             {posts.map((post, index) => {
-                                const likeState = likeStateByPost[post.id] ?? {
-                                    liked: Boolean(post.is_liked),
-                                    likesCount: post.likes_count ?? 0,
-                                };
-
-                                const saveState = saveStateByPost[post.id] ?? {
-                                    saved: Boolean(post.is_saved),
-                                    savesCount: post.saves_count ?? 0,
-                                };
-
                                 return (
                                     <div key={post.id}>
                                         <article

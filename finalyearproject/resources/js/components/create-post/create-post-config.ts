@@ -2,7 +2,7 @@ import { Activity, Atom, BookOpen, Calculator, Dna, Globe, GraduationCap, Landma
 
 export const MAX_TITLE_LENGTH = 150;
 export const MAX_CONTENT_LENGTH = 2000;
-export const ACCEPTED_FILE_TYPES = 'image/*,.pdf,application/pdf';
+export const ACCEPTED_FILE_TYPES = 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation';
 export const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB per file
 export const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 50MB total upload
 
@@ -31,10 +31,16 @@ export const pillSubmitButton =
 export const pillIconButton =
     'rounded-full border-2 border-zinc-200 bg-white p-2 text-zinc-500 shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-[#ef99b0] hover:bg-rose-50 hover:text-[#c94461] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300/50';
 
+export type QuizItem = {
+    question: string;
+    options: string[];
+    answerIndex: string;
+};
+
 export type LocalAttachment = {
     file: File;
     preview: string | null;
-    type: 'image' | 'pdf';
+    type: 'image' | 'document';
 };
 
 export type CreatePostText = {
@@ -106,6 +112,12 @@ export type CreatePostText = {
     quizSectionHint: string;
     quizOptionLabel: string;
     quizOptionPlaceholder: string;
+    quizAddOption: string;
+    quizRemoveOption: string;
+    quizAddQuiz: string;
+    quizRemoveQuiz: string;
+    quizNumberLabel: string;
+    quizQuestionInputLabel: string;
     quizAnswerLabel: string;
     quizAnswerPlaceholder: string;
     quizRequiredHint: string;
@@ -182,6 +194,12 @@ export const buildCreatePostText = (trans: (key: string) => string): CreatePostT
     quizSectionHint: trans('createPost.quiz_section_hint'),
     quizOptionLabel: trans('createPost.quiz_option_label'),
     quizOptionPlaceholder: trans('createPost.quiz_option_placeholder'),
+    quizAddOption: trans('createPost.quiz_add_option'),
+    quizRemoveOption: trans('createPost.quiz_remove_option'),
+    quizAddQuiz: trans('createPost.quiz_add_quiz'),
+    quizRemoveQuiz: trans('createPost.quiz_remove_quiz'),
+    quizNumberLabel: trans('createPost.quiz_number_label'),
+    quizQuestionInputLabel: trans('createPost.quiz_question_input_label'),
     quizAnswerLabel: trans('createPost.quiz_answer_label'),
     quizAnswerPlaceholder: trans('createPost.quiz_answer_placeholder'),
     quizRequiredHint: trans('createPost.quiz_required_hint'),

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -17,7 +18,8 @@ class SetLocale
     public function handle(Request $request, Closure $next): Response
     {
         $supportedLocales = ['en', 'zh','my'];
-        $locale = $request->session()->get('locale')
+        $locale = $request->user()?->locale
+            ?? $request->session()->get('locale')
             ?? $request->cookie('locale')
             ?? config('app.locale');
 
@@ -27,6 +29,10 @@ class SetLocale
 
         App::setLocale($locale);
         $request->session()->put('locale', $locale);
+
+        if ($request->user() instanceof User && $request->user()->locale !== $locale) {
+            $request->user()->forceFill(['locale' => $locale])->saveQuietly();
+        }
 
         syncLangFiles('navigation');
         syncLangFiles('createPost');

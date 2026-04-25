@@ -128,30 +128,40 @@ export function HomeFeedSection({
                     >
                         <header className="mb-2 flex items-start justify-between">
                             <div className="flex items-center gap-3">
-                                <Link
-                                    href={post.user?.id ? `/profilePage/${post.user.id}` : '/profilePage'}
-                                    className="peer group/avatar cursor-pointer"
-                                    onClick={(event) => event.stopPropagation()}
-                                >
-                                    <Avatar className="h-10 w-10 ring-2 ring-transparent transition-colors group-hover/avatar:ring-[#e27193]">
-                                        {post.user?.avatar ? (
-                                            <AvatarImage src={post.user.avatar} alt={text.userAvatarAlt} />
-                                        ) : null}
-                                        <AvatarFallback className="bg-zinc-200 text-sm font-semibold text-zinc-700">
-                                            {(post.user?.name ?? text.unknownUser).charAt(0).toUpperCase()}
-                                        </AvatarFallback>
+                                {post.is_anonymous ? (
+                                    <Avatar className="h-10 w-10">
+                                        <AvatarFallback className="bg-zinc-300 text-sm font-semibold text-zinc-500">?</AvatarFallback>
                                     </Avatar>
-                                </Link>
+                                ) : (
+                                    <Link
+                                        href={post.user?.id ? `/profilePage/${post.user.id}` : '/profilePage'}
+                                        className="peer group/avatar cursor-pointer"
+                                        onClick={(event) => event.stopPropagation()}
+                                    >
+                                        <Avatar className="h-10 w-10 ring-2 ring-transparent transition-colors group-hover/avatar:ring-[#e27193]">
+                                            {post.user?.avatar ? (
+                                                <AvatarImage src={post.user.avatar} alt={text.userAvatarAlt} />
+                                            ) : null}
+                                            <AvatarFallback className="bg-zinc-200 text-sm font-semibold text-zinc-700">
+                                                {(post.user?.name ?? text.unknownUser).charAt(0).toUpperCase()}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    </Link>
+                                )}
                                 <div className="min-w-0 flex-1">
                                     <div className="mb-3 flex items-center gap-1.5 text-base">
-                                        <Link
-                                            href={post.user?.id ? `/profilePage/${post.user.id}` : '/profilePage'}
-                                            className="cursor-pointer font-semibold text-zinc-900 transition-colors hover:text-[#e27193] peer-hover:text-[#e27193]"
-                                            onClick={(event) => event.stopPropagation()}
-                                        >
-                                            {post.user?.name ?? text.unknownUser}
-                                        </Link>
-                                        {post.user?.id && currentUserId && post.user.id !== currentUserId ? (
+                                        {post.is_anonymous ? (
+                                            <span className="font-semibold text-zinc-500 italic">Anonymous</span>
+                                        ) : (
+                                            <Link
+                                                href={post.user?.id ? `/profilePage/${post.user.id}` : '/profilePage'}
+                                                className="cursor-pointer font-semibold text-zinc-900 transition-colors hover:text-[#e27193] peer-hover:text-[#e27193]"
+                                                onClick={(event) => event.stopPropagation()}
+                                            >
+                                                {post.user?.name ?? text.unknownUser}
+                                            </Link>
+                                        )}
+                                        {!post.is_anonymous && post.user?.id && currentUserId && post.user.id !== currentUserId ? (
                                             <BtnFollow
                                                 following={followStateByUser[post.user.id] ?? Boolean(post.user.is_following)}
                                                 loading={followingUserIds.includes(post.user.id)}

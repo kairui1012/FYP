@@ -1,13 +1,15 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import {
     Bell,
     BookOpen,
+    FileText,
     Folder,
     LayoutGrid,
     Menu,
     Search,
+    User,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
@@ -56,11 +58,56 @@ const rightNavItems: NavItem[] = [
     },
 ];
 
+type SearchUser = { id: number; name: string; avatar: string | null; type: 'user' };
+type SearchPost = { id: number; title: string; post_type: string; author: string | null; type: 'post' };
+type SearchResults = { users: SearchUser[]; posts: SearchPost[] };
+
 export function AppHeader() {
     const page = usePage();
     const { trans } = reactLang();
     const { auth } = page.props as typeof page.props & { locale?: string };
     const getInitials = useInitials();
+
+    const [query, setQuery] = useState('');
+    const [results, setResults] = useState<SearchResults | null>(null);
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const fetchResults = useCallback(async (q: string) => {
+        if (q.trim().length < 2) { setResults(null); setIsOpen(false); return; }
+        try {
+            const res = await fetch(`/search?q=${encodeURIComponent(q.trim())}`);
+            const data: SearchResults = await res.json();
+            setResults(data);
+            setIsOpen(true);
+        } catch { setResults(null); }
+    }, []);
+
+    useEffect(() => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => fetchResults(query), 300);
+        return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    }, [query, fetchResults]);
+
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) setIsOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const go = (url: string) => { setIsOpen(false); setQuery(''); router.visit(url); };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key !== 'Enter' || !results) return;
+        if (results.users.length > 0) go(`/profilePage/${results.users[0].id}`);
+        else if (results.posts.length > 0) go(`/posts/${results.posts[0].id}`);
+    };
+
+    const hasResults = results && (results.users.length > 0 || results.posts.length > 0);
+    const showEmpty = results && !hasResults && query.trim().length >= 2;
 
     return (
         <>
@@ -136,14 +183,76 @@ export function AppHeader() {
                     </Link>
 
                     <div className="hidden w-full max-w-md flex-1 md:ml-[10%] md:mr-2 md:block">
-                        <div className="relative">
-                            <Search className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                        <div ref={containerRef} className="relative">
+                            <Search className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 z-10" />
                             <Input
                                 type="search"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                onFocus={() => results && setIsOpen(true)}
                                 placeholder={trans('navigation.search_placeholder')}
                                 className="h-10 rounded-full border-2 border-[#f090aa] pl-9 focus-visible:border-[#ef97ad] focus-visible:ring-2 focus-visible:ring-[#e36a8b]/35 dark:border-[#F0838F] dark:focus-visible:border-[#F0838F] dark:focus-visible:ring-[#F0838F]/30"
                                 aria-label={trans('navigation.search_placeholder')}
                             />
+                            {isOpen && (
+                                <div className="absolute top-full left-0 right-0 mt-2 z-50 overflow-hidden rounded-2xl border border-white/80 bg-white/95 shadow-[0_12px_30px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-neutral-700 dark:bg-neutral-900">
+                                    {showEmpty && (
+                                        <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+                                            {trans('navigation.search_no_results')}
+                                        </p>
+                                    )}
+                                    {hasResults && (
+                                        <>
+                                            {results!.users.length > 0 && (
+                                                <div>
+                                                    <p className="px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                        {trans('navigation.search_users')}
+                                                    </p>
+                                                    {results!.users.map((u) => (
+                                                        <button
+                                                            key={u.id}
+                                                            onClick={() => go(`/profilePage/${u.id}`)}
+                                                            className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm transition-colors hover:bg-[#f090aa]/10"
+                                                        >
+                                                            {u.avatar ? (
+                                                                <img src={u.avatar} alt={u.name} className="h-7 w-7 rounded-full object-cover" />
+                                                            ) : (
+                                                                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f090aa]/20">
+                                                                    <User className="h-4 w-4 text-[#f090aa]" />
+                                                                </div>
+                                                            )}
+                                                            <span className="font-medium">{u.name}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {results!.posts.length > 0 && (
+                                                <div className={results!.users.length > 0 ? 'border-t border-neutral-100 dark:border-neutral-800' : ''}>
+                                                    <p className="px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                        {trans('navigation.search_posts')}
+                                                    </p>
+                                                    {results!.posts.map((p) => (
+                                                        <button
+                                                            key={p.id}
+                                                            onClick={() => go(`/posts/${p.id}`)}
+                                                            className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm transition-colors hover:bg-[#f090aa]/10"
+                                                        >
+                                                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f090aa]/20">
+                                                                <FileText className="h-4 w-4 text-[#f090aa]" />
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <div className="truncate font-medium">{p.title}</div>
+                                                                {p.author && <div className="text-xs text-muted-foreground">{p.author}</div>}
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 

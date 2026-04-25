@@ -15,6 +15,7 @@ use App\Http\Controllers\PostPopularController;
 use App\Http\Controllers\ProfilePageController;
 use App\Http\Controllers\PostSaveController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -66,6 +67,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/achievements', [AchievementsController::class, 'index'])->name('achievements');
     Route::get('/categories', [PostController::class, 'categories'])->name('categories');
     Route::get('/bookmarks', [PostBookmarkController::class, 'index'])->name('bookmarks');
+    Route::get('/search', [SearchController::class, 'search'])->name('search');
 });
 
 Route::get('/login/google', [GoogleAuthController::class, 'redirectToProvider'])->name('login.google');

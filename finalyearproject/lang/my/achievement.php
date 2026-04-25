@@ -53,4 +53,13 @@ return [
 
     'top_contributor_title' => 'Penyumbang Terbaik',
     'top_contributor_desc'  => 'Terima 50 suka — tanda impak komuniti yang luar biasa.',
+
+    'badge_rookie_author_name' => 'Penulis Baharu',
+    'badge_rookie_author_desc' => 'Kumpul 50 mata melalui kiriman dan suka yang diterima.',
+    'badge_rising_star_name' => 'Bintang Meningkat',
+    'badge_rising_star_desc' => 'Kumpul 150 mata melalui kiriman dan suka yang diterima.',
+    'badge_community_hero_name' => 'Wira Komuniti',
+    'badge_community_hero_desc' => 'Kumpul 300 mata melalui kiriman dan suka yang diterima.',
+    'badge_legend_name' => 'Legenda',
+    'badge_legend_desc' => 'Kumpul 600 mata melalui kiriman dan suka yang diterima.',
 ];

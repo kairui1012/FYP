@@ -12,38 +12,32 @@ import {
     POST_TYPE_OPTIONS,
     type CreatePostText,
     type LocalAttachment,
+    type QuizItem,
     getSubjectIcon,
 } from './create-post-config';
 
-type LessonItem = {
-    id: number;
-    title: string;
-    sequence: number;
-    subject_id: number | null;
-    subject_name: string | null;
-};
-
 type UseCreatePostFormParams = {
     subjects: PostSubject[];
-    lessons: LessonItem[];
     t: CreatePostText;
     trans: (key: string) => string;
 };
 
-export function useCreatePostForm({ subjects, lessons, t, trans }: UseCreatePostFormParams) {
+export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParams) {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null);
     const attachmentsRef = useRef<LocalAttachment[]>([]);
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [quizOptions, setQuizOptions] = useState<string[]>(['', '', '', '']);
-    const [quizAnswerIndex, setQuizAnswerIndex] = useState<string>('');
+    const [quizzes, setQuizzes] = useState<QuizItem[]>([
+        { question: '', options: ['', '', '', ''], answerIndex: '' },
+    ]);
     const [selectedPostType, setSelectedPostType] = useState<string>('');
     const [selectedSubject, setSelectedSubject] = useState<string>('');
-    const [selectedLesson, setSelectedLesson] = useState<string>('');
     const [selectedLanguage, setSelectedLanguage] = useState<string>('');
     const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
+    const [videoUrl, setVideoUrl] = useState('');
+    const [isAnonymous, setIsAnonymous] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [fileError, setFileError] = useState<string | null>(null);
@@ -77,33 +71,16 @@ export function useCreatePostForm({ subjects, lessons, t, trans }: UseCreatePost
     const showSymbolPreview = isMathSubjectSelected || isPhysicsSubjectSelected || isChemistrySubjectSelected;
     const previewContent = useMemo(() => formatFormulaText(content), [content]);
     const isQuizSelected = selectedPostType === 'quiz';
-    const isQuestionSelected = selectedPostType === 'question';
-    const hasValidQuiz = quizOptions.every((option) => option.trim().length > 0) && quizAnswerIndex !== '';
-
-    const filteredLessons = useMemo(() => {
-        if (!selectedSubject) {
-            return [];
-        }
-
-        return lessons.filter((lesson) => String(lesson.subject_id ?? '') === selectedSubject);
-    }, [lessons, selectedSubject]);
-
-    useEffect(() => {
-        if (!isQuestionSelected) {
-            setSelectedLesson('');
-        }
-    }, [isQuestionSelected]);
-
-    useEffect(() => {
-        if (!selectedLesson) {
-            return;
-        }
-
-        const existsInFiltered = filteredLessons.some((lesson) => String(lesson.id) === selectedLesson);
-        if (!existsInFiltered) {
-            setSelectedLesson('');
-        }
-    }, [filteredLessons, selectedLesson]);
+    const hasValidQuiz =
+        quizzes.length >= 1 &&
+        quizzes.every(
+            (q) =>
+                q.question.trim().length > 0 &&
+                q.options.length >= 2 &&
+                q.options.every((o) => o.trim().length > 0) &&
+                q.answerIndex !== '' &&
+                parseInt(q.answerIndex) < q.options.length,
+        );
 
     const mathFormulaPresets = useMemo(
         () => [
@@ -275,16 +252,22 @@ export function useCreatePostForm({ subjects, lessons, t, trans }: UseCreatePost
         content.trim().length > 0 &&
         selectedPostType.trim().length > 0 &&
         selectedSubject.trim().length > 0 &&
-        (!isQuestionSelected || selectedLesson.trim().length > 0) &&
         selectedLanguage.trim().length > 0 &&
         (!isQuizSelected || hasValidQuiz) &&
         !isSubmitting;
+
+    const isSupportedDocument = (file: File) => {
+        const extension = file.name.toLowerCase().split('.').pop() ?? '';
+        const supportedExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+
+        return supportedExtensions.includes(extension);
+    };
 
     const appendFiles = (incomingFiles: FileList | File[]) => {
         setFileError(null);
 
         const validFiles = Array.from(incomingFiles).filter((file) => {
-            if (!(file.type.startsWith('image/') || file.type === 'application/pdf')) {
+            if (!(file.type.startsWith('image/') || isSupportedDocument(file))) {
                 return false;
             }
             if (file.size > MAX_FILE_SIZE) {
@@ -294,7 +277,7 @@ export function useCreatePostForm({ subjects, lessons, t, trans }: UseCreatePost
             return true;
         });
 
-        const selectedKinds = new Set(validFiles.map((file) => (file.type === 'application/pdf' ? 'pdf' : 'image')));
+        const selectedKinds = new Set(validFiles.map((file) => (file.type.startsWith('image/') ? 'image' : 'document')));
 
         if (selectedKinds.size > 1) {
             setFileError(t.fileTypeLimit);
@@ -308,7 +291,7 @@ export function useCreatePostForm({ subjects, lessons, t, trans }: UseCreatePost
 
         setAttachments((prev) => {
             const currentKind = prev[0]?.type ?? null;
-            const batchKind = validFiles[0].type === 'application/pdf' ? 'pdf' : 'image';
+            const batchKind = validFiles[0].type.startsWith('image/') ? 'image' : 'document';
 
             if (currentKind && currentKind !== batchKind) {
                 setFileError(t.fileTypeLimit);
@@ -334,7 +317,7 @@ export function useCreatePostForm({ subjects, lessons, t, trans }: UseCreatePost
                 nextAttachments.push({
                     file,
                     preview: isImage ? URL.createObjectURL(file) : null,
-                    type: isImage ? 'image' : 'pdf',
+                    type: isImage ? 'image' : 'document',
                 });
                 totalSize += file.size;
             });
@@ -404,17 +387,21 @@ export function useCreatePostForm({ subjects, lessons, t, trans }: UseCreatePost
         formData.append('content', content.trim());
         formData.append('post_type', selectedPostType);
         formData.append('subject_id', selectedSubject);
-        if (isQuestionSelected && selectedLesson.trim().length > 0) {
-            formData.append('lesson_id', selectedLesson);
-        }
+        formData.append('is_anonymous', isAnonymous ? '1' : '0');
         formData.append('language_code', selectedLanguage);
 
         if (isQuizSelected) {
-            quizOptions.forEach((option) => {
-                formData.append('quiz_options[]', option.trim());
+            quizzes.forEach((quiz, qi) => {
+                formData.append(`quiz_questions[${qi}][question]`, quiz.question.trim());
+                quiz.options.forEach((opt) => {
+                    formData.append(`quiz_questions[${qi}][options][]`, opt.trim());
+                });
+                formData.append(`quiz_questions[${qi}][answer_index]`, quiz.answerIndex);
             });
+        }
 
-            formData.append('quiz_answer', quizAnswerIndex);
+        if (videoUrl.trim()) {
+            formData.append('video_url', videoUrl.trim());
         }
 
         attachments.forEach((attachment) => {
@@ -431,16 +418,66 @@ export function useCreatePostForm({ subjects, lessons, t, trans }: UseCreatePost
                 });
                 setTitle('');
                 setContent('');
-                setQuizOptions(['', '', '', '']);
-                setQuizAnswerIndex('');
+                setQuizzes([{ question: '', options: ['', '', '', ''], answerIndex: '' }]);
                 setSelectedPostType('');
                 setSelectedSubject('');
-                setSelectedLesson('');
                 setSelectedLanguage('');
                 setAttachments([]);
+                setVideoUrl('');
+                setIsAnonymous(false);
             },
             onFinish: () => setIsSubmitting(false),
         });
+    };
+
+    const addQuiz = () => {
+        setQuizzes((prev) => [...prev, { question: '', options: ['', '', '', ''], answerIndex: '' }]);
+    };
+
+    const removeQuiz = (qIndex: number) => {
+        if (quizzes.length <= 1) return;
+        setQuizzes((prev) => prev.filter((_, i) => i !== qIndex));
+    };
+
+    const updateQuizQuestion = (qIndex: number, value: string) => {
+        setQuizzes((prev) => prev.map((q, i) => (i === qIndex ? { ...q, question: value } : q)));
+    };
+
+    const updateQuizOption = (qIndex: number, optIndex: number, value: string) => {
+        setQuizzes((prev) =>
+            prev.map((q, i) =>
+                i === qIndex ? { ...q, options: q.options.map((o, oi) => (oi === optIndex ? value : o)) } : q,
+            ),
+        );
+    };
+
+    const updateQuizAnswerIndex = (qIndex: number, value: string) => {
+        setQuizzes((prev) => prev.map((q, i) => (i === qIndex ? { ...q, answerIndex: value } : q)));
+    };
+
+    const addQuizOption = (qIndex: number) => {
+        setQuizzes((prev) =>
+            prev.map((q, i) => {
+                if (i !== qIndex || q.options.length >= 8) return q;
+                return { ...q, options: [...q.options, ''] };
+            }),
+        );
+    };
+
+    const removeQuizOption = (qIndex: number, optIndex: number) => {
+        setQuizzes((prev) =>
+            prev.map((q, i) => {
+                if (i !== qIndex || q.options.length <= 2) return q;
+                const newOptions = q.options.filter((_, oi) => oi !== optIndex);
+                let newAnswer = q.answerIndex;
+                if (q.answerIndex !== '') {
+                    const ai = parseInt(q.answerIndex);
+                    if (ai === optIndex) newAnswer = '';
+                    else if (ai > optIndex) newAnswer = String(ai - 1);
+                }
+                return { ...q, options: newOptions, answerIndex: newAnswer };
+            }),
+        );
     };
 
     return {
@@ -450,19 +487,25 @@ export function useCreatePostForm({ subjects, lessons, t, trans }: UseCreatePost
         setTitle,
         content,
         setContent,
-        quizOptions,
-        setQuizOptions,
-        quizAnswerIndex,
-        setQuizAnswerIndex,
+        isAnonymous,
+        setIsAnonymous,
+        quizzes,
+        addQuiz,
+        removeQuiz,
+        updateQuizQuestion,
+        updateQuizOption,
+        updateQuizAnswerIndex,
+        addQuizOption,
+        removeQuizOption,
         selectedPostType,
         setSelectedPostType,
         selectedSubject,
         setSelectedSubject,
-        selectedLesson,
-        setSelectedLesson,
         selectedLanguage,
         setSelectedLanguage,
         attachments,
+        videoUrl,
+        setVideoUrl,
         isSubmitting,
         isDragging,
         setIsDragging,
@@ -475,8 +518,6 @@ export function useCreatePostForm({ subjects, lessons, t, trans }: UseCreatePost
         showSymbolPreview,
         previewContent,
         isQuizSelected,
-        isQuestionSelected,
-        filteredLessons,
         mathFormulaPresets,
         physicsSymbolPresets,
         chemistrySymbolPresets,

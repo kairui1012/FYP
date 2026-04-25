@@ -3,12 +3,35 @@
 namespace App\Services;
 
 use App\Models\Like;
+use App\Models\Post;
+use App\Models\QuizMistake;
 use App\Models\User;
 use App\Models\UserProgress;
 
 class ProgressService
 {
     public function __construct(private readonly AchievementService $achievementService) {}
+
+    public function syncMistakeReview(
+        User $user,
+        Post $post,
+        int $questionIndex,
+        int $selectedAnswerIndex,
+        bool $isCorrect,
+    ): void {
+        QuizMistake::query()->updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'post_id' => $post->id,
+                'question_index' => $questionIndex,
+            ],
+            [
+                'selected_answer_index' => $selectedAnswerIndex,
+                'is_correct' => $isCorrect,
+                'attempted_at' => now(),
+            ],
+        );
+    }
 
     /**
      * Record a quiz attempt (correct or incorrect) and re-evaluate achievements.

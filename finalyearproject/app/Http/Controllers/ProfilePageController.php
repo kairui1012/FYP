@@ -50,6 +50,7 @@ class ProfilePageController extends Controller
 
         $posts = Post::query()
             ->where('user_id', $profileUser->id)
+            ->where('is_anonymous', false)
             ->with(['language:id,code,name'])
             ->withCount(['likes', 'comments'])
             ->latest()

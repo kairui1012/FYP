@@ -8,12 +8,6 @@ export type PostSubject = {
     name: string;
 } | null;
 
-export type PostLesson = {
-    id: number;
-    title: string;
-    sequence: number;
-} | null;
-
 export type CommentMention = {
     id: number;
     name: string;
@@ -71,6 +65,7 @@ export type PostUser = {
 export type QuizData = {
     options: [string, string, string, string] | string[];
     answer_index: number;
+    questions?: { question: string | null; options: string[]; answer_index: number }[];
 } | null;
 
 export type PostItem = {
@@ -81,14 +76,15 @@ export type PostItem = {
     quiz_data?: QuizData;
     subject?: PostSubject;
     image: string[] | null;
+    video_url?: string | null;
     created_at: string;
     saved_at?: string | null;
     bookmark_folder_id?: number | null;
     bookmark_item_id?: number | null;
+    is_anonymous?: boolean;
     language?: PostLanguage;
     user?: PostUser;
-    lesson?: PostLesson;
-    is_lesson_completed?: boolean;
+    is_quiz_completed?: boolean;
     likes_count?: number;
     comments_count?: number;
     saves_count?: number;

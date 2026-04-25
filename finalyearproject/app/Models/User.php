@@ -26,6 +26,7 @@ class User extends Authenticatable
         'email',
         'password',
         'points',
+        'locale',
     ];
 
     /**
@@ -52,6 +53,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'points' => 'integer',
+            'locale' => 'string',
         ];
     }
 

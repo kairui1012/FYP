@@ -66,4 +66,14 @@ return [
     // ── Achievement: Top Contributor ──────────────────────────────────────────
     'top_contributor_title' => 'Top Contributor',
     'top_contributor_desc'  => 'Receive 50 likes — a mark of outstanding community impact.',
+
+    // ── Badge translations ────────────────────────────────────────────────────
+    'badge_rookie_author_name' => 'Rookie Author',
+    'badge_rookie_author_desc' => 'Earn 50 points by posting and receiving likes.',
+    'badge_rising_star_name' => 'Rising Star',
+    'badge_rising_star_desc' => 'Earn 150 points by posting and receiving likes.',
+    'badge_community_hero_name' => 'Community Hero',
+    'badge_community_hero_desc' => 'Earn 300 points by posting and receiving likes.',
+    'badge_legend_name' => 'Legend',
+    'badge_legend_desc' => 'Earn 600 points by posting and receiving likes.',
 ];

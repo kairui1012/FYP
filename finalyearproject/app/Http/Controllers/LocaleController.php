@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -27,6 +28,10 @@ class LocaleController extends Controller
         }
 
         $request->session()->put('locale', $nextLocale);
+
+        if ($request->user() instanceof User) {
+            $request->user()->forceFill(['locale' => $nextLocale])->saveQuietly();
+        }
 
         $previousUrl = url()->previous() ?: route('home');
 

@@ -2,270 +2,269 @@
 
 namespace App\Services;
 
-use App\Models\Lesson;
+use App\Models\Achievement;
+use App\Models\Post;
+use App\Models\QuizCompletion;
+use App\Models\QuizMistake;
 use App\Models\User;
+use App\Models\UserAchievement;
+use App\Models\UserProgress;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class LearningProgressService
 {
     public function buildLearningOverview(?User $user): array
     {
-        if (! $user) {
-            return $this->getEmptyOverview();
+        return [
+            'learning_milestone' => $this->getClosestMilestone($user),
+            'latest_posts' => $this->getLatestPosts($user),
+            'today_score' => $this->getTodayScore($user),
+            'mistake_review' => $this->getMistakeReview($user),
+        ];
+    }
+
+    private function getClosestMilestone(?User $user): ?array
+    {
+        $achievements = Achievement::query()
+            ->orderBy('threshold')
+            ->get(['key', 'category', 'metric', 'threshold']);
+
+        if ($achievements->isEmpty()) {
+            return null;
         }
 
-        $recentLesson = $this->getMostRecentLesson();
-        $subjectExperiences = $this->getSubjectExperiences($user, $recentLesson);
-        $currentSubjectExperience = $subjectExperiences[0] ?? $this->getEmptySubjectExperience();
+        $progress = $user
+            ? UserProgress::query()->where('user_id', $user->id)->first()
+            : null;
 
-        return [
-            'continue_learning' => $recentLesson ? $this->serializeLesson($recentLesson) : null,
-            'current_subject_experience' => $currentSubjectExperience,
-            'subject_experiences' => $subjectExperiences,
-            'recommended_materials' => $this->getRecommendedMaterials($recentLesson),
-            'today_goal' => $this->getTodayGoal($user),
-        ];
-    }
-
-    private function getMostRecentLesson(): ?Lesson
-    {
-        return Lesson::query()
-            ->with(['subject:id,name'])
-            ->where('is_published', true)
-            ->whereNotNull('source_post_id')
-            ->orderByDesc('updated_at')
-            ->orderByDesc('id')
-            ->first(['id', 'subject_id', 'source_post_id', 'title', 'sequence']);
-    }
-
-    private function serializeLesson(Lesson $lesson): array
-    {
-        return [
-            'lesson_id' => $lesson->id,
-            'post_id' => $lesson->source_post_id,
-            'title' => $lesson->title,
-            'subject_id' => $lesson->subject_id,
-            'subject_name' => $lesson->subject?->name,
-        ];
-    }
-
-    private function getSubjectExperiences(User $user, ?Lesson $recentLesson): array
-    {
-        $materialsCreated = DB::table('lessons')
-            ->join('posts', 'posts.id', '=', 'lessons.source_post_id')
-            ->where('posts.user_id', $user->id)
-            ->where('posts.post_type', 'material')
-            ->whereNotNull('lessons.subject_id')
-            ->selectRaw('lessons.subject_id, COUNT(*) as total')
-            ->groupBy('lessons.subject_id')
-            ->pluck('total', 'lessons.subject_id')
-            ->map(fn ($total) => (int) $total)
-            ->all();
-
-        $questionsPosted = DB::table('posts')
-            ->where('user_id', $user->id)
-            ->where('post_type', 'question')
-            ->whereNotNull('subject_id')
-            ->selectRaw('subject_id, COUNT(*) as total')
-            ->groupBy('subject_id')
-            ->pluck('total', 'subject_id')
-            ->map(fn ($total) => (int) $total)
-            ->all();
-
-        $quizzesCreated = DB::table('posts')
-            ->where('user_id', $user->id)
-            ->where('post_type', 'quiz')
-            ->whereNotNull('subject_id')
-            ->selectRaw('subject_id, COUNT(*) as total')
-            ->groupBy('subject_id')
-            ->pluck('total', 'subject_id')
-            ->map(fn ($total) => (int) $total)
-            ->all();
-
-        $quizzesCompleted = Schema::hasTable('quiz_completions')
-            ? DB::table('quiz_completions')
+        $earnedKeys = $user
+            ? UserAchievement::query()
                 ->where('user_id', $user->id)
-                ->whereNotNull('subject_id')
-                ->selectRaw('subject_id, COUNT(*) as total')
-                ->groupBy('subject_id')
-                ->pluck('total', 'subject_id')
-                ->map(fn ($total) => (int) $total)
+                ->pluck('achievement_key')
                 ->all()
             : [];
 
-        $subjectScores = [];
-        $subjectIds = array_unique([
-            ...array_keys($materialsCreated),
-            ...array_keys($questionsPosted),
-            ...array_keys($quizzesCreated),
-            ...array_keys($quizzesCompleted),
-        ]);
+        $items = $achievements->map(function (Achievement $achievement) use ($earnedKeys, $progress) {
+            $current = $this->resolveMetricValue($achievement->metric, $progress);
+            $threshold = (int) $achievement->threshold;
 
-        foreach ($subjectIds as $subjectId) {
-            $materials = (int) ($materialsCreated[$subjectId] ?? 0);
-            $questions = (int) ($questionsPosted[$subjectId] ?? 0);
-            $completedQuiz = (int) ($quizzesCompleted[$subjectId] ?? 0);
-            $createdQuiz = (int) ($quizzesCreated[$subjectId] ?? 0);
-            $totalXp = ($materials * 5) + ($questions * 1) + ($completedQuiz * 5) + ($createdQuiz * 10);
+            return [
+                'key' => $achievement->key,
+                'category' => $achievement->category,
+                'current' => $current,
+                'threshold' => $threshold,
+                'progress_percent' => $threshold > 0
+                    ? min(100, (int) round(($current / $threshold) * 100))
+                    : 0,
+                'remaining' => max(0, $threshold - $current),
+                'achieved' => in_array($achievement->key, $earnedKeys, true),
+            ];
+        });
 
-            $subjectScores[(int) $subjectId] = [
-                'subject_id' => (int) $subjectId,
-                'completed_materials' => $materials,
-                'questions_posted' => $questions,
-                'quizzes_completed' => $completedQuiz,
-                'quizzes_created' => $createdQuiz,
-                'total_xp' => $totalXp,
+        $pending = $items
+            ->reject(fn (array $item) => $item['achieved'])
+            ->sort(function (array $left, array $right) {
+                if ($left['progress_percent'] !== $right['progress_percent']) {
+                    return $right['progress_percent'] <=> $left['progress_percent'];
+                }
+
+                if ($left['remaining'] !== $right['remaining']) {
+                    return $left['remaining'] <=> $right['remaining'];
+                }
+
+                return $left['threshold'] <=> $right['threshold'];
+            })
+            ->values();
+
+        if ($pending->isNotEmpty()) {
+            return $pending->first();
+        }
+
+        return $items
+            ->sortByDesc('threshold')
+            ->first();
+    }
+
+    private function getLatestPosts(?User $user): array
+    {
+        $query = Post::query()
+            ->with(['subject:id,name', 'user:id,name'])
+            ->latest();
+
+        $source = 'community';
+
+        if ($user) {
+            $personalPosts = (clone $query)
+                ->where('user_id', $user->id)
+                ->take(3)
+                ->get(['id', 'user_id', 'title', 'post_type', 'subject_id', 'created_at']);
+
+            if ($personalPosts->isNotEmpty()) {
+                $source = 'personal';
+
+                return [
+                    'source' => $source,
+                    'items' => $personalPosts->map(fn (Post $post) => [
+                        'id' => $post->id,
+                        'title' => $post->title,
+                        'post_type' => $post->post_type,
+                        'subject_name' => $post->subject?->name,
+                        'user_name' => $post->user?->name,
+                        'created_at' => (string) $post->created_at,
+                    ])->values()->all(),
+                ];
+            }
+        }
+
+        return [
+            'source' => $source,
+            'items' => $query
+                ->take(3)
+                ->get(['id', 'user_id', 'title', 'post_type', 'subject_id', 'created_at'])
+                ->map(fn (Post $post) => [
+                    'id' => $post->id,
+                    'title' => $post->title,
+                    'post_type' => $post->post_type,
+                    'subject_name' => $post->subject?->name,
+                    'user_name' => $post->user?->name,
+                    'created_at' => (string) $post->created_at,
+                ])
+                ->values()
+                ->all(),
+        ];
+    }
+
+    private function getTodayScore(?User $user): array
+    {
+        if (! $user || ! Schema::hasTable('quiz_completions')) {
+            return [
+                'points' => 0,
+                'quizzes_completed' => 0,
             ];
         }
 
-        if (empty($subjectScores)) {
+        $quizzesCompleted = QuizCompletion::query()
+            ->where('user_id', $user->id)
+            ->whereDate('completed_at', Carbon::today())
+            ->count();
+
+        return [
+            'points' => (int) $quizzesCompleted * 5,
+            'quizzes_completed' => (int) $quizzesCompleted,
+        ];
+    }
+
+    private function getMistakeReview(?User $user): array
+    {
+        if (! $user || ! Schema::hasTable('quiz_mistakes')) {
             return [];
         }
 
-        $focusSubjectId = (int) ($recentLesson?->subject_id ?? 0);
-        $subjectNames = DB::table('subjects')
-            ->whereIn('id', array_keys($subjectScores))
-            ->pluck('name', 'id')
-            ->all();
-
-        return collect($subjectScores)
-            ->values()
-            ->sort(function (array $left, array $right) use ($focusSubjectId, $subjectNames) {
-                $leftFocused = (int) ($left['subject_id'] === $focusSubjectId);
-                $rightFocused = (int) ($right['subject_id'] === $focusSubjectId);
-
-                if ($leftFocused !== $rightFocused) {
-                    return $rightFocused <=> $leftFocused;
-                }
-
-                if ((int) $left['total_xp'] !== (int) $right['total_xp']) {
-                    return (int) $right['total_xp'] <=> (int) $left['total_xp'];
-                }
-
-                $leftName = (string) ($subjectNames[$left['subject_id']] ?? '');
-                $rightName = (string) ($subjectNames[$right['subject_id']] ?? '');
-
-                return strcasecmp($leftName, $rightName);
-            })
-            ->map(function (array $row) use ($subjectNames) {
-                $totalXp = (int) $row['total_xp'];
-                $xpPerLevel = 100;
-                $level = (int) floor($totalXp / $xpPerLevel) + 1;
-                $xpInLevel = $totalXp % $xpPerLevel;
-
-                return [
-                    'subject_id' => (int) $row['subject_id'],
-                    'subject_name' => (string) ($subjectNames[$row['subject_id']] ?? ''),
-                    'total_xp' => $totalXp,
-                    'level' => $level,
-                    'xp_in_level' => $xpInLevel,
-                    'xp_per_level' => $xpPerLevel,
-                    'progress_percent' => (int) round(($xpInLevel / $xpPerLevel) * 100),
-                    'completed_materials' => (int) $row['completed_materials'],
-                    'questions_posted' => (int) $row['questions_posted'],
-                    'quizzes_completed' => (int) $row['quizzes_completed'],
-                    'quizzes_created' => (int) $row['quizzes_created'],
-                ];
-            })
+        return QuizMistake::query()
+            ->where('user_id', $user->id)
+            ->where('is_correct', false)
+            ->with(['post:id,title,subject_id,quiz_data', 'post.subject:id,name'])
+            ->orderByDesc('attempted_at')
+            ->take(3)
+            ->get()
+            ->map(fn (QuizMistake $mistake) => $this->serializeMistake($mistake))
+            ->filter()
             ->values()
             ->all();
     }
 
-    private function getEmptySubjectExperience(): array
+    private function serializeMistake(QuizMistake $mistake): ?array
     {
+        $post = $mistake->post;
+
+        if (! $post) {
+            return null;
+        }
+
+        $details = $this->extractQuizQuestionDetails(
+            is_array($post->quiz_data) ? $post->quiz_data : [],
+            (int) $mistake->question_index,
+            (int) $mistake->selected_answer_index,
+            $post->title,
+        );
+
         return [
-            'subject_id' => null,
-            'subject_name' => null,
-            'total_xp' => 0,
-            'level' => 1,
-            'xp_in_level' => 0,
-            'xp_per_level' => 100,
-            'progress_percent' => 0,
-            'completed_materials' => 0,
-            'questions_posted' => 0,
-            'quizzes_completed' => 0,
-            'quizzes_created' => 0,
+            'id' => $mistake->id,
+            'post_id' => $post->id,
+            'post_title' => $post->title,
+            'question_index' => (int) $mistake->question_index,
+            'question_text' => $details['question_text'],
+            'subject_name' => $post->subject?->name,
+            'selected_answer' => $details['selected_answer'],
+            'correct_answer' => $details['correct_answer'],
+            'attempted_at' => (string) $mistake->attempted_at,
         ];
     }
 
-    private function getRecommendedMaterials(?Lesson $recentLesson): array
-    {
-        $focusSubjectId = $recentLesson?->subject_id;
+    private function extractQuizQuestionDetails(
+        array $quizData,
+        int $questionIndex,
+        int $selectedAnswerIndex,
+        string $fallbackTitle,
+    ): array {
+        $questionText = null;
+        $selectedAnswer = null;
+        $correctAnswer = null;
 
-        return Lesson::query()
-            ->with(['subject:id,name'])
-            ->where('is_published', true)
-            ->whereNotNull('source_post_id')
-            ->orderByDesc('sequence')
-            ->orderByDesc('id')
-            ->get(['id', 'subject_id', 'source_post_id', 'title', 'sequence'])
-            ->map(function (Lesson $lesson) use ($focusSubjectId) {
-                $isFocusedSubject = (int) ($lesson->subject_id ?? 0) === (int) ($focusSubjectId ?? 0);
-                $focusScore = $isFocusedSubject ? 40 : 0;
-                $sequenceScore = max(1, 100 - ((int) $lesson->sequence * 3));
+        if (isset($quizData['questions']) && is_array($quizData['questions'])) {
+            $question = $quizData['questions'][$questionIndex] ?? null;
 
-                return [
-                    'post_id' => (int) $lesson->source_post_id,
-                    'lesson_id' => $lesson->id,
-                    'title' => $lesson->title,
-                    'subject_id' => $lesson->subject_id,
-                    'subject_name' => $lesson->subject?->name,
-                    'reason' => $isFocusedSubject ? 'Related to your current subject' : 'New material to explore',
-                    'score' => $focusScore + $sequenceScore,
-                ];
-            })
-            ->filter()
-            ->sortByDesc('score')
-            ->take(3)
-            ->values()
-            ->map(fn (array $material) => [
-                'post_id' => $material['post_id'],
-                'lesson_id' => $material['lesson_id'],
-                'title' => $material['title'],
-                'subject_id' => $material['subject_id'],
-                'subject_name' => $material['subject_name'],
-                'reason' => $material['reason'],
-            ])
-            ->all();
+            if (is_array($question)) {
+                $questionText = is_string($question['question'] ?? null) && trim((string) $question['question']) !== ''
+                    ? trim((string) $question['question'])
+                    : $fallbackTitle;
+
+                $options = collect($question['options'] ?? [])
+                    ->filter(fn ($option) => is_string($option))
+                    ->values()
+                    ->all();
+
+                $selectedAnswer = $options[$selectedAnswerIndex] ?? null;
+                $correctAnswer = $options[(int) ($question['answer_index'] ?? -1)] ?? null;
+            }
+        } else {
+            $questionText = $fallbackTitle;
+
+            $options = collect($quizData['options'] ?? [])
+                ->filter(fn ($option) => is_string($option))
+                ->values()
+                ->all();
+
+            $selectedAnswer = $options[$selectedAnswerIndex] ?? null;
+            $correctAnswer = $options[(int) ($quizData['answer_index'] ?? -1)] ?? null;
+        }
+
+        return [
+            'question_text' => $questionText ?: $fallbackTitle,
+            'selected_answer' => $selectedAnswer,
+            'correct_answer' => $correctAnswer,
+        ];
     }
 
-    private function getTodayGoal(User $user): array
+    private function resolveMetricValue(string $metric, ?UserProgress $progress): int
     {
-        $today = Carbon::today();
-        $todayCompletions = Schema::hasTable('quiz_completions')
-            ? DB::table('quiz_completions')
-                ->where('user_id', $user->id)
-                ->whereDate('completed_at', $today)
-                ->count()
+        if (! $progress) {
+            return 0;
+        }
+
+        $accuracyPct = $progress->total_questions_answered > 0
+            ? (int) round(($progress->correct_answers_count / $progress->total_questions_answered) * 100)
             : 0;
 
-        $earnedPoints = $todayCompletions * 5;
-        $targetPoints = 10;
-        $progressPercent = (int) round((min($targetPoints, $earnedPoints) / $targetPoints) * 100);
-
-        return [
-            'target_points' => $targetPoints,
-            'earned_points' => $earnedPoints,
-            'completed_lessons' => (int) $todayCompletions,
-            'progress_percent' => $progressPercent,
-        ];
-    }
-
-    private function getEmptyOverview(): array
-    {
-        return [
-            'continue_learning' => null,
-            'current_subject_experience' => $this->getEmptySubjectExperience(),
-            'subject_experiences' => [],
-            'recommended_materials' => [],
-            'today_goal' => [
-                'target_points' => 10,
-                'earned_points' => 0,
-                'completed_lessons' => 0,
-                'progress_percent' => 0,
-            ],
-        ];
+        return match ($metric) {
+            'total_questions_answered' => (int) $progress->total_questions_answered,
+            'total_questions_posted' => (int) $progress->total_questions_posted,
+            'correct_answers_count' => (int) $progress->correct_answers_count,
+            'accuracy_pct' => $accuracyPct,
+            'improvement_score' => max(0, (int) $progress->improvement_score),
+            'total_likes_received' => (int) $progress->total_likes_received,
+            default => 0,
+        };
     }
 }

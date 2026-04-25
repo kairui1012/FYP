@@ -57,8 +57,14 @@ class PostController extends Controller
         ]);
     }
 
-    public function categories(): Response
+    public function categories(Request $request): Response
     {
+        $validated = $request->validate([
+            'post_type'     => ['nullable', 'string', Rule::in(self::POST_TYPES)],
+            'language_code' => ['nullable', 'string', Rule::exists('languages', 'code')],
+            'subject_id'    => ['nullable', 'integer', Rule::exists('subjects', 'id')],
+        ]);
+
         return Inertia::render('CategoriesPage', [
             'languages' => Language::query()
                 ->withCount('posts')
@@ -83,6 +89,30 @@ class PostController extends Controller
                     'posts_count' => (int) $subject->posts_count,
                 ])
                 ->values(),
+            'filteredPosts' => Inertia::lazy(function () use ($request, $validated) {
+                $followingIds = $request->user()
+                    ?->following()
+                    ->pluck('users.id')
+                    ->all() ?? [];
+
+                $postType     = $validated['post_type'] ?? '';
+                $languageCode = $validated['language_code'] ?? '';
+                $subjectId    = isset($validated['subject_id']) ? (int) $validated['subject_id'] : null;
+
+                $query = new PostQueryBuilder();
+
+                return $query
+                    ->withStandardRelations()
+                    ->withStandardCounts()
+                    ->withUserFlags(Auth::id())
+                    ->filterByPostType($postType !== '' ? [$postType] : [])
+                    ->filterByLanguage($languageCode)
+                    ->filterBySubject($subjectId)
+                    ->latest()
+                    ->get()
+                    ->map(fn (Post $post) => $this->serializationService->serialize($post, $followingIds))
+                    ->values();
+            }),
         ]);
     }
 
@@ -234,9 +264,60 @@ class PostController extends Controller
         }
 
         $quizData = $post->quiz_data;
+
+        // Multi-question format: { questions: [{ question, options, answer_index }] }
+        if (isset($quizData['questions']) && is_array($quizData['questions'])) {
+            $validated = $request->validate([
+                'question_index' => ['required', 'integer', 'min:0'],
+                'answer_index'   => ['required', 'integer', 'min:0'],
+            ]);
+
+            $qIndex   = (int) $validated['question_index'];
+            $question = $quizData['questions'][$qIndex] ?? null;
+
+            if (! $question) {
+                return response()->json(['status' => 'invalid', 'message' => 'Invalid question index.'], 422);
+            }
+
+            $correctIndex  = (int) ($question['answer_index'] ?? -1);
+            $selectedIndex = (int) $validated['answer_index'];
+
+            if (! isset(($question['options'] ?? [])[$selectedIndex])) {
+                return response()->json(['status' => 'invalid', 'message' => 'Invalid answer index.'], 422);
+            }
+
+            $isCorrect        = $selectedIndex === $correctIndex;
+            $isFirstCompletion = false;
+
+            if ($isCorrect && $qIndex === 0) {
+                $completion = QuizCompletion::query()->firstOrCreate(
+                    ['user_id' => $request->user()->id, 'post_id' => $post->id],
+                    ['subject_id' => $post->subject_id, 'completed_at' => now()],
+                );
+                $isFirstCompletion = $completion->wasRecentlyCreated;
+            }
+
+            /** @var \App\Models\User $user */
+            $user = $request->user();
+            $this->progressService->syncMistakeReview($user, $post, $qIndex, $selectedIndex, $isCorrect);
+            $newlyEarned = $this->progressService->recordQuizAttempt($user, $isCorrect, $isFirstCompletion);
+            $this->achievementService->syncUser($user);
+
+            if (! $isCorrect) {
+                return response()->json(['status' => 'incorrect', 'newly_earned' => $newlyEarned]);
+            }
+
+            return response()->json([
+                'status'       => $isFirstCompletion ? 'completed' : 'already_completed',
+                'newly_earned' => $newlyEarned,
+            ]);
+        }
+
+        // Legacy single-question format: { options: [...], answer_index: N }
         $answerIndex = isset($quizData['answer_index']) ? (int) $quizData['answer_index'] : null;
+        $optionCount = count($quizData['options'] ?? []);
         $validated = $request->validate([
-            'answer_index' => ['required', 'integer', 'between:0,3'],
+            'answer_index' => ['required', 'integer', 'min:0', 'max:' . max(0, $optionCount - 1)],
         ]);
         $selectedIndex = (int) $validated['answer_index'];
 
@@ -267,6 +348,7 @@ class PostController extends Controller
 
         /** @var \App\Models\User $user */
         $user = $request->user();
+        $this->progressService->syncMistakeReview($user, $post, 0, $selectedIndex, $isCorrect);
         $newlyEarned = $this->progressService->recordQuizAttempt($user, $isCorrect, $isFirstCompletion);
         $this->achievementService->syncUser($user);
 

@@ -5,7 +5,7 @@ import { ChangeEvent, RefObject } from 'react';
 type LocalAttachment = {
     file: File;
     preview: string | null;
-    type: 'image' | 'pdf';
+    type: 'image' | 'document';
 };
 
 type AttachmentsSectionProps = {
@@ -97,7 +97,7 @@ export function AttachmentsSection({
                         className="flex items-center justify-between rounded-xl border border-zinc-300 bg-white p-3"
                     >
                         <div className="flex items-center">
-                            {attachment.type === 'pdf' ? (
+                            {attachment.type === 'document' ? (
                                 <FileText className="h-10 w-10 text-rose-500" />
                             ) : (
                                 <img

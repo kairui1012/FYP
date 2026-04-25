@@ -11,7 +11,17 @@ type PostAttachmentsProps = {
 
 function isDocumentFile(file: string) {
     const normalizedFile = file.toLowerCase();
-    return normalizedFile.endsWith('.pdf') || normalizedFile.endsWith('.docx');
+    return normalizedFile.endsWith('.pdf')
+        || normalizedFile.endsWith('.doc')
+        || normalizedFile.endsWith('.docx')
+        || normalizedFile.endsWith('.xls')
+        || normalizedFile.endsWith('.xlsx')
+        || normalizedFile.endsWith('.ppt')
+        || normalizedFile.endsWith('.pptx');
+}
+
+function getDocumentExtension(file: string): string {
+    return (file.toLowerCase().split('.').pop() ?? '').toUpperCase();
 }
 
 function PdfViewer({ src }: { src: string }) {
@@ -67,6 +77,38 @@ function DocxViewer({ src }: { src: string }) {
         return <div className="p-4 text-sm text-red-400">Failed to load DOCX file.</div>;
     }
     return <div ref={ref} className="p-4" />;
+}
+
+function OfficeFileCard({ src, filename }: { src: string; filename: string }) {
+    const extension = getDocumentExtension(filename);
+
+    return (
+        <div className="flex flex-col gap-3 p-4">
+            <div className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                {filename}
+            </div>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                {extension} file preview is not available. Open or download the file.
+            </div>
+            <div className="flex gap-2">
+                <a
+                    href={src}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                >
+                    Open
+                </a>
+                <a
+                    href={src}
+                    download
+                    className="inline-flex items-center rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                >
+                    Download
+                </a>
+            </div>
+        </div>
+    );
 }
 
 // Lightbox overlay
@@ -309,8 +351,10 @@ export function PostAttachments({
                     >
                         {file.toLowerCase().endsWith('.pdf') ? (
                             <PdfViewer src={`/storage/${file}`} />
-                        ) : (
+                        ) : file.toLowerCase().endsWith('.docx') ? (
                             <DocxViewer src={`/storage/${file}`} />
+                        ) : (
+                            <OfficeFileCard src={`/storage/${file}`} filename={file} />
                         )}
                     </div>
                 ))}

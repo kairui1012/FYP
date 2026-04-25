@@ -23,6 +23,7 @@ class PostSerializationService
             'created_at' => optional($post->created_at)->toISOString(),
             'saved_at' => optional($post->saved_at)->toISOString(),
             'bookmark_folder_id' => $post->bookmark_folder_id ?? $post->pivot?->bookmark_folder_id,
+            'is_anonymous' => (bool) ($post->is_anonymous ?? false),
             'user' => $this->serializeUser($post, $followingIds),
             'language' => $this->serializeLanguage($post),
             'subject' => $this->serializeSubject($post),
@@ -40,10 +41,14 @@ class PostSerializationService
     }
 
     /**
-     * Serialize user information
+     * Serialize user information — returns null for anonymous posts to prevent identity leaks.
      */
     private function serializeUser(Post $post, array $followingIds): ?array
     {
+        if ($post->is_anonymous) {
+            return null;
+        }
+
         if (! $post->user) {
             return null;
         }

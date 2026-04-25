@@ -11,12 +11,12 @@ class Post extends Model
 {
     protected $fillable = [
         'user_id',
+        'is_anonymous',
         'title',
         'content',
         'post_type',
         'quiz_data',
         'subject_id',
-        'lesson_id',
         'language_id',
         'image',
     ];
@@ -26,6 +26,7 @@ class Post extends Model
         return [
             'image' => 'array',
             'quiz_data' => 'array',
+            'is_anonymous' => 'boolean',
         ];
     }
 
