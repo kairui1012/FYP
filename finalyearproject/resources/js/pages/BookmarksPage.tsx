@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, lazy, Suspense, useMemo, useState, type ReactNode } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
 import {
@@ -528,10 +528,11 @@ export default function BookmarksPage() {
                                         {posts.length === 0 ? (
                                             <EmptyState message={trans('bookmark.no_bookmarks')} />
                                         ) : (
-                                            <div className="space-y-4">
-                                                {posts.map((post) => (
+                                        <div>
+                                            {posts.map((post, index) => (
+                                                <Fragment key={post.id}>
+                                                    {index > 0 && <hr className="my-5 border-zinc-100" />}
                                                     <PostCard
-                                                        key={post.id}
                                                         post={post}
                                                         folders={folders}
                                                         activeFolderId={activeFolderId}
@@ -542,8 +543,9 @@ export default function BookmarksPage() {
                                                         trans={trans}
                                                         showFolderSelect
                                                     />
-                                                ))}
-                                            </div>
+                                                </Fragment>
+                                            ))}
+                                        </div>
                                         )}
                                     </div>
                                 </section>
@@ -665,21 +667,23 @@ function StudyPostList({
     }
 
     return (
-        <div className="space-y-4">
-            {posts.map((post) => (
-                <PostCard
-                    key={post.id}
-                    post={post}
-                    folders={[]}
-                    activeFolderId={null}
-                    movingPostIds={[]}
-                    savingPostIds={savingPostIds}
-                    onMove={() => Promise.resolve()}
-                    onToggleSave={onToggleSave}
-                    trans={trans}
-                    showFolderSelect={false}
-                    showQuizPreview
-                />
+        <div>
+            {posts.map((post, index) => (
+                <Fragment key={post.id}>
+                    {index > 0 && <hr className="my-5 border-zinc-100" />}
+                    <PostCard
+                        post={post}
+                        folders={[]}
+                        activeFolderId={null}
+                        movingPostIds={[]}
+                        savingPostIds={savingPostIds}
+                        onMove={() => Promise.resolve()}
+                        onToggleSave={onToggleSave}
+                        trans={trans}
+                        showFolderSelect={false}
+                        showQuizPreview
+                    />
+                </Fragment>
             ))}
         </div>
     );
@@ -703,15 +707,11 @@ function QuizReviewList({
     }
 
     return (
-        <div className="space-y-4">
-            {items.map((item) => (
-                <article
-                    key={item.id}
-                    className={cn(
-                        'rounded-[26px] bg-white p-5 shadow-sm',
-                        mode === 'wrong' ? 'border-2 border-zinc-400' : 'border border-zinc-200',
-                    )}
-                >
+        <div>
+            {items.map((item, index) => (
+                <Fragment key={item.id}>
+                    {index > 0 && <hr className="my-5 border-zinc-100" />}
+                    <article>
                     <div className="flex items-start justify-between gap-4">
                         <div className="space-y-2">
                             <span
@@ -777,6 +777,7 @@ function QuizReviewList({
                         </Link>
                     </div>
                 </article>
+                </Fragment>
             ))}
         </div>
     );
@@ -821,7 +822,7 @@ function PostCard({
         : { question: null, correctAnswer: null };
 
     return (
-        <article className="rounded-[28px] border border-zinc-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md">
+        <article>
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2 text-sm text-zinc-500">
                     <Link
