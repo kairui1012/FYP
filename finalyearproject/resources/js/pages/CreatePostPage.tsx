@@ -1,14 +1,9 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, usePage } from '@inertiajs/react';
 import { Send } from 'lucide-react';
-import { type ReactNode } from 'react';
-import { reactLang } from '@erag/lang-sync-inertia';
+import type { ReactNode } from 'react';
 import { AttachmentsSection } from '@/components/create-post/attachments-section';
-import { VideoLinkSection } from '@/components/create-post/video-link-section';
 import { ContentComposerSection } from '@/components/create-post/content-composer-section';
-import { LanguageSection } from '@/components/create-post/language-section';
-import { PostTypeSection } from '@/components/create-post/post-type-section';
-import { QuizSetupSection } from '@/components/create-post/quiz-setup-section';
-import { SubjectSection } from '@/components/create-post/subject-section';
 import {
     ACCEPTED_FILE_TYPES,
     MAX_CONTENT_LENGTH,
@@ -21,7 +16,12 @@ import {
     pillIconButton,
     pillSubmitButton,
 } from '@/components/create-post/create-post-config';
+import { LanguageSection } from '@/components/create-post/language-section';
+import { PostTypeSection } from '@/components/create-post/post-type-section';
+import { QuizSetupSection } from '@/components/create-post/quiz-setup-section';
+import { SubjectSection } from '@/components/create-post/subject-section';
 import { useCreatePostForm } from '@/components/create-post/use-create-post-form';
+import { VideoLinkSection } from '@/components/create-post/video-link-section';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { homePage } from '@/routes';
@@ -97,22 +97,31 @@ export default function CreatePostPage() {
                 <div className="mx-auto w-full max-w-3xl space-y-2 p-4 md:p-6 md:pb-10">
                     <form onSubmit={onSubmit} className="space-y-7">
                         <div className="space-y-2">
-                            <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">{t.heading}</h1>
-                            <p className="text-base text-zinc-600">{t.subtitle}</p>
+                            <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
+                                {t.heading}
+                            </h1>
+                            <p className="text-base text-zinc-600">
+                                {t.subtitle}
+                            </p>
                         </div>
 
                         <div className="space-y-3">
-                            <label htmlFor="title" className="text-base font-medium text-zinc-700">
+                            <label
+                                htmlFor="title"
+                                className="text-base font-medium text-zinc-700"
+                            >
                                 {t.titleLabel}
                             </label>
                             <input
                                 id="title"
                                 type="text"
                                 value={title}
-                                onChange={(event) => setTitle(event.target.value)}
+                                onChange={(event) =>
+                                    setTitle(event.target.value)
+                                }
                                 maxLength={MAX_TITLE_LENGTH}
                                 placeholder={t.titlePlaceholder}
-                                className="w-full rounded-xl border-0 bg-zinc-100 px-5 py-3.5 text-base text-zinc-800 outline-none transition placeholder:text-zinc-500 focus:bg-zinc-200/80 focus:ring-0"
+                                className="w-full rounded-xl border-0 bg-zinc-100 px-5 py-3.5 text-base text-zinc-800 transition outline-none placeholder:text-zinc-500 focus:bg-zinc-200/80 focus:ring-0"
                             />
                             <div className="text-right text-sm text-zinc-500">
                                 {remainingTitleChars} {t.charsLeft}
@@ -131,7 +140,9 @@ export default function CreatePostPage() {
                             quizQuestionPlaceholder={t.quizQuestionPlaceholder}
                             isMathSubjectSelected={isMathSubjectSelected}
                             isPhysicsSubjectSelected={isPhysicsSubjectSelected}
-                            isChemistrySubjectSelected={isChemistrySubjectSelected}
+                            isChemistrySubjectSelected={
+                                isChemistrySubjectSelected
+                            }
                             mathFormulaPresets={mathFormulaPresets}
                             physicsSymbolPresets={physicsSymbolPresets}
                             chemistrySymbolPresets={chemistrySymbolPresets}
@@ -158,21 +169,26 @@ export default function CreatePostPage() {
                                 role="switch"
                                 aria-checked={isAnonymous}
                                 onClick={() => setIsAnonymous((prev) => !prev)}
-                                className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 ${
+                                className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:outline-none ${
                                     isAnonymous ? 'bg-zinc-800' : 'bg-zinc-300'
                                 }`}
                             >
                                 <span
                                     className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm ring-0 transition-transform ${
-                                        isAnonymous ? 'translate-x-5' : 'translate-x-0'
+                                        isAnonymous
+                                            ? 'translate-x-5'
+                                            : 'translate-x-0'
                                     }`}
                                 />
                             </button>
                             <div className="min-w-0 flex-1">
-                                <p className="text-base font-medium text-zinc-800">Post Anonymously</p>
+                                <p className="text-base font-medium text-zinc-800">
+                                    Post Anonymously
+                                </p>
                                 {isAnonymous ? (
                                     <p className="mt-0.5 text-sm text-zinc-500">
-                                        Your name and avatar will be hidden from others
+                                        Your name and avatar will be hidden from
+                                        others
                                     </p>
                                 ) : null}
                             </div>
@@ -192,16 +208,20 @@ export default function CreatePostPage() {
                                     quizSectionTitle: t.quizSectionTitle,
                                     quizSectionHint: t.quizSectionHint,
                                     quizNumberLabel: t.quizNumberLabel,
-                                    quizQuestionInputLabel: t.quizQuestionInputLabel,
-                                    quizQuestionPlaceholder: t.quizQuestionPlaceholder,
+                                    quizQuestionInputLabel:
+                                        t.quizQuestionInputLabel,
+                                    quizQuestionPlaceholder:
+                                        t.quizQuestionPlaceholder,
                                     quizOptionLabel: t.quizOptionLabel,
-                                    quizOptionPlaceholder: t.quizOptionPlaceholder,
+                                    quizOptionPlaceholder:
+                                        t.quizOptionPlaceholder,
                                     quizAddOption: t.quizAddOption,
                                     quizRemoveOption: t.quizRemoveOption,
                                     quizAddQuiz: t.quizAddQuiz,
                                     quizRemoveQuiz: t.quizRemoveQuiz,
                                     quizAnswerLabel: t.quizAnswerLabel,
-                                    quizAnswerPlaceholder: t.quizAnswerPlaceholder,
+                                    quizAnswerPlaceholder:
+                                        t.quizAnswerPlaceholder,
                                     quizRequiredHint: t.quizRequiredHint,
                                 }}
                             />
@@ -268,7 +288,11 @@ export default function CreatePostPage() {
                         />
 
                         <div className="pt-4">
-                            <Button type="submit" disabled={!canSubmit} className={pillSubmitButton}>
+                            <Button
+                                type="submit"
+                                disabled={!canSubmit}
+                                className={pillSubmitButton}
+                            >
                                 {isSubmitting ? (
                                     <>
                                         <Send className="mr-2 h-4 w-4 animate-spin" />
@@ -301,4 +325,6 @@ function CreatePostLayout({ children }: { children: ReactNode }) {
     return <AppLayout breadcrumbs={breadcrumbs}>{children}</AppLayout>;
 }
 
-CreatePostPage.layout = (page: ReactNode) => <CreatePostLayout>{page}</CreatePostLayout>;
+CreatePostPage.layout = (page: ReactNode) => (
+    <CreatePostLayout>{page}</CreatePostLayout>
+);

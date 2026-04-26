@@ -3,8 +3,8 @@ import {
     ArrowUpRight,
     CircleAlert,
     Newspaper,
-    Target,
     Trophy,
+    Target,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import {
@@ -44,6 +44,12 @@ export type StudyHomeOverview = {
         points: number;
         quizzes_completed: number;
     };
+    leaderboard_points?: {
+        points: number;
+        rank: number | null;
+        points_to_next: number | null;
+        is_hidden: boolean;
+    };
     mistake_review?: Array<{
         id: number;
         post_id: number;
@@ -68,7 +74,12 @@ type StudyHomeDashboardText = {
     noPostsHint: string;
     todayScore: string;
     todayScoreSubtitle: string;
-    xpEarnedToday: string;
+    leaderboardPointsTotal: string;
+    leaderboardPointUnit: string;
+    leaderboardRank: string;
+    pointsToNextRank: string;
+    rankHidden: string;
+    topRank: string;
     quizzesCompletedToday: string;
     pointsPerQuiz: string;
     mistakeReview: string;
@@ -204,9 +215,11 @@ export function StudyHomeDashboard({
     const page = usePage();
     const milestone = overview?.learning_milestone ?? null;
     const latestPosts = overview?.latest_posts?.items ?? [];
-    const todayScore = overview?.today_score ?? {
+    const leaderboardPoints = overview?.leaderboard_points ?? {
         points: 0,
-        quizzes_completed: 0,
+        rank: null,
+        points_to_next: null,
+        is_hidden: false,
     };
     const mistakes = overview?.mistake_review ?? [];
 
@@ -379,19 +392,19 @@ export function StudyHomeDashboard({
             <DashboardCard
                 title={text.todayScore}
                 description={text.todayScoreSubtitle}
-                icon={<Target className="h-5 w-5" />}
+                icon={<Trophy className="h-5 w-5" />}
             >
                 <div className="space-y-3">
                     <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-4">
                         <p className="text-xs font-semibold tracking-[0.2em] text-zinc-500 uppercase">
-                            {text.xpEarnedToday}
+                            {text.leaderboardPointsTotal}
                         </p>
                         <div className="mt-2 flex items-end gap-2">
                             <span className="text-4xl font-semibold tracking-tight text-zinc-950">
-                                {todayScore.points}
+                                {leaderboardPoints.points}
                             </span>
                             <span className="pb-0.5 text-sm font-medium text-zinc-500 md:text-base">
-                                XP
+                                {text.leaderboardPointUnit}
                             </span>
                         </div>
                     </div>
@@ -399,18 +412,26 @@ export function StudyHomeDashboard({
                     <div className="grid grid-cols-2 gap-2.5">
                         <div className="rounded-2xl border border-zinc-200 px-3.5 py-3">
                             <p className="text-sm text-zinc-500">
-                                {text.quizzesCompletedToday}
+                                {text.leaderboardRank}
                             </p>
                             <p className="mt-1.5 text-xl font-semibold text-zinc-900">
-                                {todayScore.quizzes_completed}
+                                {leaderboardPoints.is_hidden
+                                    ? text.rankHidden
+                                    : leaderboardPoints.rank
+                                      ? `#${leaderboardPoints.rank}`
+                                      : '-'}
                             </p>
                         </div>
                         <div className="rounded-2xl border border-zinc-200 px-3.5 py-3">
                             <p className="text-sm text-zinc-500">
-                                {text.pointsPerQuiz}
+                                {text.pointsToNextRank}
                             </p>
                             <p className="mt-1.5 text-xl font-semibold text-zinc-900">
-                                5 XP
+                                {leaderboardPoints.is_hidden
+                                    ? '-'
+                                    : leaderboardPoints.points_to_next === null
+                                      ? text.topRank
+                                      : leaderboardPoints.points_to_next}
                             </p>
                         </div>
                     </div>

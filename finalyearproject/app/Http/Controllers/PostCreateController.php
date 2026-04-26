@@ -6,6 +6,7 @@ use App\Models\Language;
 use App\Models\Post;
 use App\Models\Subject;
 use App\Services\AchievementService;
+use App\Services\PointsService;
 use App\Services\ProgressService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,13 +22,14 @@ class PostCreateController extends Controller
 
     public function __construct(
         private readonly AchievementService $achievementService,
+        private readonly PointsService $pointsService,
         private readonly ProgressService $progressService,
     ) {
     }
 
     public function create(): Response
     {
-        return Inertia::render('createPostPage', [
+        return Inertia::render('CreatePostPage', [
             'subjects' => Subject::query()
                 ->orderBy('name')
                 ->get(['id', 'name']),
@@ -103,8 +105,8 @@ class PostCreateController extends Controller
 
         $isAnonymous = filter_var($validated['is_anonymous'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        DB::transaction(function () use ($request, $validated, $language, $storedAttachments, $subject, $quizData, $isAnonymous): void {
-            Post::query()->create([
+        $post = DB::transaction(function () use ($request, $validated, $language, $storedAttachments, $subject, $quizData, $isAnonymous): Post {
+            return Post::query()->create([
                 'user_id' => $request->user()->id,
                 'is_anonymous' => $isAnonymous,
                 'title' => $validated['title'],
@@ -117,9 +119,17 @@ class PostCreateController extends Controller
             ]);
         });
 
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        $this->pointsService->award(
+            $user,
+            $validated['post_type'] === 'material'
+                ? 'resource_uploaded'
+                : 'question_asked',
+            $post,
+        );
+
         if (! $isAnonymous) {
-            /** @var \App\Models\User $user */
-            $user = $request->user();
             $this->achievementService->syncUser($user);
             $this->progressService->recordPostCreated($user, $validated['post_type']);
         }

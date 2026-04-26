@@ -3,11 +3,14 @@
 namespace App\Http\Middleware;
 
 use App\Models\User;
+use App\Services\LeaderboardTitleService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
+    public function __construct(private readonly LeaderboardTitleService $leaderboardTitleService) {}
+
     /**
      * The root template that's loaded on the first page visit.
      *
@@ -52,6 +55,8 @@ class HandleInertiaRequests extends Middleware
             syncLangFiles('achievement'),
             syncLangFiles('bookmark'),
             syncLangFiles('popular'),
+            syncLangFiles('errors'),
+            syncLangFiles('rules'),
         );
 
         return [
@@ -86,6 +91,7 @@ class HandleInertiaRequests extends Middleware
             'avatar' => $user->socialAccounts
                 ->first(fn ($account) => ! empty($account->avatar))
                 ?->avatar,
+            'leaderboard_title' => $this->leaderboardTitleService->titleForUserId($user->id),
         ];
     }
 }

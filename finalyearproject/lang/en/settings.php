@@ -14,6 +14,8 @@ return [
     'name_placeholder' => 'Full name',
     'email_label' => 'Email address',
     'email_placeholder' => 'Email address',
+    'leaderboard_badge_label' => 'Wear leaderboard title',
+    'leaderboard_badge_description' => 'Show Champion, Runner-up, or Third Place beside your name when you are in the all-time top three.',
     'email_unverified' => 'Your email address is unverified.',
     'resend_verification' => 'Click here to resend the verification email.',
     'verification_sent' => 'A new verification link has been sent to your email address.',

@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\UserAchievement;
 use App\Models\UserProgress;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Schema;
 
 class LearningProgressService
@@ -20,6 +21,7 @@ class LearningProgressService
             'learning_milestone' => $this->getClosestMilestone($user),
             'latest_posts' => $this->getLatestPosts($user),
             'today_score' => $this->getTodayScore($user),
+            'leaderboard_points' => $this->getLeaderboardPoints($user),
             'mistake_review' => $this->getMistakeReview($user),
         ];
     }
@@ -152,6 +154,71 @@ class LearningProgressService
         return [
             'points' => (int) $quizzesCompleted * 5,
             'quizzes_completed' => (int) $quizzesCompleted,
+        ];
+    }
+
+    private function getLeaderboardPoints(?User $user): array
+    {
+        if (! $user) {
+            return [
+                'points' => 0,
+                'rank' => null,
+                'points_to_next' => null,
+                'is_hidden' => false,
+            ];
+        }
+
+        $leaderboardUser = User::query()
+            ->select(['id', 'total_points', 'show_on_leaderboard'])
+            ->find($user->id);
+
+        if (! $leaderboardUser) {
+            return [
+                'points' => 0,
+                'rank' => null,
+                'points_to_next' => null,
+                'is_hidden' => false,
+            ];
+        }
+
+        $points = (int) $leaderboardUser->total_points;
+
+        if (! $leaderboardUser->show_on_leaderboard) {
+            return [
+                'points' => $points,
+                'rank' => null,
+                'points_to_next' => null,
+                'is_hidden' => true,
+            ];
+        }
+
+        $higherRankedUsers = fn (Builder $query) => $query
+            ->where('total_points', '>', $points)
+            ->orWhere(function (Builder $tieQuery) use ($leaderboardUser, $points) {
+                $tieQuery
+                    ->where('total_points', $points)
+                    ->where('id', '<', $leaderboardUser->id);
+            });
+
+        $rank = User::query()
+            ->where('show_on_leaderboard', true)
+            ->where($higherRankedUsers)
+            ->count() + 1;
+
+        $nextRank = User::query()
+            ->where('show_on_leaderboard', true)
+            ->where($higherRankedUsers)
+            ->orderBy('total_points')
+            ->orderByDesc('id')
+            ->first(['total_points']);
+
+        return [
+            'points' => $points,
+            'rank' => (int) $rank,
+            'points_to_next' => $nextRank
+                ? max(0, (int) $nextRank->total_points - $points)
+                : null,
+            'is_hidden' => false,
         ];
     }
 

@@ -1,270 +1,303 @@
 import { reactLang } from '@erag/lang-sync-inertia';
-import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { ChevronLeft, ChevronRight, TrendingDown, TrendingUp } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { LeaderboardRow } from '@/components/LeaderboardRow';
+import { PodiumCard } from '@/components/PodiumCard';
 import AppLayout from '@/layouts/app-layout';
 import { leaderboard as leaderboardRoute } from '@/routes';
-import type { BreadcrumbItem } from '@/types';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Crown, Heart, MessageCircle, Sparkles } from 'lucide-react';
+import type { Auth, BreadcrumbItem } from '@/types';
+
+type Period = 'all_time' | 'weekly' | 'monthly';
+
+type LeaderboardUser = {
+    id: number;
+    name: string;
+    avatar: string | null;
+    points: number;
+    rank: number;
+    leaderboard_title?: string | null;
+};
+
+type CurrentUserRank = {
+    rank: number | null;
+    points: number;
+    pointsToNext: number | null;
+    isHidden: boolean;
+};
+
+type PointsHistoryEntry = {
+    points: number;
+    action: string;
+    created_at: string;
+};
+
+type PaginatedRows = {
+    data: LeaderboardUser[];
+    current_page: number;
+    last_page: number;
+    next_page_url: string | null;
+    prev_page_url: string | null;
+    from: number | null;
+    to: number | null;
+    total: number;
+};
+
+type LeaderboardProps = {
+    leaderboard: {
+        activePeriod: Period;
+        periods: Period[];
+        podium: LeaderboardUser[];
+        rows: PaginatedRows;
+        currentUser: CurrentUserRank | null;
+        pointsHistory: PointsHistoryEntry[];
+    };
+};
+
+const ACTION_LABELS: Record<string, string> = {
+    question_asked: 'Asked a question',
+    answer_posted: 'Posted an answer',
+    question_upvoted: 'Question upvoted',
+    answer_upvoted: 'Answer upvoted',
+    best_answer_marked: 'Best answer marked',
+    resource_uploaded: 'Uploaded resource',
+    resource_bookmarked: 'Resource bookmarked',
+    follower_gained: 'Gained a follower',
+    content_downvoted: 'Content downvoted',
+};
+
+function formatDate(dateStr: string) {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Leaderboard',
-        href: leaderboardRoute(),
+        href: leaderboardRoute().url,
     },
 ];
 
-interface User {
-    id: number;
-    name: string;
-    avatar?: string;
-    like_count?: number;
-    comment_count?: number;
-}
-
-interface LeaderboardProps {
-    totalLeaderboard: {
-        topPostLikers: User[];
-        topCommenters: User[];
-        topContributorsByComments: User[];
-        topCommentLikers: User[];
-    };
-    weeklyLeaderboard: {
-        topPostLikers: User[];
-        topCommenters: User[];
-        topContributorsByComments: User[];
-        topCommentLikers: User[];
-    };
-    weeklyMeta: {
-        start: string;
-        end: string;
-        nextRefreshAt: string;
-    };
-}
-
-type ScopeKey = 'weekly' | 'total';
-
-type TabKey =
-    | 'post-likes'
-    | 'post-comments'
-    | 'comment-contributions'
-    | 'comment-likes';
-
-type LeaderboardDataset = {
-    key: TabKey;
-    label: string;
-    users: User[];
-    metricLabel: string;
-    icon: ReactNode;
-    accent: string;
-};
-
-export default function Leaderboard({ totalLeaderboard, weeklyLeaderboard, weeklyMeta }: LeaderboardProps) {
+export default function Leaderboard({ leaderboard }: LeaderboardProps) {
     const { trans } = reactLang();
-    const t = {
-        pageTitle: trans('profile.page_title'), // Using a similar translation key
-        communityTitle: trans('leaderboard.community_title') || 'Community Leaderboard',
-        communitySubtitle: trans('leaderboard.community_subtitle') || 'Top contributors in various community activities',
-        weeklyHot: trans('leaderboard.weekly_hot') || 'This Week Hot',
-        totalRanking: trans('leaderboard.total_ranking') || 'Total Ranking',
-        weeklyRefresh: trans('leaderboard.weekly_refresh') || 'Weekly refresh',
-        topTen: trans('leaderboard.top_ten') || 'Top 10',
-        topLikedPosts: trans('leaderboard.top_liked_posts') || 'Top Liked Posts',
-        mostCommentedPosts: trans('leaderboard.most_commented_posts') || 'Most Commented Posts',
-        topCommentContributors: trans('leaderboard.top_comment_contributors') || 'Top Comment Contributors',
-        mostLikedComments: trans('leaderboard.most_liked_comments') || 'Most Liked Comments',
-        likes: trans('leaderboard.likes') || 'Likes',
-        comments: trans('leaderboard.comments') || 'Comments',
-        commentsMade: trans('leaderboard.comments_made') || 'Comments Made',
-        commentLikes: trans('leaderboard.comment_likes') || 'Comment Likes',
-    };
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const currentUserId = auth.user?.id;
 
-    const [activeScope, setActiveScope] = useState<ScopeKey>('weekly');
-    const [activeTab, setActiveTab] = useState<TabKey>('post-likes');
-
-    const source = activeScope === 'weekly' ? weeklyLeaderboard : totalLeaderboard;
-
-    const datasets: LeaderboardDataset[] = [
-        {
-            key: 'post-likes',
-            label: t.topLikedPosts,
-            users: source.topPostLikers,
-            metricLabel: t.likes,
-            icon: <Heart className="h-4 w-4" />,
-            accent: 'from-rose-400 to-pink-500',
-        },
-        {
-            key: 'post-comments',
-            label: t.mostCommentedPosts,
-            users: source.topCommenters,
-            metricLabel: t.comments,
-            icon: <MessageCircle className="h-4 w-4" />,
-            accent: 'from-sky-400 to-blue-500',
-        },
-        {
-            key: 'comment-contributions',
-            label: t.topCommentContributors,
-            users: source.topContributorsByComments,
-            metricLabel: t.commentsMade,
-            icon: <Sparkles className="h-4 w-4" />,
-            accent: 'from-amber-400 to-orange-500',
-        },
-        {
-            key: 'comment-likes',
-            label: t.mostLikedComments,
-            users: source.topCommentLikers,
-            metricLabel: t.commentLikes,
-            icon: <Crown className="h-4 w-4" />,
-            accent: 'from-violet-400 to-fuchsia-500',
-        },
+    const periodTabs: { key: Period; label: string }[] = [
+        { key: 'weekly', label: trans('leaderboard.tab_weekly') },
+        { key: 'monthly', label: trans('leaderboard.tab_monthly') },
+        { key: 'all_time', label: trans('leaderboard.tab_all_time') },
     ];
 
-    const activeDataset = datasets.find((dataset) => dataset.key === activeTab) ?? datasets[0];
-    
-    const readMetric = (user: User) => user.like_count ?? user.comment_count ?? 0;
-    
-    // Filter out users with 0 metric (0 posts and 0 likes)
-    const activeUsers = activeDataset.users.filter((user) => readMetric(user) > 0);
-    const topTenUsers = activeUsers.slice(0, 10);
-    const topThreeUsers = topTenUsers.slice(0, 3);
-    const listUsers = topTenUsers.slice(3, 10);
-
-    const refreshDate = new Date(weeklyMeta.nextRefreshAt);
-
-    const rankStyle = (rank: number) => {
-        if (rank === 1) return 'bg-amber-100 text-amber-800';
-        if (rank === 2) return 'bg-slate-200 text-slate-800';
-        if (rank === 3) return 'bg-orange-100 text-orange-800';
-        return 'bg-zinc-100 text-zinc-700';
+    const visitPeriod = (period: Period) => {
+        router.get(
+            leaderboardRoute().url,
+            { period },
+            { preserveScroll: true, preserveState: true },
+        );
     };
 
+    const visitPage = (page: number) => {
+        router.get(
+            leaderboardRoute().url,
+            { period: leaderboard.activePeriod, page },
+            { preserveScroll: true, preserveState: true },
+        );
+    };
+
+    const isCurrentUser = (user: LeaderboardUser) => user.id === currentUserId;
+
     return (
-        <div className="pb-8">
-            <Head title={trans('navigation.leaderboard')} />
-            <div className="w-full max-w-none p-4 md:p-6 md:pb-10">
-                <div className="mx-auto max-w-5xl space-y-6">
-                    <div className="space-y-3">
-                        <h1 className="mb-2 text-3xl font-bold text-zinc-900">{t.communityTitle}</h1>
-                        <p className="text-zinc-600">{t.communitySubtitle}</p>
-                        <div className="inline-flex gap-2 rounded-lg border border-zinc-200 p-1">
-                            <button
-                                onClick={() => setActiveScope('weekly')}
-                                className={`rounded-lg px-3 py-1 text-sm font-medium transition ${
-                                    activeScope === 'weekly' ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600 hover:text-zinc-900'
-                                }`}
-                            >
-                                {t.weeklyHot}
-                            </button>
-                            <button
-                                onClick={() => setActiveScope('total')}
-                                className={`rounded-lg px-3 py-1 text-sm font-medium transition ${
-                                    activeScope === 'total' ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-600 hover:text-zinc-900'
-                                }`}
-                            >
-                                {t.totalRanking}
-                            </button>
-                        </div>
+        <div className="min-h-screen bg-zinc-50 pb-10">
+            <Head title={trans('leaderboard.title')} />
+
+            <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 md:px-6 lg:px-8">
+                <header className="flex flex-col gap-4 border-b border-zinc-200 pb-5 md:flex-row md:items-end md:justify-between">
+                    <div className="space-y-2">
+                        <h1 className="text-2xl font-semibold text-zinc-950 md:text-3xl">
+                            {trans('leaderboard.title')}
+                        </h1>
+                        <p className="max-w-2xl text-sm leading-6 text-zinc-600 md:text-base">
+                            {trans('leaderboard.subtitle')}
+                        </p>
                     </div>
-                    {activeScope === 'weekly' && !Number.isNaN(refreshDate.getTime()) ? (
-                        <div className="mt-3 inline-flex items-center gap-2 bg-zinc-600 px-3 py-2 text-xs text-zinc-100">
-                            <Sparkles className="h-3.5 w-3.5 text-amber-200" />
-                            <span className="font-medium text-amber-100">{t.weeklyRefresh}</span>
-                            <span className="h-1.5 w-1.5 bg-amber-200 animate-pulse" />
-                            <span>{weeklyMeta.start} ~ {weeklyMeta.end}</span>
-                            <span className="text-zinc-400">|</span>
-                            <span>Next: {refreshDate.toLocaleString()}</span>
-                        </div>
-                    ) : null}
 
-
-                    <div className="overflow-x-auto pb-1">
-                        {datasets.map((dataset) => {
-                            const isActive = activeTab === dataset.key;
-
+                    <div className="inline-flex w-full rounded-full bg-white/80 p-1 shadow-sm ring-1 ring-zinc-200 md:w-auto">
+                        {periodTabs.map((tab) => {
+                            const isActive = leaderboard.activePeriod === tab.key;
                             return (
                                 <button
-                                    key={dataset.key}
-                                    onClick={() => setActiveTab(dataset.key)}
-                                    className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
+                                    key={tab.key}
+                                    type="button"
+                                    onClick={() => visitPeriod(tab.key)}
+                                    className={`min-h-9 flex-1 rounded-full px-4 text-sm font-medium transition md:flex-none ${
                                         isActive
-                                            ? `bg-linear-to-r ${dataset.accent} text-white`
-                                            : 'text-zinc-600 hover:bg-zinc-100'
+                                            ? 'bg-zinc-950 text-white shadow-sm'
+                                            : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950'
                                     }`}
                                 >
-                                    {dataset.icon}
-                                    {dataset.label}
+                                    {tab.label}
                                 </button>
                             );
                         })}
-
                     </div>
+                </header>
 
-                    {activeUsers.length === 0 ? (
-                        <div className="border border-dashed border-zinc-300 p-10 text-center text-zinc-500">
-                            No leaderboard data yet.
+                {leaderboard.currentUser ? (
+                    <div className="sticky top-3 z-20 rounded-lg border border-zinc-200 bg-white px-4 py-3 shadow-sm">
+                        {leaderboard.currentUser.isHidden ? (
+                            <p className="text-sm font-medium text-zinc-700">
+                                {trans('leaderboard.privacy_hidden')}
+                            </p>
+                        ) : (
+                            <div className="flex flex-col gap-2 text-sm text-zinc-700 md:flex-row md:items-center md:justify-between">
+                                <p className="font-medium text-zinc-950">
+                                    {trans('leaderboard.your_rank')}{' '}
+                                    <span className="font-semibold">
+                                        #{leaderboard.currentUser.rank}
+                                    </span>
+                                </p>
+                                <div className="flex flex-wrap gap-x-4 gap-y-1">
+                                    <span>
+                                        {trans('leaderboard.points')}:{' '}
+                                        {leaderboard.currentUser.points}
+                                    </span>
+                                    {leaderboard.currentUser.pointsToNext !== null ? (
+                                        <span>
+                                            {trans('leaderboard.points_to_next')}:{' '}
+                                            {leaderboard.currentUser.pointsToNext}
+                                        </span>
+                                    ) : null}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ) : null}
+
+                {leaderboard.podium.length > 0 ? (
+                    <section className="mx-auto grid w-full max-w-4xl grid-cols-1 items-end gap-3 md:grid-cols-3">
+                        {leaderboard.podium.map((user) => (
+                            <PodiumCard
+                                key={user.id}
+                                user={user}
+                                isCurrentUser={isCurrentUser(user)}
+                                rankLabel={trans('leaderboard.rank')}
+                                pointsLabel={trans('leaderboard.points')}
+                                currentUserLabel={trans('leaderboard.current_user')}
+                            />
+                        ))}
+                    </section>
+                ) : null}
+
+                <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_300px]">
+                    {/* ranking table */}
+                    <section className="rounded-lg border border-zinc-200 bg-white shadow-xs">
+                        <div className="grid grid-cols-[72px_1fr_96px] gap-3 border-b border-zinc-200 px-4 py-3 text-xs font-semibold uppercase text-zinc-500 md:grid-cols-[96px_1fr_140px]">
+                            <span>{trans('leaderboard.rank')}</span>
+                            <span>{trans('leaderboard.user')}</span>
+                            <span className="text-right">
+                                {trans('leaderboard.points')}
+                            </span>
                         </div>
-                    ) : (
-                        <div className="space-y-4 border-t border-zinc-200 pt-4">
-                            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                                {topThreeUsers.map((user, index) => {
-                                    const rank = index + 1;
 
-                                    return (
-                                        <article key={user.id} className="rounded-xl border border-zinc-100 px-3 py-3">
-                                            <div className="mb-3 flex items-center justify-between">
-                                                <span
-                                                    className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${rankStyle(rank)}`}
-                                                >
-                                                    {rank}
-                                                </span>
-                                                <span className="text-xs text-zinc-500">{activeDataset.metricLabel}</span>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={user.avatar} alt={user.name} />
-                                                    <AvatarFallback className="bg-zinc-200 text-zinc-700">
-                                                        {user.name.charAt(0)}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className="min-w-0">
-                                                    <p className="truncate font-medium text-zinc-900">{user.name}</p>
-                                                    <p className="text-sm font-bold text-zinc-900">{readMetric(user)}</p>
-                                                </div>
-                                            </div>
-                                        </article>
-                                    );
-                                })}
+                        {leaderboard.rows.data.length > 0 ? (
+                            <div className="divide-y divide-zinc-100">
+                                {leaderboard.rows.data.map((user) => (
+                                    <LeaderboardRow
+                                        key={user.id}
+                                        user={user}
+                                        isCurrentUser={isCurrentUser(user)}
+                                        currentUserLabel={trans('leaderboard.current_user')}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="px-4 py-12 text-center text-sm text-zinc-500">
+                                {trans('leaderboard.no_users')}
+                            </div>
+                        )}
+
+                        {leaderboard.rows.last_page > 1 ? (
+                            <div className="flex items-center justify-between border-t border-zinc-200 px-4 py-3">
+                                <button
+                                    type="button"
+                                    onClick={() => visitPage(leaderboard.rows.current_page - 1)}
+                                    disabled={!leaderboard.rows.prev_page_url}
+                                    className="inline-flex h-9 items-center gap-2 rounded-md border border-zinc-200 px-3 text-sm font-medium text-zinc-700 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                    {trans('leaderboard.previous')}
+                                </button>
+
+                                <span className="text-sm font-medium text-zinc-600">
+                                    {leaderboard.rows.current_page} /{' '}
+                                    {leaderboard.rows.last_page}
+                                </span>
+
+                                <button
+                                    type="button"
+                                    onClick={() => visitPage(leaderboard.rows.current_page + 1)}
+                                    disabled={!leaderboard.rows.next_page_url}
+                                    className="inline-flex h-9 items-center gap-2 rounded-md border border-zinc-200 px-3 text-sm font-medium text-zinc-700 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                    {trans('leaderboard.next')}
+                                    <ChevronRight className="h-4 w-4" />
+                                </button>
+                            </div>
+                        ) : null}
+                    </section>
+
+                    {/* points history */}
+                    {currentUserId ? (
+                        <aside className="rounded-lg border border-zinc-200 bg-white shadow-xs">
+                            <div className="border-b border-zinc-200 px-4 py-3">
+                                <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                                    Points History
+                                </h2>
                             </div>
 
-                            <div className="divide-y divide-zinc-200">
-                                {listUsers.map((user, index) => {
-                                    const rank = index + 4;
-
-                                    return (
-                                        <div key={user.id} className="flex items-center justify-between py-3">
-                                            <div className="flex min-w-0 items-center gap-3">
-                                                <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xs font-bold text-zinc-700">
-                                                    {rank}
-                                                </span>
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={user.avatar} alt={user.name} />
-                                                    <AvatarFallback className="bg-zinc-200 text-zinc-700">
-                                                        {user.name.charAt(0)}
-                                                    </AvatarFallback>
-                                                </Avatar>
+                            {leaderboard.pointsHistory.length > 0 ? (
+                                <ul className="divide-y divide-zinc-100">
+                                    {leaderboard.pointsHistory.map((entry, i) => (
+                                        <li
+                                            key={i}
+                                            className="flex items-center justify-between gap-3 px-4 py-3"
+                                        >
+                                            <div className="flex min-w-0 items-center gap-2">
+                                                {entry.points >= 0 ? (
+                                                    <TrendingUp className="h-4 w-4 shrink-0 text-emerald-500" />
+                                                ) : (
+                                                    <TrendingDown className="h-4 w-4 shrink-0 text-red-400" />
+                                                )}
                                                 <div className="min-w-0">
-                                                    <p className="truncate font-medium text-zinc-900">{user.name}</p>
-                                                    <p className="text-xs text-zinc-500">{activeDataset.metricLabel}</p>
+                                                    <p className="truncate text-xs font-medium text-zinc-800">
+                                                        {ACTION_LABELS[entry.action] ?? entry.action}
+                                                    </p>
+                                                    <p className="text-xs text-zinc-400">
+                                                        {formatDate(entry.created_at)}
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <p className="text-sm font-semibold text-zinc-900">{readMetric(user)}</p>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
+                                            <span
+                                                className={`shrink-0 text-sm font-semibold ${
+                                                    entry.points >= 0
+                                                        ? 'text-emerald-600'
+                                                        : 'text-red-500'
+                                                }`}
+                                            >
+                                                {entry.points >= 0 ? '+' : ''}
+                                                {entry.points}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <div className="px-4 py-10 text-center text-sm text-zinc-400">
+                                    No points earned yet
+                                </div>
+                            )}
+                        </aside>
+                    ) : null}
                 </div>
             </div>
         </div>

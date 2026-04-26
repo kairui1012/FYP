@@ -7,6 +7,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -25,5 +28,43 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
+            $status = $response->getStatusCode();
+            $useDeveloperExceptionPage = config('app.debug') && ! app()->environment('production');
+
+            if (
+                $useDeveloperExceptionPage
+                || $request->expectsJson()
+                || ! in_array($status, [404, 500], true)
+            ) {
+                return $response;
+            }
+
+            $supportedLocales = ['en', 'zh', 'my'];
+            $locale = $request->user()?->locale
+                ?? ($request->hasSession() ? $request->session()->get('locale') : null)
+                ?? $request->cookie('locale')
+                ?? config('app.locale');
+
+            if (! in_array($locale, $supportedLocales, true)) {
+                $locale = config('app.locale');
+            }
+
+            app()->setLocale($locale);
+
+            return Inertia::render('errors/ErrorPage', [
+                'status' => $status,
+                'lang' => array_replace_recursive(
+                    syncLangFiles('navigation'),
+                    syncLangFiles('language_label'),
+                    syncLangFiles('errors'),
+                ),
+                'locale' => app()->getLocale(),
+                'availableLocales' => [
+                    'en' => 'English',
+                    'zh' => '中文',
+                    'my' => 'BM',
+                ],
+            ])->toResponse($request)->setStatusCode($status);
+        });
     })->create();

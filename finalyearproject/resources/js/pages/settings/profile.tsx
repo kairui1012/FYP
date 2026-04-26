@@ -54,7 +54,9 @@ export default function Profile({
                         {({ processing, recentlySuccessful, errors }) => (
                             <>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="name">{trans('settings.name_label')}</Label>
+                                    <Label htmlFor="name">
+                                        {trans('settings.name_label')}
+                                    </Label>
 
                                     <Input
                                         id="name"
@@ -63,7 +65,9 @@ export default function Profile({
                                         name="name"
                                         required
                                         autoComplete="name"
-                                        placeholder={trans('settings.name_placeholder')}
+                                        placeholder={trans(
+                                            'settings.name_placeholder',
+                                        )}
                                     />
 
                                     <InputError
@@ -73,7 +77,9 @@ export default function Profile({
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="email">{trans('settings.email_label')}</Label>
+                                    <Label htmlFor="email">
+                                        {trans('settings.email_label')}
+                                    </Label>
 
                                     <Input
                                         id="email"
@@ -83,7 +89,9 @@ export default function Profile({
                                         name="email"
                                         required
                                         autoComplete="username"
-                                        placeholder={trans('settings.email_placeholder')}
+                                        placeholder={trans(
+                                            'settings.email_placeholder',
+                                        )}
                                     />
 
                                     <InputError
@@ -92,24 +100,67 @@ export default function Profile({
                                     />
                                 </div>
 
+                                <div className="flex items-start gap-3 rounded-lg border border-zinc-200 bg-white p-4">
+                                    <input
+                                        type="hidden"
+                                        name="show_leaderboard_badge"
+                                        value="0"
+                                    />
+                                    <input
+                                        id="show_leaderboard_badge"
+                                        type="checkbox"
+                                        name="show_leaderboard_badge"
+                                        value="1"
+                                        defaultChecked={Boolean(
+                                            auth.user.show_leaderboard_badge ??
+                                            true,
+                                        )}
+                                        className="mt-1 h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500"
+                                    />
+                                    <div className="space-y-1">
+                                        <Label htmlFor="show_leaderboard_badge">
+                                            {trans(
+                                                'settings.leaderboard_badge_label',
+                                            )}
+                                        </Label>
+                                        <p className="text-sm leading-5 text-zinc-500">
+                                            {trans(
+                                                'settings.leaderboard_badge_description',
+                                            )}
+                                        </p>
+                                        <InputError
+                                            className="mt-2"
+                                            message={
+                                                errors.show_leaderboard_badge
+                                            }
+                                        />
+                                    </div>
+                                </div>
+
                                 {mustVerifyEmail &&
                                     auth.user.email_verified_at === null && (
                                         <div>
                                             <p className="-mt-4 text-sm text-muted-foreground">
-                                                {trans('settings.email_unverified')}{' '}
+                                                {trans(
+                                                    'settings.email_unverified',
+                                                )}{' '}
                                                 <Link
                                                     href={send()}
                                                     as="button"
                                                     className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
                                                 >
-                                                    {trans('settings.resend_verification')}
+                                                    {trans(
+                                                        'settings.resend_verification',
+                                                    )}
                                                 </Link>
                                             </p>
 
                                             {status ===
                                                 'verification-link-sent' && (
                                                 <div className="mt-2 text-sm font-medium text-green-600">
-                                                    {trans('settings.verification_sent')}
+                                                    {trans(
+                                                        'settings.verification_sent',
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
@@ -119,7 +170,7 @@ export default function Profile({
                                     <Button
                                         disabled={processing}
                                         data-test="update-profile-button"
-                                        className='cursor-pointer'
+                                        className="cursor-pointer"
                                     >
                                         {trans('settings.save')}
                                     </Button>

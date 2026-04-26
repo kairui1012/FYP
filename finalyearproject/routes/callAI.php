@@ -345,3 +345,139 @@ Route::post('/ai-explain', function (Request $request) {
     }
 
 })->middleware(['web', 'throttle:20,1']);
+
+Route::post('/ai-best-answer', function (Request $request) {
+    $request->validate([
+        'post_title'     => 'required|string|max:300',
+        'post_content'   => 'nullable|string|max:2000',
+        'answer_content' => 'required|string|max:2000',
+        'provider'       => 'required|in:deepseek,gemini',
+    ]);
+
+    $postTitle     = $request->input('post_title');
+    $postContent   = $request->input('post_content', '');
+    $answerContent = $request->input('answer_content');
+    $provider      = $request->input('provider');
+
+    $currentLocale = app()->getLocale();
+    $lang = match ($currentLocale) {
+        'zh'    => 'Chinese (Simplified)',
+        'my'    => 'Malay',
+        default => 'English',
+    };
+
+    $contextBlock = trim($postContent) !== ''
+        ? "Question: {$postTitle}\n\nContext / Description:\n{$postContent}\n\nBest Answer:\n{$answerContent}"
+        : "Question: {$postTitle}\n\nBest Answer:\n{$answerContent}";
+
+    $prompt = "You are an expert tutor helping students understand answers. Respond entirely in {$lang}. Return ONLY valid JSON. No markdown, no code fences, no extra text.\n\n"
+        . "Your task:\n"
+        . "1. Read the question and the best answer provided.\n"
+        . "2. Write a clear, structured, educational explanation of WHY the answer is correct.\n"
+        . "3. Break it down step-by-step if the topic benefits from it.\n"
+        . "4. Keep it easy to understand for students.\n"
+        . "5. Include any key concepts or principles involved.\n\n"
+        . $contextBlock . "\n\n"
+        . "Return JSON in this exact shape:\n"
+        . '{"explanation":"string","key_points":["string"],"summary":"string"}';
+
+    $decodeResult = function (string $text) {
+        $trimmed = trim($text);
+        $candidates = [$trimmed];
+
+        if (str_starts_with($trimmed, '```')) {
+            $candidates[] = trim(preg_replace('/^```(?:json)?\s*|\s*```$/', '', $trimmed));
+        }
+
+        $start = strpos($trimmed, '{');
+        $end   = strrpos($trimmed, '}');
+        if ($start !== false && $end !== false && $end > $start) {
+            $candidates[] = trim(substr($trimmed, $start, $end - $start + 1));
+        }
+
+        foreach ($candidates as $candidate) {
+            $decoded = json_decode($candidate, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        throw new \Exception('AI returned invalid JSON');
+    };
+
+    try {
+        $raw = match ($provider) {
+
+            'deepseek' => (function () use ($prompt) {
+                $res = Http::withToken(config('services.deepseek.key'))
+                    ->timeout(25)
+                    ->post('https://api.deepseek.com/v1/chat/completions', [
+                        'model'       => 'deepseek-chat',
+                        'messages'    => [
+                            ['role' => 'system', 'content' => 'You are an expert tutor. Always respond with valid JSON only.'],
+                            ['role' => 'user',   'content' => $prompt],
+                        ],
+                        'temperature' => 0.5,
+                    ]);
+
+                if (!$res->successful()) {
+                    throw new \Exception('DeepSeek error: ' . $res->status());
+                }
+
+                $text = $res->json('choices.0.message.content');
+                if (!is_string($text) || trim($text) === '') {
+                    throw new \Exception('DeepSeek returned empty response');
+                }
+
+                return $text;
+            })(),
+
+            'gemini' => (function () use ($prompt) {
+                $res = Http::withQueryParameters(['key' => config('services.gemini.key')])
+                    ->timeout(25)
+                    ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', [
+                        'contents'         => [['parts' => [['text' => $prompt]]]],
+                        'generationConfig' => ['temperature' => 0.5],
+                    ]);
+
+                if (!$res->successful()) {
+                    throw new \Exception('Gemini error: ' . $res->status());
+                }
+
+                $text = $res->json('candidates.0.content.parts.0.text');
+                if (!is_string($text) || trim($text) === '') {
+                    throw new \Exception('Gemini returned empty response');
+                }
+
+                return $text;
+            })(),
+        };
+
+        $decoded     = $decodeResult($raw);
+        $explanation = isset($decoded['explanation']) && is_string($decoded['explanation']) ? trim($decoded['explanation']) : '';
+        $keyPoints   = isset($decoded['key_points']) && is_array($decoded['key_points'])
+            ? array_values(array_filter(array_map(fn ($v) => is_string($v) ? trim($v) : '', $decoded['key_points'])))
+            : [];
+        $summary     = isset($decoded['summary']) && is_string($decoded['summary']) ? trim($decoded['summary']) : '';
+
+        if ($explanation === '') {
+            throw new \Exception('AI returned missing explanation');
+        }
+
+        return response()->json([
+            'result' => [
+                'explanation' => $explanation,
+                'key_points'  => $keyPoints,
+                'summary'     => $summary,
+            ],
+            'provider' => $provider,
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'error'    => $e->getMessage(),
+            'provider' => $provider,
+        ], 502);
+    }
+
+})->middleware(['web', 'throttle:20,1']);

@@ -25,4 +25,18 @@ return [
     'no_badges_yet' => '还没有徽章。',
     'attachment_single' => '个附件',
     'attachment_plural' => '个附件',
+
+    // ── Badge showcase ────────────────────────────────────────────────────────
+    'no_featured_badges_hint' => '提示：点击"编辑展示徽章"来展示你已解锁的徽章。',
+    'close_badge_editor'      => '关闭徽章编辑器',
+    'edit_displayed_badges'   => '编辑展示徽章',
+    'badges_saved'            => '徽章已保存',
+    'choose_featured_badges'  => '选择展示徽章',
+    'select_up_to'            => '最多选择 :max 个徽章展示在你的主页。',
+    'selected'                => '已选',
+    'max_badges_reached'      => '已达到展示徽章上限。',
+    'saving'                  => '保存中…',
+    'save'                    => '保存',
+    'earn_badges_hint'        => '发帖、答题、与社区互动即可获得徽章。',
+    'featured'                => '已展示',
 ];

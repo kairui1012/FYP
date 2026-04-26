@@ -1,25 +1,26 @@
 <?php
 
-use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\AchievementsController;
+use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\BookmarkFolderController;
+use App\Http\Controllers\UserFeaturedBadgeController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentLikeController;
-use App\Http\Controllers\BookmarkFolderController;
+use App\Http\Controllers\CommentReportController;
 use App\Http\Controllers\FollowerController;
+use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PostBookmarkController;
-use App\Http\Controllers\PostCreateController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\PostCreateController;
 use App\Http\Controllers\PostPopularController;
-use App\Http\Controllers\ProfilePageController;
 use App\Http\Controllers\PostSaveController;
-use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\ProfilePageController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Illuminate\Http\Request;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
@@ -47,6 +48,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
     Route::post('/comments/{comment}/vote', [CommentLikeController::class, 'toggle'])->name('comments.vote.toggle');
+    Route::post('/comments/{comment}/report', [CommentReportController::class, 'store'])->name('comments.report');
     Route::get('/popularPage', [PostPopularController::class, 'index'])->name('popularPage');
     Route::get('/createPostPage', [PostCreateController::class, 'create'])->name('createPostPage');
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
@@ -55,17 +57,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::post('/posts/{post}/complete', [PostController::class, 'completeLesson'])->name('posts.complete');
     Route::post('/posts/{post}/complete-quiz', [PostController::class, 'completeQuiz'])->name('posts.completeQuiz');
-    Route::post('/posts/{posts}/like',[LikeController::class,'toggle'])->name('like.toggle');
+    Route::post('/posts/{posts}/like', [LikeController::class, 'toggle'])->name('like.toggle');
     Route::post('/posts/{post}/save', [PostSaveController::class, 'toggle'])->name('posts.save.toggle');
     Route::post('/users/{user}/follow', [FollowerController::class, 'toggle'])->name('users.follow.toggle');
+    Route::post('/users/{user}/featured-badges', [UserFeaturedBadgeController::class, 'update'])->name('users.featured-badges.update');
     Route::post('/bookmarks/folders', [BookmarkFolderController::class, 'store'])->name('bookmarks.folders.store');
     Route::patch('/bookmarks/folders/{bookmarkFolder}', [BookmarkFolderController::class, 'update'])->name('bookmarks.folders.update');
     Route::delete('/bookmarks/folders/{bookmarkFolder}', [BookmarkFolderController::class, 'destroy'])->name('bookmarks.folders.destroy');
     Route::post('/bookmarks/posts/{post}/move', [BookmarkFolderController::class, 'movePost'])->name('bookmarks.posts.move');
-    
+
     // New pages routes
     Route::get('/achievements', [AchievementsController::class, 'index'])->name('achievements');
     Route::get('/categories', [PostController::class, 'categories'])->name('categories');
+    Route::get('/rules', fn () => Inertia::render('RulesPage'))->name('rules');
     Route::get('/bookmarks', [PostBookmarkController::class, 'index'])->name('bookmarks');
     Route::get('/search', [SearchController::class, 'search'])->name('search');
 });

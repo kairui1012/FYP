@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { CommentSection } from '@/components/comment-section';
+import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnAiTranslate } from '@/components/ui/btn-ai-translate';
 import { BtnComment } from '@/components/ui/btn-comment';
@@ -233,7 +234,9 @@ export default function PostContent({ post }: PostContentProps) {
     ]);
 
     useEffect(() => {
-        const attempts = Array.isArray(post.quiz_attempts) ? post.quiz_attempts : [];
+        const attempts = Array.isArray(post.quiz_attempts)
+            ? post.quiz_attempts
+            : [];
         if (attempts.length === 0) {
             setSelectedAnswers({});
             setResultStates({});
@@ -246,7 +249,12 @@ export default function PostContent({ post }: PostContentProps) {
         for (const attempt of attempts) {
             const qIndex = Number(attempt.question_index);
             const selectedIndex = Number(attempt.selected_answer_index);
-            if (Number.isNaN(qIndex) || Number.isNaN(selectedIndex) || qIndex < 0 || selectedIndex < 0) {
+            if (
+                Number.isNaN(qIndex) ||
+                Number.isNaN(selectedIndex) ||
+                qIndex < 0 ||
+                selectedIndex < 0
+            ) {
                 continue;
             }
 
@@ -694,6 +702,12 @@ export default function PostContent({ post }: PostContentProps) {
                                                 >
                                                     {displayName}
                                                 </Link>
+                                                <LeaderboardTitleBadge
+                                                    title={
+                                                        post.user
+                                                            ?.leaderboard_title
+                                                    }
+                                                />
                                                 {post.user?.id &&
                                                 currentUserId &&
                                                 post.user.id !==
@@ -866,7 +880,7 @@ export default function PostContent({ post }: PostContentProps) {
                         )
                     )}
                     {post.video_url && getEmbedUrl(post.video_url) ? (
-                        <div className="mx-4 mb-7 overflow-hidden rounded-xl border border-zinc-200 bg-black aspect-video">
+                        <div className="mx-4 mb-7 aspect-video overflow-hidden rounded-xl border border-zinc-200 bg-black">
                             <iframe
                                 src={getEmbedUrl(post.video_url)!}
                                 title="Video"

@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { useInitials } from '@/hooks/use-initials';
 import type { User } from '@/types';
 
@@ -20,7 +21,12 @@ export function UserInfo({
                 </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="flex min-w-0 items-center gap-1.5">
+                    <span className="truncate font-medium">{user.name}</span>
+                    <LeaderboardTitleBadge
+                        title={user.leaderboard_title as string | null}
+                    />
+                </span>
                 {showEmail && (
                     <span className="truncate text-xs text-muted-foreground">
                         {user.email}

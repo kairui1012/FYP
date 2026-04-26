@@ -73,7 +73,7 @@ class PostBookmarkController extends Controller
                         return $serialized;
                     });
 
-                return Inertia::render('BookmarksPage', [
+                return Inertia::render('StudyFolderPage', [
                     'posts' => $posts,
                     'folders' => $folders,
                     'activeFolderId' => null,
@@ -87,7 +87,7 @@ class PostBookmarkController extends Controller
 
             $quizReviewItems = $this->getQuizReviewItems($user->id, $studyMode === 'correct');
 
-            return Inertia::render('BookmarksPage', [
+            return Inertia::render('StudyFolderPage', [
                 'posts' => [],
                 'folders' => $folders,
                 'activeFolderId' => null,
@@ -132,7 +132,7 @@ class PostBookmarkController extends Controller
                 return $serialized;
             });
 
-        return Inertia::render('BookmarksPage', [
+        return Inertia::render('StudyFolderPage', [
             'posts' => $posts,
             'folders' => $folders,
             'activeFolderId' => $selectedFolder->id,

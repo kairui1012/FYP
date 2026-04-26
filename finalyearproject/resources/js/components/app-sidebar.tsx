@@ -1,12 +1,19 @@
-import { ChevronLeft, ChevronRight, Flame, Folder, Trophy, Star, HomeIcon, Users, Bookmark } from 'lucide-react';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { reactLang } from '@erag/lang-sync-inertia';
-import { NavMain } from '@/components/nav-main';
 import {
-    Sidebar,
-    SidebarContent,
-    useSidebar,
-} from '@/components/ui/sidebar';
+    Bookmark,
+    ChevronLeft,
+    ChevronRight,
+    Flame,
+    Folder,
+    HomeIcon,
+    ScrollText,
+    Star,
+    Trophy,
+    Users,
+} from 'lucide-react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { NavMain } from '@/components/nav-main';
+import { Sidebar, SidebarContent, useSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import { homePage } from '@/routes';
 import { popularPage } from '@/routes';
@@ -47,10 +54,10 @@ function SidebarBoundaryToggle({
                 aria-label="Toggle sidebar"
                 onClick={onToggle}
                 className={cn(
-                    'pointer-events-auto absolute -right-2 top-(--sidebar-toggle-top) z-50 flex size-10 translate-x-1/2 items-center justify-center rounded-full border-2 shadow-lg ring-2 ring-background transition-all hover:scale-105',
+                    'pointer-events-auto absolute top-(--sidebar-toggle-top) -right-2 z-50 flex size-10 translate-x-1/2 items-center justify-center rounded-full border-2 shadow-lg ring-2 ring-background transition-all hover:scale-105',
                     isPinnedOpen
                         ? 'border-[#e27193] bg-linear-to-r from-[#ef99b0] to-[#e27193] text-white'
-                        : 'border-sidebar-border bg-background text-foreground hover:border-[#e27193] hover:bg-linear-to-r hover:from-[#fff3f7] hover:to-[#ffe8f0]'
+                        : 'border-sidebar-border bg-background text-foreground hover:border-[#e27193] hover:bg-linear-to-r hover:from-[#fff3f7] hover:to-[#ffe8f0]',
                 )}
             >
                 {isCollapsed ? (
@@ -72,6 +79,11 @@ export function AppSidebar({ className }: AppSidebarProps) {
             icon: HomeIcon,
         },
         {
+            title: trans('navigation.categories'),
+            href: '/categories',
+            icon: Folder,
+        },
+        {
             title: trans('navigation.popular'),
             href: popularPage(),
             icon: Flame,
@@ -87,19 +99,19 @@ export function AppSidebar({ className }: AppSidebarProps) {
             icon: Bookmark,
         },
         {
-            title: trans('navigation.leaderboard'),
-            href: '/leaderboard',
-            icon: Trophy,
-        },
-        {
             title: trans('navigation.achievements'),
             href: '/achievements',
             icon: Star,
         },
         {
-            title: trans('navigation.categories'),
-            href: '/categories',
-            icon: Folder,
+            title: trans('navigation.leaderboard'),
+            href: '/leaderboard',
+            icon: Trophy,
+        },
+        {
+            title: trans('navigation.rules'),
+            href: '/rules',
+            icon: ScrollText,
         },
     ];
     const { state, setOpen } = useSidebar();
@@ -108,17 +120,21 @@ export function AppSidebar({ className }: AppSidebarProps) {
             return false;
         }
 
-        return window.localStorage.getItem(SIDEBAR_PINNED_STORAGE_KEY) === 'true';
+        return (
+            window.localStorage.getItem(SIDEBAR_PINNED_STORAGE_KEY) === 'true'
+        );
     });
     const [isHoverOpen, setIsHoverOpen] = useState<boolean>(() => {
         if (typeof window === 'undefined') {
             return false;
         }
 
-        return window.sessionStorage.getItem(SIDEBAR_HOVER_STORAGE_KEY) === 'true';
+        return (
+            window.sessionStorage.getItem(SIDEBAR_HOVER_STORAGE_KEY) === 'true'
+        );
     });
     const hoverOpenTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-        null
+        null,
     );
     const isCollapsed = state === 'collapsed';
 
@@ -207,7 +223,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 variant="inset"
                 className={cn(
                     'group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1+var(--sidebar-peek-width))]',
-                    className
+                    className,
                 )}
                 style={
                     {
@@ -228,7 +244,10 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 }
             >
                 <SidebarContent>
-                    <NavMain items={mainNavItems} groupLabel={trans('navigation.navigation_menu')} />
+                    <NavMain
+                        items={mainNavItems}
+                        groupLabel={trans('navigation.navigation_menu')}
+                    />
                 </SidebarContent>
             </Sidebar>
         </>

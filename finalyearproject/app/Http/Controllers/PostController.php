@@ -156,7 +156,7 @@ class PostController extends Controller
             ->get()
             ->map(fn (Post $post) => $this->serializationService->serialize($post, $followingIds));
 
-        return Inertia::render('homePage', [
+        return Inertia::render('HomePage', [
             'posts' => $posts,
             'learningOverview' => $this->learningProgressService->buildLearningOverview($request->user()),
             'postTypeFilter' => count($postTypesFilter) === 1 ? $postTypesFilter[0] : null,
@@ -394,10 +394,12 @@ class PostController extends Controller
                         ->withCount([
                             'votes as upvotes_count' => fn ($voteQuery) => $voteQuery->where('vote', 1),
                             'votes as downvotes_count' => fn ($voteQuery) => $voteQuery->where('vote', -1),
+                            'votes as wrong_votes_count' => fn ($voteQuery) => $voteQuery->where('vote', -2),
                         ])
                         ->withExists([
                             'votes as is_upvoted' => fn ($voteQuery) => $voteQuery->where('user_id', $userId)->where('vote', 1),
                             'votes as is_downvoted' => fn ($voteQuery) => $voteQuery->where('user_id', $userId)->where('vote', -1),
+                            'votes as is_wrong' => fn ($voteQuery) => $voteQuery->where('user_id', $userId)->where('vote', -2),
                         ]);
                 } else {
                     $query->withCount('likes')

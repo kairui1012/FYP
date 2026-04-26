@@ -42,7 +42,18 @@ export function buildHomeText(page: PageLike) {
         noPostsHint: transFromPage('home.no_posts_hint', page),
         todayScore: transFromPage('home.today_score', page),
         todayScoreSubtitle: transFromPage('home.today_score_subtitle', page),
-        xpEarnedToday: transFromPage('home.xp_earned_today', page),
+        leaderboardPointsTotal: transFromPage(
+            'home.leaderboard_points_total',
+            page,
+        ),
+        leaderboardPointUnit: transFromPage(
+            'home.leaderboard_point_unit',
+            page,
+        ),
+        leaderboardRank: transFromPage('home.leaderboard_rank', page),
+        pointsToNextRank: transFromPage('home.points_to_next_rank', page),
+        rankHidden: transFromPage('home.rank_hidden', page),
+        topRank: transFromPage('home.top_rank', page),
         quizzesCompletedToday: transFromPage(
             'home.quizzes_completed_today',
             page,

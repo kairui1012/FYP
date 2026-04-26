@@ -104,7 +104,7 @@ class PostPopularController extends Controller
             })
             ->values();
 
-        return Inertia::render('popularPage', [
+        return Inertia::render('LearningTrendsPage', [
             'posts'      => $posts,
             'activeRange' => $range,
             'activeSort' => $sort,

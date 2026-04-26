@@ -3,7 +3,10 @@
 namespace App\Services;
 
 use App\Models\Badge;
+use App\Models\Comment;
 use App\Models\Like;
+use App\Models\PostSave;
+use App\Models\QuizMistake;
 use App\Models\User;
 use App\Models\UserAchievement;
 
@@ -52,11 +55,11 @@ class AchievementService
             ->first();
 
         return [
-            'points' => $points,
-            'posts_count' => $postsCount,
+            'points'               => $points,
+            'posts_count'          => $postsCount,
             'likes_received_count' => $likesReceivedCount,
-            'earned_badges' => $earnedBadges,
-            'next_badge' => $nextBadge,
+            'earned_badges'        => $earnedBadges,
+            'next_badge'           => $nextBadge,
         ];
     }
 
@@ -74,13 +77,19 @@ class AchievementService
             return [];
         }
 
-        $totalAnswered  = $progress->total_questions_answered;
-        $accuracyRate   = $totalAnswered > 0
+        $totalAnswered    = $progress->total_questions_answered;
+        $accuracyRate     = $totalAnswered > 0
             ? ($progress->correct_answers_count / $totalAnswered) * 100
             : 0.0;
         $improvementScore = $progress->improvement_score;
 
+        // Live metrics computed from DB (no extra stored column needed)
+        $commentsCount   = Comment::where('user_id', $user->id)->count();
+        $savedPostsCount = PostSave::where('user_id', $user->id)->count();
+        $mistakesReviewed = QuizMistake::where('user_id', $user->id)->count();
+
         $conditions = [
+            // ── Existing (preserved) ────────────────────────────────────────
             'active_learner'      => $totalAnswered >= 10,
             'curious_mind'        => $progress->total_questions_posted >= 5,
             'quiz_master'         => $progress->correct_answers_count >= 20,
@@ -89,6 +98,35 @@ class AchievementService
             'consistent_growth'   => $totalAnswered >= 10 && $improvementScore >= 10,
             'helpful_contributor' => $progress->total_likes_received >= 10,
             'top_contributor'     => $progress->total_likes_received >= 50,
+
+            // ── Posting ──────────────────────────────────────────────────────
+            'first_post'          => $progress->total_questions_posted >= 1,
+            'active_author'       => $progress->total_questions_posted >= 20,
+            'prolific_poster'     => $progress->total_questions_posted >= 50,
+
+            // ── Commenting ───────────────────────────────────────────────────
+            'first_comment'       => $commentsCount >= 1,
+            'discussion_starter'  => $commentsCount >= 10,
+            'community_voice'     => $commentsCount >= 50,
+
+            // ── Saving ───────────────────────────────────────────────────────
+            'collector'           => $savedPostsCount >= 5,
+            'bookworm'            => $savedPostsCount >= 20,
+
+            // ── Mistakes ─────────────────────────────────────────────────────
+            'mistake_hunter'      => $mistakesReviewed >= 5,
+            'deep_learner'        => $mistakesReviewed >= 25,
+
+            // ── Extended Question ────────────────────────────────────────────
+            'quiz_veteran'        => $totalAnswered >= 50,
+            'quiz_legend'         => $totalAnswered >= 100,
+
+            // ── Extended Performance ─────────────────────────────────────────
+            'perfect_scorer'      => $totalAnswered >= 5 && $accuracyRate >= 90.0,
+            'quiz_completionist'  => $progress->quizzes_completed >= 10,
+
+            // ── Extended Community ───────────────────────────────────────────
+            'community_star'      => $progress->total_likes_received >= 200,
         ];
 
         $alreadyEarned = UserAchievement::query()

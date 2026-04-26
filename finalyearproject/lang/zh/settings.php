@@ -14,6 +14,8 @@ return [
     'name_placeholder' => '完整姓名',
     'email_label' => '邮箱地址',
     'email_placeholder' => '邮箱地址',
+    'leaderboard_badge_label' => '佩戴排行榜称号',
+    'leaderboard_badge_description' => '当你进入总榜前三名时，在你的名字旁显示冠军、亚军或季军称号。',
     'email_unverified' => '你的邮箱尚未验证。',
     'resend_verification' => '点击这里重新发送验证邮件。',
     'verification_sent' => '新的验证链接已发送到你的邮箱地址。',

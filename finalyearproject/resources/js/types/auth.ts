@@ -3,6 +3,8 @@ export type User = {
     name: string;
     email: string;
     avatar?: string;
+    leaderboard_title?: string | null;
+    show_leaderboard_badge?: boolean;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
     created_at: string;

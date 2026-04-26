@@ -30,6 +30,7 @@ return [
     'share_link_copied' => 'Link copied!',
     'share_link_copy_failed' => 'Failed to copy link.',
     'categories' => 'Subject Categories',
+    'rules' => 'Rules',
     'achievements' => 'Learning Milestones',
     'bookmarks' => 'My Study Folder',
 ];

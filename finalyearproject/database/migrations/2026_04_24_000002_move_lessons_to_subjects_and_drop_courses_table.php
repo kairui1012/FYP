@@ -15,15 +15,31 @@ return new class extends Migration
             });
         }
 
-        if (Schema::hasTable('courses') && Schema::hasTable('lessons')) {
+        if (
+            Schema::hasTable('courses')
+            && Schema::hasColumn('courses', 'subject_id')
+            && Schema::hasTable('lessons')
+            && Schema::hasColumn('lessons', 'course_id')
+        ) {
             DB::table('lessons')
-                ->join('courses', 'courses.id', '=', 'lessons.course_id')
-                ->update(['lessons.subject_id' => DB::raw('courses.subject_id')]);
+                ->whereNotNull('course_id')
+                ->update([
+                    'subject_id' => DB::raw('(select courses.subject_id from courses where courses.id = lessons.course_id)'),
+                ]);
         }
 
         if (Schema::hasTable('lessons') && Schema::hasColumn('lessons', 'course_id')) {
             Schema::table('lessons', function (Blueprint $table) {
-                $table->dropConstrainedForeignId('course_id');
+                $table->dropForeign(['course_id']);
+            });
+
+            Schema::table('lessons', function (Blueprint $table) {
+                $table->dropIndex(['course_id', 'sequence']);
+                $table->dropIndex(['course_id', 'is_published']);
+            });
+
+            Schema::table('lessons', function (Blueprint $table) {
+                $table->dropColumn('course_id');
             });
         }
 

@@ -8,6 +8,8 @@ use Illuminate\Support\Collection;
 
 class PostSerializationService
 {
+    public function __construct(private readonly LeaderboardTitleService $leaderboardTitleService) {}
+
     /**
      * Serialize a single post for API response
      */
@@ -60,6 +62,7 @@ class PostSerializationService
             'avatar' => $post->user->socialAccounts
                 ->first(fn ($account) => ! empty($account->avatar))
                 ?->avatar,
+            'leaderboard_title' => $this->leaderboardTitleService->titleForUserId($post->user->id),
             'is_following' => in_array($post->user->id, $followingIds, true),
         ];
     }
@@ -162,6 +165,7 @@ class PostSerializationService
                 'avatar' => $comment->parent->user->socialAccounts
                     ->first(fn ($account) => ! empty($account->avatar))
                     ?->avatar,
+                'leaderboard_title' => $this->leaderboardTitleService->titleForUserId($comment->parent->user->id),
             ] : null,
             'user' => $comment->user ? [
                 'id' => $comment->user->id,
@@ -169,6 +173,7 @@ class PostSerializationService
                 'avatar' => $comment->user->socialAccounts
                     ->first(fn ($account) => ! empty($account->avatar))
                     ?->avatar,
+                'leaderboard_title' => $this->leaderboardTitleService->titleForUserId($comment->user->id),
             ] : null,
         ];
     }

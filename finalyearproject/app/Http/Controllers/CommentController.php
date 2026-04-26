@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Models\CommentLike;
+use App\Services\PointsService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use App\Models\Post;
@@ -16,6 +18,8 @@ use Illuminate\Validation\ValidationException;
 
 class CommentController extends Controller
 {
+    public function __construct(private readonly PointsService $pointsService) {}
+
     public function store(Request $request, Post $post)
     {
         $validated = $request->validate([
@@ -53,6 +57,10 @@ class CommentController extends Controller
             'parent_id' => $parentId,
             'content' => $content,
         ]);
+
+        if ($request->user()) {
+            $this->pointsService->award($request->user(), 'answer_posted', $comment);
+        }
 
         $comment->load([
             'user:id,name',
@@ -151,6 +159,7 @@ class CommentController extends Controller
 
         DB::transaction(function () use ($comment): void {
             $commentIds = $this->collectCommentBranchIds($comment->id);
+            $this->revokeCommentBranchPoints($commentIds);
 
             DB::table('comment_likes')
                 ->whereIn('comment_id', $commentIds)
@@ -178,6 +187,42 @@ class CommentController extends Controller
             'comments_count' => $post->comments()->count(),
             'comments' => $this->buildCommentTree($refreshedComments),
         ]);
+    }
+
+    /**
+     * @param  int[]  $commentIds
+     */
+    private function revokeCommentBranchPoints(array $commentIds): void
+    {
+        $comments = Comment::query()
+            ->with('user:id')
+            ->whereIn('id', $commentIds)
+            ->get();
+
+        foreach ($comments as $branchComment) {
+            if ($branchComment->user) {
+                $this->pointsService->revoke($branchComment->user, 'answer_posted', $branchComment);
+            }
+        }
+
+        $commentLikes = CommentLike::query()
+            ->with('comment.user:id')
+            ->whereIn('comment_id', $commentIds)
+            ->get();
+
+        foreach ($commentLikes as $commentLike) {
+            $owner = $commentLike->comment?->user;
+
+            if (! $owner) {
+                continue;
+            }
+
+            $action = ((int) ($commentLike->vote ?? 1)) === 1
+                ? 'answer_upvoted'
+                : 'content_downvoted';
+
+            $this->pointsService->revoke($owner, $action, $commentLike);
+        }
     }
 
     private function collectCommentBranchIds(int $rootCommentId): array
@@ -222,10 +267,12 @@ class CommentController extends Controller
                 ->withCount([
                     'votes as upvotes_count' => fn ($voteQuery) => $voteQuery->where('vote', 1),
                     'votes as downvotes_count' => fn ($voteQuery) => $voteQuery->where('vote', -1),
+                    'votes as wrong_votes_count' => fn ($voteQuery) => $voteQuery->where('vote', -2),
                 ])
                 ->withExists([
                     'votes as is_upvoted' => fn ($voteQuery) => $voteQuery->where('user_id', Auth::id())->where('vote', 1),
                     'votes as is_downvoted' => fn ($voteQuery) => $voteQuery->where('user_id', Auth::id())->where('vote', -1),
+                    'votes as is_wrong' => fn ($voteQuery) => $voteQuery->where('user_id', Auth::id())->where('vote', -2),
                 ]);
         }
 
@@ -257,7 +304,8 @@ class CommentController extends Controller
     {
         $upvotesCount = (int) ($comment->upvotes_count ?? $comment->likes_count ?? 0);
         $downvotesCount = (int) ($comment->downvotes_count ?? 0);
-        $score = $upvotesCount - $downvotesCount;
+        $wrongVotesCount = (int) ($comment->wrong_votes_count ?? 0);
+        $score = $upvotesCount - $downvotesCount - (2 * $wrongVotesCount);
         $userVote = $comment->relationLoaded('votes') ? (int) ($comment->votes->first()?->vote ?? 0) : (int) ($comment->is_liked ?? 0);
 
         return [
@@ -271,11 +319,13 @@ class CommentController extends Controller
             'likes_count' => $upvotesCount,
             'upvotes_count' => $upvotesCount,
             'downvotes_count' => $downvotesCount,
+            'wrong_votes_count' => $wrongVotesCount,
             'score' => $score,
             'user_vote' => $userVote,
             'is_liked' => $userVote === 1,
             'is_upvoted' => $userVote === 1,
             'is_downvoted' => $userVote === -1,
+            'is_wrong' => $userVote === -2,
             'reply_to_user' => $comment->parent?->user ? [
                 'id' => $comment->parent->user->id,
                 'name' => $comment->parent->user->name,

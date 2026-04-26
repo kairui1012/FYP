@@ -1,18 +1,22 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Brain,
+    CheckCircle2,
+    Flag,
     Lightbulb,
     LoaderCircle,
     Pencil,
     Send,
-    Star,
     Trash2,
+    XCircle,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, KeyboardEvent, ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
+import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { BestAnswerAiPanel } from '@/components/best-answer-ai-panel';
 import { formatFullDate, formatTimeAgo } from '@/lib/post-utils';
 import { cn } from '@/lib/utils';
 import type { CommentItem, PostItem, User } from '@/types';
@@ -62,6 +66,8 @@ function trans(
     );
 }
 
+const REPLY_LIMIT = 3;
+
 export function CommentSection({
     post,
     onCommentsCountChange,
@@ -100,6 +106,10 @@ export function CommentSection({
         bestAnswer: trans(page, 'comment.best_answer'),
         sortLatest: trans(page, 'comment.sort_latest'),
         sortTopLiked: trans(page, 'comment.sort_top_liked'),
+        wrong: trans(page, 'comment.wrong'),
+        report: trans(page, 'comment.report'),
+        reportSent: trans(page, 'comment.report_sent'),
+        reportFailed: trans(page, 'comment.report_failed'),
     };
     const [comments, setComments] = useState<CommentItem[]>(
         post.comments ?? [],
@@ -115,11 +125,18 @@ export function CommentSection({
     const [replySubmitting, setReplySubmitting] = useState(false);
     const [votingCommentIds, setVotingCommentIds] = useState<number[]>([]);
     const [deletingCommentIds, setDeletingCommentIds] = useState<number[]>([]);
+    const [reportingCommentIds, setReportingCommentIds] = useState<number[]>(
+        [],
+    );
+    const [reportedCommentIds, setReportedCommentIds] = useState<number[]>([]);
     const [editingCommentId, setEditingCommentId] = useState<number | null>(
         null,
     );
     const [editingContent, setEditingContent] = useState('');
     const [editingSubmitting, setEditingSubmitting] = useState(false);
+    const [expandedReplies, setExpandedReplies] = useState<
+        Record<number, boolean>
+    >({});
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -421,9 +438,59 @@ export function CommentSection({
         setReplyContent('');
     };
 
+    const handleReport = async (commentId: number) => {
+        if (
+            reportingCommentIds.includes(commentId) ||
+            reportedCommentIds.includes(commentId)
+        )
+            return;
+
+        const csrfToken =
+            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+                ?.content ?? '';
+
+        setReportingCommentIds((prev) => [...prev, commentId]);
+
+        try {
+            const response = await fetch(`/comments/${commentId}/report`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ reason: 'inappropriate' }),
+            });
+
+            if (!response.ok) {
+                const payload = (await response.json().catch(() => null)) as {
+                    message?: string;
+                } | null;
+                const msg = payload?.message ?? t.reportFailed;
+                if (msg === 'Already reported.') {
+                    setReportedCommentIds((prev) => [...prev, commentId]);
+                    toast.success(t.reportSent);
+                } else {
+                    toast.error(t.reportFailed);
+                }
+                return;
+            }
+
+            setReportedCommentIds((prev) => [...prev, commentId]);
+            toast.success(t.reportSent);
+        } catch {
+            toast.error(t.reportFailed);
+        } finally {
+            setReportingCommentIds((prev) =>
+                prev.filter((id) => id !== commentId),
+            );
+        }
+    };
+
     const handleToggleCommentVote = async (
         commentId: number,
-        direction: 'up' | 'down',
+        direction: 'up' | 'down' | 'wrong',
     ) => {
         if (votingCommentIds.includes(commentId)) {
             return;
@@ -479,8 +546,10 @@ export function CommentSection({
                 vote: number | null;
                 is_upvoted: boolean;
                 is_downvoted: boolean;
+                is_wrong: boolean;
                 upvotes_count: number;
                 downvotes_count: number;
+                wrong_votes_count: number;
                 score: number;
             };
 
@@ -492,9 +561,11 @@ export function CommentSection({
                         is_liked: payload.is_upvoted,
                         is_upvoted: payload.is_upvoted,
                         is_downvoted: payload.is_downvoted,
+                        is_wrong: payload.is_wrong,
                         likes_count: payload.upvotes_count,
                         upvotes_count: payload.upvotes_count,
                         downvotes_count: payload.downvotes_count,
+                        wrong_votes_count: payload.wrong_votes_count ?? 0,
                         score: payload.score,
                     })),
                     sortMode,
@@ -513,85 +584,125 @@ export function CommentSection({
         }
     };
 
-    const commentDisplayMeta = buildCommentDisplayMeta(comments);
+    const bestAnswer = selectBestAnswer(comments);
 
     const renderCommentBranch = (
         comment: CommentItem,
         isRoot: boolean,
-        isBestAnswer = false,
+        isBestAnswerPreview = false,
     ): ReactNode => {
-        const displayMeta = commentDisplayMeta.get(comment.id);
-        const floor = displayMeta?.floor ?? 1;
-        const depth = displayMeta?.layer ?? comment.depth ?? 1;
+        const isTheBestAnswer = bestAnswer?.id === comment.id;
+        const replies = comment.replies ?? [];
+        const isExpanded = expandedReplies[comment.id] ?? false;
+        const visibleReplies = isExpanded
+            ? replies
+            : replies.slice(0, REPLY_LIMIT);
+        const hiddenCount = replies.length - REPLY_LIMIT;
 
         return (
-            <div
-                key={comment.id}
-                className={cn(
-                    isBestAnswer
-                        ? 'py-2'
-                        : isRoot
-                          ? 'border-t border-zinc-200/80 py-4'
-                          : 'mt-3 ml-6 border-l border-zinc-200 pl-4',
-                )}
-            >
-                <CommentCard
-                    comment={comment}
-                    floor={floor}
-                    depth={depth}
-                    isBestAnswer={isBestAnswer}
-                    onReply={() => handleReplyClick(comment)}
-                    onUpvote={() =>
-                        void handleToggleCommentVote(comment.id, 'up')
-                    }
-                    onDownvote={() =>
-                        void handleToggleCommentVote(comment.id, 'down')
-                    }
-                    onStartEdit={() => {
-                        setEditingCommentId(comment.id);
-                        setEditingContent(comment.content);
-                    }}
-                    onCancelEdit={() => {
-                        setEditingCommentId(null);
-                        setEditingContent('');
-                    }}
-                    onSaveEdit={() => void handleUpdateComment(comment.id)}
-                    onDelete={() => void handleDeleteComment(comment.id)}
-                    replying={replyingCommentId === comment.id}
-                    replyContent={
-                        replyingCommentId === comment.id ? replyContent : ''
-                    }
-                    onReplyContentChange={setReplyContent}
-                    onSubmitReply={() => void submitReply(comment.id)}
-                    onCancelReply={() => {
-                        setReplyingCommentId(null);
-                        setReplyContent('');
-                    }}
-                    replySubmitting={replySubmitting}
-                    isEditing={editingCommentId === comment.id}
-                    editingContent={
-                        editingCommentId === comment.id ? editingContent : ''
-                    }
-                    onEditingContentChange={setEditingContent}
-                    editingSubmitting={editingSubmitting}
-                    deleting={deletingCommentIds.includes(comment.id)}
-                    voting={votingCommentIds.includes(comment.id)}
-                />
+            <div key={comment.id}>
+                <div
+                    className={cn(
+                        isBestAnswerPreview
+                            ? 'py-2'
+                            : isRoot
+                              ? cn(
+                                    'border-b border-zinc-200 py-4',
+                                    isTheBestAnswer && 'bg-emerald-50/30',
+                                )
+                              : 'ml-6 border-l-2 border-zinc-200 py-2 pl-4',
+                    )}
+                >
+                    {/* Inline best answer badge — shown in the comment list for the best answer comment */}
+                    {!isBestAnswerPreview && isTheBestAnswer && (
+                        <div className="mb-2 flex items-center gap-1.5">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                            <span className="text-xs font-bold tracking-wide text-emerald-700 uppercase">
+                                {t.bestAnswer}
+                            </span>
+                        </div>
+                    )}
 
-                {comment.replies && comment.replies.length > 0
-                    ? comment.replies.map((reply) =>
-                          renderCommentBranch(reply, false),
-                      )
-                    : null}
+                    <CommentCard
+                        comment={comment}
+                        isBestAnswer={isBestAnswerPreview}
+                        onReply={() => handleReplyClick(comment)}
+                        onUpvote={() =>
+                            void handleToggleCommentVote(comment.id, 'up')
+                        }
+                        onDownvote={() =>
+                            void handleToggleCommentVote(comment.id, 'down')
+                        }
+                        onWrong={() =>
+                            void handleToggleCommentVote(comment.id, 'wrong')
+                        }
+                        onReport={() => void handleReport(comment.id)}
+                        onStartEdit={() => {
+                            setEditingCommentId(comment.id);
+                            setEditingContent(comment.content);
+                        }}
+                        onCancelEdit={() => {
+                            setEditingCommentId(null);
+                            setEditingContent('');
+                        }}
+                        onSaveEdit={() => void handleUpdateComment(comment.id)}
+                        onDelete={() => void handleDeleteComment(comment.id)}
+                        replying={replyingCommentId === comment.id}
+                        replyContent={
+                            replyingCommentId === comment.id ? replyContent : ''
+                        }
+                        onReplyContentChange={setReplyContent}
+                        onSubmitReply={() => void submitReply(comment.id)}
+                        onCancelReply={() => {
+                            setReplyingCommentId(null);
+                            setReplyContent('');
+                        }}
+                        replySubmitting={replySubmitting}
+                        isEditing={editingCommentId === comment.id}
+                        editingContent={
+                            editingCommentId === comment.id
+                                ? editingContent
+                                : ''
+                        }
+                        onEditingContentChange={setEditingContent}
+                        editingSubmitting={editingSubmitting}
+                        deleting={deletingCommentIds.includes(comment.id)}
+                        voting={votingCommentIds.includes(comment.id)}
+                        reporting={reportingCommentIds.includes(comment.id)}
+                        reported={reportedCommentIds.includes(comment.id)}
+                    />
+                </div>
+
+                {/* Nested replies */}
+                {visibleReplies.map((reply) =>
+                    renderCommentBranch(reply, false),
+                )}
+
+                {/* Show more / hide replies toggle */}
+                {!isBestAnswerPreview && replies.length > REPLY_LIMIT && (
+                    <div className="ml-6 py-1 pl-4">
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setExpandedReplies((prev) => ({
+                                    ...prev,
+                                    [comment.id]: !isExpanded,
+                                }))
+                            }
+                            className="text-xs text-zinc-500 transition-colors hover:text-[#e27193]"
+                        >
+                            {isExpanded
+                                ? 'Hide replies'
+                                : `Show more replies (${hiddenCount})`}
+                        </button>
+                    </div>
+                )}
             </div>
         );
     };
 
-    const bestAnswer = selectBestAnswer(comments);
-    const visibleComments = sortCommentTreeByMode(
-        bestAnswer ? removeCommentFromTree(comments, bestAnswer.id) : comments,
-        sortMode,
-    );
+    // Keep full comment tree — best answer stays in original position
+    const visibleComments = sortCommentTreeByMode(comments, sortMode);
 
     const handleComposerKeyDown = (
         event: KeyboardEvent<HTMLTextAreaElement>,
@@ -614,14 +725,24 @@ export function CommentSection({
                 </p>
             </div>
 
-            {bestAnswer ? (
-                <div className="mb-5 rounded-2xl bg-amber-100 px-4 py-3">
-                    <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-amber-200 px-3 py-1 text-xs font-semibold text-amber-900">
-                        <Star className="h-3.5 w-3.5 fill-amber-600 text-amber-600" />
-                        {t.bestAnswer}
+            {bestAnswer && post.post_type === 'question' ? (
+                <div className="mb-6 overflow-hidden rounded-2xl border border-emerald-200 bg-linear-to-br from-emerald-50 to-teal-50/40 shadow-sm">
+                    <div className="flex items-center gap-2 border-b border-emerald-200/70 bg-emerald-100/60 px-4 py-2.5">
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                        <span className="text-xs font-bold tracking-wide text-emerald-800 uppercase">
+                            {t.bestAnswer}
+                        </span>
                     </div>
-
-                    {renderCommentBranch(bestAnswer, true, true)}
+                    <div className="px-4 pt-2 pb-4">
+                        {renderCommentBranch(bestAnswer, true, true)}
+                        <BestAnswerAiPanel
+                            page={page}
+                            trans={trans}
+                            postTitle={post.title}
+                            postContent={post.content ?? ''}
+                            answerContent={bestAnswer.content}
+                        />
+                    </div>
                 </div>
             ) : null}
 
@@ -635,6 +756,10 @@ export function CommentSection({
                     <div className="min-w-0 flex-1">
                         <div className="mb-2 text-sm font-medium text-zinc-900">
                             {currentUser.name}
+                            <LeaderboardTitleBadge
+                                title={currentUser.leaderboard_title}
+                                className="ml-1.5"
+                            />
                         </div>
 
                         <div className="p-0">
@@ -682,34 +807,36 @@ export function CommentSection({
                 </div>
             </div>
 
-            <div className="mb-4 flex items-center gap-2">
-                <button
-                    type="button"
-                    onClick={() => setSortMode('latest')}
-                    className={cn(
-                        'rounded-full border px-3 py-1.5 text-xs font-medium transition',
-                        sortMode === 'latest'
-                            ? 'border-[#ef99b0] bg-[#ffe8ef] text-[#c84671]'
-                            : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50',
-                    )}
-                >
-                    {t.sortLatest}
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setSortMode('top-liked')}
-                    className={cn(
-                        'rounded-full border px-3 py-1.5 text-xs font-medium transition',
-                        sortMode === 'top-liked'
-                            ? 'border-[#ef99b0] bg-[#ffe8ef] text-[#c84671]'
-                            : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50',
-                    )}
-                >
-                    {t.sortTopLiked}
-                </button>
+            <div className="mb-4">
+                <div className="inline-flex rounded-full bg-white/80 p-1 shadow-sm ring-1 ring-zinc-200">
+                    <button
+                        type="button"
+                        onClick={() => setSortMode('latest')}
+                        className={cn(
+                            'rounded-full px-4 py-1.5 text-sm font-semibold transition-all duration-150',
+                            sortMode === 'latest'
+                                ? 'bg-[#e27193] text-white shadow-sm'
+                                : 'text-zinc-500 hover:text-[#e27193]',
+                        )}
+                    >
+                        {t.sortLatest}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setSortMode('top-liked')}
+                        className={cn(
+                            'rounded-full px-4 py-1.5 text-sm font-semibold transition-all duration-150',
+                            sortMode === 'top-liked'
+                                ? 'bg-[#e27193] text-white shadow-sm'
+                                : 'text-zinc-500 hover:text-[#e27193]',
+                        )}
+                    >
+                        {t.sortTopLiked}
+                    </button>
+                </div>
             </div>
 
-            <div className="mt-4 divide-zinc-200/80">
+            <div className="mt-4">
                 {visibleComments.length > 0 ? (
                     visibleComments.map((comment) =>
                         renderCommentBranch(comment, true),
@@ -726,12 +853,12 @@ export function CommentSection({
 
 function CommentCard({
     comment,
-    floor,
-    depth,
     isBestAnswer,
     onReply,
     onUpvote,
     onDownvote,
+    onWrong,
+    onReport,
     onStartEdit,
     onCancelEdit,
     onSaveEdit,
@@ -748,15 +875,17 @@ function CommentCard({
     editingSubmitting,
     deleting,
     voting,
+    reporting,
+    reported,
     className,
 }: {
     comment: CommentItem;
-    floor: number;
-    depth: number;
     isBestAnswer: boolean;
     onReply: () => void;
     onUpvote: () => void;
     onDownvote: () => void;
+    onWrong: () => void;
+    onReport: () => void;
     onStartEdit: () => void;
     onCancelEdit: () => void;
     onSaveEdit: () => void;
@@ -773,22 +902,29 @@ function CommentCard({
     editingSubmitting: boolean;
     deleting: boolean;
     voting: boolean;
+    reporting: boolean;
+    reported: boolean;
     className?: string;
 }) {
     const page = usePage<SharedPageProps>();
     const currentUserId = page.props.auth.user.id;
     const userName = comment.user?.name ?? trans(page, 'comment.unknown_user');
     const canManage = comment.user?.id === currentUserId;
-    const canReply = !isBestAnswer && comment.user?.id !== currentUserId;
+    const isOwnComment = comment.user?.id === currentUserId;
+    const canReply = !isBestAnswer && !isOwnComment;
+    const canReport = !isOwnComment;
     const isUpvoted = Boolean(comment.is_upvoted ?? comment.is_liked);
     const isDownvoted = Boolean(comment.is_downvoted);
+    const isWrong = Boolean(comment.is_wrong);
     const helpfulCount = comment.upvotes_count ?? comment.likes_count ?? 0;
     const confusingCount = comment.downvotes_count ?? 0;
-    const reactionButtonBaseClass =
-        'inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*="size-"])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary shadow-xs hover:bg-primary/90 py-2 has-[>svg]:px-3 h-8 rounded-full border-2 px-3 text-xs transition-all duration-200';
+    const wrongCount = comment.wrong_votes_count ?? 0;
+
+    const btnBase =
+        'inline-flex items-center gap-2 rounded-full border-2 px-4 py-1.5 text-xs font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed select-none';
 
     return (
-        <article className={cn('py-4', className)}>
+        <article className={cn('py-3', className)}>
             <div className="flex items-start gap-3">
                 <Link
                     href={
@@ -796,79 +932,74 @@ function CommentCard({
                             ? `/profilePage/${comment.user.id}`
                             : '/profilePage'
                     }
-                    className="peer group/avatar cursor-pointer"
+                    className="peer group/avatar shrink-0 cursor-pointer"
                 >
                     <UserAvatar
                         name={userName}
                         avatar={comment.user?.avatar ?? null}
-                        className="mt-0.5 h-9 w-9 ring-2 ring-transparent transition-colors group-hover/avatar:ring-[#ef99b0]"
+                        className="mt-0.5 h-8 w-8 ring-2 ring-transparent transition-colors group-hover/avatar:ring-[#ef99b0]"
                     />
                 </Link>
 
                 <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        {isBestAnswer ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
-                                <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
-                                {trans(page, 'comment.best_answer')}
-                            </span>
-                        ) : null}
+                    {/* Header */}
+                    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
                         <Link
                             href={
                                 comment.user?.id
                                     ? `/profilePage/${comment.user.id}`
                                     : '/profilePage'
                             }
-                            className="cursor-pointer text-sm font-semibold text-zinc-950 transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89]"
+                            className="cursor-pointer text-sm font-semibold text-zinc-900 transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89]"
                         >
                             {userName}
                         </Link>
-                        <span className="text-zinc-300">•</span>
+                        <LeaderboardTitleBadge
+                            title={comment.user?.leaderboard_title}
+                        />
+                        <span className="text-zinc-300">·</span>
                         <time
-                            className="text-xs text-zinc-500"
+                            className="text-xs text-zinc-400"
                             title={formatFullDate(comment.created_at)}
                         >
                             {formatTimeAgo(comment.created_at)}
                         </time>
-                        <span className="text-zinc-300">•</span>
-                        <span className="text-xs text-zinc-500">
-                            {trans(page, 'comment.floor_label', { floor })}
-                        </span>
-                        <span className="text-xs text-zinc-500">
-                            {trans(page, 'comment.layer_label', {
-                                layer: depth,
-                            })}
-                        </span>
                     </div>
 
+                    {/* Reply-to reference */}
                     {comment.reply_to_user ? (
-                        <div className="mt-2 text-xs text-zinc-500">
+                        <div className="mt-1 text-xs text-zinc-400">
                             {trans(page, 'comment.reply_to')}{' '}
                             <Link
                                 href={`/profilePage/${comment.reply_to_user.id}`}
-                                className="font-semibold text-zinc-700 hover:text-[#de6b89]"
+                                className="font-semibold text-zinc-600 hover:text-[#de6b89]"
                             >
                                 {comment.reply_to_user.name}
                             </Link>
+                            <LeaderboardTitleBadge
+                                title={comment.reply_to_user.leaderboard_title}
+                                className="ml-1.5"
+                            />
                         </div>
                     ) : null}
 
+                    {/* Content / Edit */}
                     {isEditing ? (
                         <div className="mt-2">
                             <textarea
                                 value={editingContent}
-                                onChange={(event) =>
-                                    onEditingContentChange(event.target.value)
+                                onChange={(e) =>
+                                    onEditingContentChange(e.target.value)
                                 }
                                 rows={3}
-                                className="w-full resize-y rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm leading-6 text-zinc-800 transition outline-none focus:border-zinc-300"
+                                className="w-full resize-y rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm leading-6 text-zinc-800 transition outline-none focus:border-[#e27193] focus:bg-white"
                             />
                             <div className="mt-2 flex flex-wrap items-center gap-2">
                                 <Button
                                     type="button"
                                     onClick={onSaveEdit}
                                     disabled={editingSubmitting}
-                                    className="h-8 rounded-full border-2 border-[#ef99b0] bg-linear-to-r from-[#ef99b0] to-[#e27193] px-3 text-xs text-white transition-all duration-200 hover:border-[#d85380] hover:from-[#f5c4d6] hover:to-[#f39db8] hover:text-black"
+                                    className="h-7 rounded-full border-2 border-[#ef99b0] bg-linear-to-r from-[#ef99b0] to-[#e27193] px-3 text-xs text-white transition-all hover:border-[#d85380] hover:from-[#f5c4d6] hover:to-[#f39db8] hover:text-black"
                                 >
                                     {editingSubmitting
                                         ? trans(page, 'comment.posting')
@@ -877,7 +1008,7 @@ function CommentCard({
                                 <button
                                     type="button"
                                     onClick={onCancelEdit}
-                                    className="inline-flex h-8 items-center justify-center gap-2 rounded-full border-2 border-[#ef99b0] bg-primary bg-linear-to-r from-[#ef99b0] to-[#e27193] px-3 py-2 text-xs font-medium whitespace-nowrap text-white shadow-xs transition-all duration-200 outline-none hover:border-[#d85380] hover:bg-primary/90 hover:from-[#f5c4d6] hover:to-[#f39db8] hover:text-black focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 has-[>svg]:px-3 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+                                    className="h-7 rounded-full border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50"
                                 >
                                     {trans(page, 'comment.cancel_edit')}
                                 </button>
@@ -885,26 +1016,28 @@ function CommentCard({
                         </div>
                     ) : (
                         comment.content.trim() !== '' && (
-                            <div className="mt-2 border-l-2 border-zinc-200 pl-3 text-sm leading-6 text-zinc-800">
+                            <p className="mt-1.5 text-sm leading-6 whitespace-pre-wrap text-zinc-800">
                                 {renderCommentContent(comment.content)}
-                            </div>
+                            </p>
                         )
                     )}
 
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                    {/* Action bar */}
+                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                        {/* Reaction buttons — hidden on best answer preview */}
                         {!isBestAnswer ? (
                             <>
+                                {/* Useful */}
                                 <button
                                     type="button"
                                     onClick={onUpvote}
                                     disabled={voting}
                                     className={cn(
-                                        reactionButtonBaseClass,
+                                        btnBase,
                                         isUpvoted
-                                            ? 'border-[#2f9e57] bg-linear-to-r from-[#46c46f] to-[#23924e] text-white hover:border-[#237842] hover:from-[#9be5b3] hover:to-[#66c989] hover:text-black'
-                                            : 'border-[#8dd4a5] bg-linear-to-r from-[#d8f4e2] to-[#a9e4bc] text-[#1f6c3c] hover:border-[#5cb97f] hover:from-[#bceccb] hover:to-[#83d7a2] hover:text-black',
+                                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                                            : 'border-emerald-400 bg-white text-emerald-700 hover:bg-emerald-50',
                                     )}
-                                    aria-label={trans(page, 'comment.helpful')}
                                 >
                                     <Lightbulb
                                         className={cn(
@@ -912,100 +1045,148 @@ function CommentCard({
                                             isUpvoted && 'fill-current',
                                         )}
                                     />
-                                    <span>
-                                        {trans(page, 'comment.helpful')}
-                                    </span>
-                                    <span className="tabular-nums">
+                                    {trans(page, 'comment.helpful')}
+                                    <span className="tabular-nums opacity-70">
                                         {helpfulCount}
                                     </span>
                                 </button>
 
+                                {/* Confuse */}
                                 <button
                                     type="button"
                                     onClick={onDownvote}
                                     disabled={voting}
                                     className={cn(
-                                        reactionButtonBaseClass,
+                                        btnBase,
                                         isDownvoted
-                                            ? 'border-[#cf4d5d] bg-linear-to-r from-[#ed7985] to-[#d84053] text-white hover:border-[#b73a4a] hover:from-[#f5b0b8] hover:to-[#ee7f8d] hover:text-black'
-                                            : 'border-[#efadb5] bg-linear-to-r from-[#fde0e4] to-[#f6b9c1] text-[#9f3341] hover:border-[#e4828e] hover:from-[#f9c7cf] hover:to-[#f19aa7] hover:text-black',
-                                    )}
-                                    aria-label={trans(
-                                        page,
-                                        'comment.confusing',
+                                            ? 'border-amber-500 bg-amber-50 text-amber-700'
+                                            : 'border-amber-400 bg-white text-amber-700 hover:bg-amber-50',
                                     )}
                                 >
                                     <Brain className="h-3.5 w-3.5" />
-                                    <span>
-                                        {trans(page, 'comment.confusing')}
-                                    </span>
-                                    <span className="tabular-nums">
+                                    {trans(page, 'comment.confusing')}
+                                    <span className="tabular-nums opacity-70">
                                         {confusingCount}
+                                    </span>
+                                </button>
+
+                                {/* Wrong */}
+                                <button
+                                    type="button"
+                                    onClick={onWrong}
+                                    disabled={voting}
+                                    className={cn(
+                                        btnBase,
+                                        isWrong
+                                            ? 'border-rose-500 bg-rose-50 text-rose-700'
+                                            : 'border-rose-400 bg-white text-rose-700 hover:bg-rose-50',
+                                    )}
+                                >
+                                    <XCircle
+                                        className={cn(
+                                            'h-3.5 w-3.5',
+                                            isWrong && 'fill-current',
+                                        )}
+                                    />
+                                    {trans(page, 'comment.wrong')}
+                                    <span className="tabular-nums opacity-70">
+                                        {wrongCount}
                                     </span>
                                 </button>
                             </>
                         ) : null}
 
+                        {/* Reply */}
                         {!isEditing && canReply ? (
                             <button
                                 type="button"
                                 onClick={onReply}
-                                className="inline-flex cursor-pointer items-center justify-center rounded-full bg-[#ffe8ef] px-3 py-1.5 text-xs font-semibold text-[#c84671] transition hover:bg-[#ffd8e6]"
+                                className={cn(
+                                    btnBase,
+                                    'border-pink-300 bg-white text-pink-600 hover:bg-pink-50',
+                                )}
                             >
                                 {trans(page, 'comment.reply')}
                             </button>
                         ) : null}
 
+                        {/* Edit / Delete (owner only) */}
                         {canManage && !isEditing && !replying ? (
                             <>
                                 <button
                                     type="button"
                                     onClick={onStartEdit}
-                                    className="inline-flex cursor-pointer items-center justify-center gap-1 rounded-full bg-[#e7f9ef] px-3 py-1.5 text-xs font-semibold text-[#1f8a4d] transition hover:bg-[#d5f3e2]"
+                                    className={cn(
+                                        btnBase,
+                                        'border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50',
+                                    )}
                                 >
-                                    <Pencil className="h-3.5 w-3.5" />
+                                    <Pencil className="h-3 w-3" />
                                     {trans(page, 'comment.edit')}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={onDelete}
                                     disabled={deleting}
-                                    className="inline-flex cursor-pointer items-center justify-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className={cn(
+                                        btnBase,
+                                        'border-rose-300 bg-white text-rose-500 hover:bg-rose-50',
+                                    )}
                                 >
-                                    <Trash2 className="h-3.5 w-3.5" />
+                                    <Trash2 className="h-3 w-3" />
                                     {deleting
                                         ? trans(page, 'comment.deleting')
                                         : trans(page, 'comment.delete')}
                                 </button>
                             </>
                         ) : null}
+
+                        {/* Report (non-owner, non-best-answer preview) */}
+                        {canReport && !isBestAnswer && !isEditing ? (
+                            <button
+                                type="button"
+                                onClick={onReport}
+                                disabled={reporting || reported}
+                                className={cn(
+                                    btnBase,
+                                    'border-zinc-300 bg-white',
+                                    reported
+                                        ? 'text-zinc-400'
+                                        : 'text-zinc-500 hover:bg-zinc-50',
+                                )}
+                            >
+                                <Flag className="h-3 w-3" />
+                                {trans(page, 'comment.report')}
+                            </button>
+                        ) : null}
                     </div>
 
+                    {/* Reply composer */}
                     {replying ? (
                         <div className="mt-3">
-                            <div className="mb-2 px-1 text-xs text-zinc-500">
+                            <div className="mb-1.5 px-1 text-xs text-zinc-400">
                                 {trans(page, 'comment.replying_to', {
                                     name: userName,
                                 })}
                             </div>
                             <textarea
                                 value={replyContent}
-                                onChange={(event) =>
-                                    onReplyContentChange(event.target.value)
+                                onChange={(e) =>
+                                    onReplyContentChange(e.target.value)
                                 }
                                 rows={1}
                                 placeholder={trans(
                                     page,
                                     'comment.write_placeholder',
                                 )}
-                                className="w-full resize-none rounded-[999px] border-2 border-[#ef99b0] bg-white px-4 py-3 text-sm leading-5 text-zinc-800 transition outline-none focus:border-[#e27193]"
+                                className="w-full resize-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm leading-5 text-zinc-800 transition outline-none focus:border-[#e27193] focus:bg-white"
                             />
                             <div className="mt-2 flex flex-wrap items-center gap-2">
                                 <Button
                                     type="button"
                                     onClick={onSubmitReply}
                                     disabled={replySubmitting}
-                                    className="h-8 rounded-full border-2 border-[#ef99b0] bg-linear-to-r from-[#ef99b0] to-[#e27193] px-3 text-xs text-white transition-all duration-200 hover:border-[#d85380] hover:from-[#f5c4d6] hover:to-[#f39db8] hover:text-black"
+                                    className="h-7 rounded-full border-2 border-[#ef99b0] bg-linear-to-r from-[#ef99b0] to-[#e27193] px-3 text-xs text-white transition-all hover:border-[#d85380] hover:from-[#f5c4d6] hover:to-[#f39db8] hover:text-black"
                                 >
                                     {replySubmitting
                                         ? trans(page, 'comment.posting')
@@ -1014,7 +1195,7 @@ function CommentCard({
                                 <button
                                     type="button"
                                     onClick={onCancelReply}
-                                    className="inline-flex h-8 items-center justify-center gap-2 rounded-full border-2 border-[#7ec8ff] bg-primary bg-linear-to-r from-[#7ec8ff] to-[#4aa8ff] px-3 py-2 text-xs font-medium whitespace-nowrap text-white shadow-xs transition-all duration-200 outline-none hover:border-[#5aaeff] hover:bg-primary/90 hover:from-[#bfe6ff] hover:to-[#8fd0ff] hover:text-black focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 has-[>svg]:px-3 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+                                    className="h-7 rounded-full border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50"
                                 >
                                     {trans(page, 'comment.cancel_reply')}
                                 </button>
@@ -1055,47 +1236,6 @@ function countAllComments(items: CommentItem[]): number {
     );
 }
 
-function buildCommentDisplayMeta(
-    items: CommentItem[],
-): Map<number, { floor: number; layer: number }> {
-    const meta = new Map<number, { floor: number; layer: number }>();
-    const rootComments = [...items].sort(compareCommentsByCreatedAt);
-
-    rootComments.forEach((comment, index) => {
-        assignCommentDisplayMeta(meta, comment, index + 1, 1);
-    });
-
-    return meta;
-}
-
-function assignCommentDisplayMeta(
-    meta: Map<number, { floor: number; layer: number }>,
-    comment: CommentItem,
-    floor: number,
-    layer: number,
-) {
-    meta.set(comment.id, { floor, layer });
-
-    comment.replies?.forEach((reply) => {
-        assignCommentDisplayMeta(meta, reply, floor, layer + 1);
-    });
-}
-
-function compareCommentsByCreatedAt(
-    left: CommentItem,
-    right: CommentItem,
-): number {
-    const createdAtDelta =
-        new Date(left.created_at).getTime() -
-        new Date(right.created_at).getTime();
-
-    if (createdAtDelta !== 0) {
-        return createdAtDelta;
-    }
-
-    return left.id - right.id;
-}
-
 function updateCommentTree(
     items: CommentItem[],
     commentId: number,
@@ -1117,8 +1257,12 @@ function updateCommentTree(
     });
 }
 
-function getCommentLikeCount(comment: CommentItem): number {
-    return comment.upvotes_count ?? comment.likes_count ?? 0;
+function getCommentScore(comment: CommentItem): number {
+    if (typeof comment.score === 'number') return comment.score;
+    const up = comment.upvotes_count ?? comment.likes_count ?? 0;
+    const down = comment.downvotes_count ?? 0;
+    const wrong = comment.wrong_votes_count ?? 0;
+    return up - down - 2 * wrong;
 }
 
 function sortCommentTreeByMode(
@@ -1134,11 +1278,8 @@ function sortCommentTreeByMode(
                 );
             }
 
-            const likeDelta =
-                getCommentLikeCount(right) - getCommentLikeCount(left);
-            if (likeDelta !== 0) {
-                return likeDelta;
-            }
+            const scoreDelta = getCommentScore(right) - getCommentScore(left);
+            if (scoreDelta !== 0) return scoreDelta;
 
             return (
                 new Date(right.created_at).getTime() -
@@ -1156,28 +1297,21 @@ function sortCommentTreeByMode(
 function selectBestAnswer(items: CommentItem[]): CommentItem | null {
     const flattened = flattenComments(items);
 
-    if (flattened.length === 0) {
-        return null;
-    }
+    if (flattened.length === 0) return null;
 
-    const sortedByLikes = [...flattened].sort((left, right) => {
-        const likeDelta =
-            getCommentLikeCount(right) - getCommentLikeCount(left);
-        if (likeDelta !== 0) {
-            return likeDelta;
-        }
-
+    const sorted = [...flattened].sort((left, right) => {
+        const scoreDelta = getCommentScore(right) - getCommentScore(left);
+        if (scoreDelta !== 0) return scoreDelta;
         return (
             new Date(left.created_at).getTime() -
             new Date(right.created_at).getTime()
         );
     });
 
-    const candidate = sortedByLikes[0] ?? null;
+    const candidate = sorted[0] ?? null;
 
-    if (!candidate || getCommentLikeCount(candidate) <= 0) {
-        return null;
-    }
+    // Require score > 1 to qualify as best answer
+    if (!candidate || getCommentScore(candidate) <= 1) return null;
 
     return candidate;
 }
@@ -1187,20 +1321,6 @@ function flattenComments(items: CommentItem[]): CommentItem[] {
         item,
         ...(item.replies ? flattenComments(item.replies) : []),
     ]);
-}
-
-function removeCommentFromTree(
-    items: CommentItem[],
-    commentId: number,
-): CommentItem[] {
-    return items
-        .filter((item) => item.id !== commentId)
-        .map((item) => ({
-            ...item,
-            replies: item.replies
-                ? removeCommentFromTree(item.replies, commentId)
-                : item.replies,
-        }));
 }
 
 function renderCommentContent(content: string): ReactNode {

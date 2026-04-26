@@ -14,6 +14,8 @@ return [
     'name_placeholder' => 'Nama penuh',
     'email_label' => 'Alamat emel',
     'email_placeholder' => 'Alamat emel',
+    'leaderboard_badge_label' => 'Pakai gelaran papan kedudukan',
+    'leaderboard_badge_description' => 'Paparkan Juara, Naib Juara atau Tempat Ketiga di sebelah nama anda apabila anda berada dalam tiga teratas sepanjang masa.',
     'email_unverified' => 'Alamat emel anda belum disahkan.',
     'resend_verification' => 'Klik di sini untuk hantar semula emel pengesahan.',
     'verification_sent' => 'Pautan pengesahan baharu telah dihantar ke alamat emel anda.',

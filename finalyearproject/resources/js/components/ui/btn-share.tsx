@@ -12,7 +12,7 @@ export function BtnShare({ label, className = '', postId }: BtnShareProps) {
 	const { trans } = reactLang();
 	const shareLabel = label ?? trans('navigation.share');
 	const btnClass =
-		'inline-flex items-center gap-2 rounded-full bg-zinc-200 px-3.5 py-1.5 font-semibold transition-colors cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-200 text-zinc-600 hover:bg-gradient-to-r hover:from-[#ef99b0] hover:to-pink-500 hover:text-white active:bg-rose-700 active:text-white group';
+  	'inline-flex items-center gap-2 rounded-full bg-zinc-200 px-3.5 py-1.5 font-semibold transition-colors cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-200 text-zinc-600 hover:bg-gradient-to-r hover:from-purple-400 hover:to-indigo-500 hover:text-white active:bg-purple-700 active:text-white group';
 
 	const handleCopy = async (event: React.MouseEvent<HTMLButtonElement>) => {
 		event.stopPropagation();

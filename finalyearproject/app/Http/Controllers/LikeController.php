@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Like;
 use App\Models\Post;
 use App\Services\AchievementService;
+use App\Services\PointsService;
 use App\Services\ProgressService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -14,6 +15,7 @@ class LikeController extends Controller
 {
     public function __construct(
         private readonly AchievementService $achievementService,
+        private readonly PointsService $pointsService,
         private readonly ProgressService $progressService,
     ) {
     }
@@ -30,8 +32,13 @@ class LikeController extends Controller
             ->first();
 
         $isLiked = false;
+        $pointsAction = $this->leaderboardActionForPost($posts);
 
         if ($existingLike) {
+            if ($pointsAction && $posts->user) {
+                $this->pointsService->revoke($posts->user, $pointsAction, $existingLike);
+            }
+
             $existingLike->delete();
         } else {
             $like = new Like();
@@ -39,6 +46,10 @@ class LikeController extends Controller
             $like->post_id = $posts->id;
             $like->save();
             $isLiked = true;
+
+            if ($pointsAction && $posts->user) {
+                $this->pointsService->award($posts->user, $pointsAction, $like, $request->user());
+            }
         }
 
         $likesCount = $posts->likes()->count();
@@ -109,5 +120,12 @@ class LikeController extends Controller
     public function destroy(Like $like)
     {
         //
+    }
+
+    private function leaderboardActionForPost(Post $post): ?string
+    {
+        return in_array($post->post_type, ['question', 'quiz', 'material'], true)
+            ? 'question_upvoted'
+            : null;
     }
 }

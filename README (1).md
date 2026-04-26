@@ -67,13 +67,6 @@ The platform addresses three key problems identified in the investigation:
 
 
 
-### 📎 4. File & Resource Sharing
-- PDF document upload (84.4% user demand). ☑️
-- Microsoft Office file upload — Word, Excel, PowerPoint.
-
-### ❤️ 5. Interaction
-- Upvote / like posts and answers (68.8% user demand). ☑️
-- Optional downvote mechanism. ☑️
 
 ### 🏆 6. Gamification
 - Points system for contributions (motivating for 59.4% of users). ☑️
@@ -84,7 +77,6 @@ The platform addresses three key problems identified in the investigation:
 - Achievement unlocks for receiving likes or followers. ☑️
 
 ### 👤 7. User Profile
-- View and edit profile (avatar, username, bio). ☑️
 - Personal post and reply history. ☑️
 - Bookmarked posts list. ☑️
 - Badges, points, and level display. ☑️
@@ -94,16 +86,9 @@ The platform addresses three key problems identified in the investigation:
 
 ### 🎨 8. UI / UX
 - Fast load times and smooth response (75% of users rate speed as essential).
-- Clear navigation and accessibility features. ☑️
-- Modern, clean interface (avoids the "Scroll of Death" problem seen in Moodle). ☑️
-- Performance optimisation: image compression, database indexing, lazy loading.
-- In-app user guide.
 
 ### ⚙️ 9. System Utilities
 - Content reporting.
-- Friendly 404 / 500 error pages.
-- Front-end and back-end form validation. ☑️
-- Basic activity logging for points calculation. ☑️
 
 ### 未完成项
 以下是当前 README Features 里仍未打 ☑️ 的项目：
@@ -213,6 +198,7 @@ multilingual-edu-platform/
 │   │   ├── Controllers/      # Laravel controllers
 │   │   └── Middleware/
 │   └── Models/               # Eloquent models (User, Post, Reply, etc.)
+
 ├── database/
 │   ├── migrations/           # Database schema
 │   └── seeders/              # FakerPHP seeders

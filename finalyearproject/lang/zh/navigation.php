@@ -30,6 +30,7 @@ return [
     'share_link_copied' => '链接已复制！',
     'share_link_copy_failed' => '复制链接失败。',
     'categories' => '学科分类',
+    'rules' => '规则',
     'achievements' => '学习成就',
     'bookmarks' => '我的学习夹',
 ];

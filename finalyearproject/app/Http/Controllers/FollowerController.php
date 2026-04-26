@@ -4,14 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\User;
+use App\Services\LeaderboardTitleService;
+use App\Services\PointsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-
 class FollowerController extends Controller
 {
+    public function __construct(
+        private readonly LeaderboardTitleService $leaderboardTitleService,
+        private readonly PointsService $pointsService,
+    ) {}
+
     public function toggle(Request $request, User $user): JsonResponse|RedirectResponse
     {
         $authUser = $request->user();
@@ -28,11 +34,13 @@ class FollowerController extends Controller
         }
 
         if ($authUser->following()->where('following_id', $user->id)->exists()) {
+            $this->pointsService->revoke($user, 'follower_gained', $authUser);
             $authUser->following()->detach($user->id);
             $status = 'unfollowed';
             $isFollowing = false;
         } else {
             $authUser->following()->attach($user->id);
+            $this->pointsService->award($user, 'follower_gained', $authUser, $authUser);
             $status = 'followed';
             $isFollowing = true;
         }
@@ -81,6 +89,7 @@ class FollowerController extends Controller
                     'avatar' => $post->user->socialAccounts
                         ->first(fn ($account) => ! empty($account->avatar))
                         ?->avatar,
+                    'leaderboard_title' => $this->leaderboardTitleService->titleForUserId($post->user->id),
                     'is_following' => in_array($post->user->id, $followingIds, true),
                 ] : null,
                 'language' => $post->language ? [
@@ -94,7 +103,7 @@ class FollowerController extends Controller
                 'is_saved' => (bool) ($post->is_saved ?? false),
             ]);
 
-        return inertia('homePage', [
+        return inertia('HomePage', [
             'posts' => $posts,
             'postTypeFilter' => null,
             'pageContext' => 'following',

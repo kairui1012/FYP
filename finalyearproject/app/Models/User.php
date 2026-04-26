@@ -3,10 +3,10 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -26,6 +26,9 @@ class User extends Authenticatable
         'email',
         'password',
         'points',
+        'total_points',
+        'show_on_leaderboard',
+        'show_leaderboard_badge',
         'locale',
     ];
 
@@ -53,6 +56,9 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'points' => 'integer',
+            'total_points' => 'integer',
+            'show_on_leaderboard' => 'boolean',
+            'show_leaderboard_badge' => 'boolean',
             'locale' => 'string',
         ];
     }
@@ -67,15 +73,18 @@ class User extends Authenticatable
         return $this->hasOne(Profile::class);
     }
 
-    public function posts() {
+    public function posts()
+    {
         return $this->hasMany(Post::class);
     }
 
-    public function comments() {
+    public function comments()
+    {
         return $this->hasMany(Comment::class);
     }
 
-    public function likes() {
+    public function likes()
+    {
         return $this->hasMany(Like::class);
     }
 
@@ -124,5 +133,10 @@ class User extends Authenticatable
     public function userAchievements(): HasMany
     {
         return $this->hasMany(UserAchievement::class);
+    }
+
+    public function pointsTransactions(): HasMany
+    {
+        return $this->hasMany(PointTransaction::class);
     }
 }

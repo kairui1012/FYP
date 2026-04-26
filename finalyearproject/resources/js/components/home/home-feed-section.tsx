@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { lazy, Suspense } from 'react';
+import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnComment } from '@/components/ui/btn-comment';
 import { BtnFollow } from '@/components/ui/btn-follow';
@@ -9,9 +10,17 @@ import { BtnShare } from '@/components/ui/btn-share';
 import { formatFormulaText } from '@/lib/formula-display';
 import { formatTimeAgo } from '@/lib/post-utils';
 import type { PostItem } from '@/types';
-import { getLangBadgeProps, getPostTypeBadgeProps, getSubjectBadgeProps } from './home-page-text';
+import {
+    getLangBadgeProps,
+    getPostTypeBadgeProps,
+    getSubjectBadgeProps,
+} from './home-page-text';
 
-const PostAttachments = lazy(() => import('@/components/post-attachments').then(m => ({ default: m.PostAttachments })));
+const PostAttachments = lazy(() =>
+    import('@/components/post-attachments').then((m) => ({
+        default: m.PostAttachments,
+    })),
+);
 
 type FeedText = {
     emptyFeed: string;
@@ -71,9 +80,25 @@ function PostFooter({
 }: PostFooterProps) {
     return (
         <div className="mt-2 flex items-center gap-3 text-sm text-zinc-900">
-            <BtnLike count={likes} liked={liked} loading={loading} className="mb-2" onClick={() => onLike(postId)} />
-            <BtnComment count={comments} className="mb-2" onClick={() => onComment(postId)} />
-            <BtnSave count={saves} saved={saved} loading={saveLoading} onClick={() => onSave(postId)} />
+            <BtnLike
+                count={likes}
+                liked={liked}
+                loading={loading}
+                className="mb-2"
+                onClick={() => onLike(postId)}
+            />
+            <BtnComment
+                count={comments}
+                className="mb-2"
+                onClick={() => onComment(postId)}
+            />
+            <BtnSave
+                count={saves}
+                saved={saved}
+                loading={saveLoading}
+                className="mb-2"
+                onClick={() => onSave(postId)}
+            />
             <BtnShare className="mb-2" />
         </div>
     );
@@ -130,20 +155,36 @@ export function HomeFeedSection({
                             <div className="flex items-center gap-3">
                                 {post.is_anonymous ? (
                                     <Avatar className="h-10 w-10">
-                                        <AvatarFallback className="bg-zinc-300 text-sm font-semibold text-zinc-500">?</AvatarFallback>
+                                        <AvatarFallback className="bg-zinc-300 text-sm font-semibold text-zinc-500">
+                                            ?
+                                        </AvatarFallback>
                                     </Avatar>
                                 ) : (
                                     <Link
-                                        href={post.user?.id ? `/profilePage/${post.user.id}` : '/profilePage'}
+                                        href={
+                                            post.user?.id
+                                                ? `/profilePage/${post.user.id}`
+                                                : '/profilePage'
+                                        }
                                         className="peer group/avatar cursor-pointer"
-                                        onClick={(event) => event.stopPropagation()}
+                                        onClick={(event) =>
+                                            event.stopPropagation()
+                                        }
                                     >
                                         <Avatar className="h-10 w-10 ring-2 ring-transparent transition-colors group-hover/avatar:ring-[#e27193]">
                                             {post.user?.avatar ? (
-                                                <AvatarImage src={post.user.avatar} alt={text.userAvatarAlt} />
+                                                <AvatarImage
+                                                    src={post.user.avatar}
+                                                    alt={text.userAvatarAlt}
+                                                />
                                             ) : null}
                                             <AvatarFallback className="bg-zinc-200 text-sm font-semibold text-zinc-700">
-                                                {(post.user?.name ?? text.unknownUser).charAt(0).toUpperCase()}
+                                                {(
+                                                    post.user?.name ??
+                                                    text.unknownUser
+                                                )
+                                                    .charAt(0)
+                                                    .toUpperCase()}
                                             </AvatarFallback>
                                         </Avatar>
                                     </Link>
@@ -151,56 +192,136 @@ export function HomeFeedSection({
                                 <div className="min-w-0 flex-1">
                                     <div className="mb-3 flex items-center gap-1.5 text-base">
                                         {post.is_anonymous ? (
-                                            <span className="font-semibold text-zinc-500 italic">Anonymous</span>
+                                            <span className="font-semibold text-zinc-500 italic">
+                                                Anonymous
+                                            </span>
                                         ) : (
-                                            <Link
-                                                href={post.user?.id ? `/profilePage/${post.user.id}` : '/profilePage'}
-                                                className="cursor-pointer font-semibold text-zinc-900 transition-colors hover:text-[#e27193] peer-hover:text-[#e27193]"
-                                                onClick={(event) => event.stopPropagation()}
-                                            >
-                                                {post.user?.name ?? text.unknownUser}
-                                            </Link>
+                                            <>
+                                                <Link
+                                                    href={
+                                                        post.user?.id
+                                                            ? `/profilePage/${post.user.id}`
+                                                            : '/profilePage'
+                                                    }
+                                                    className="cursor-pointer font-semibold text-zinc-900 transition-colors peer-hover:text-[#e27193] hover:text-[#e27193]"
+                                                    onClick={(event) =>
+                                                        event.stopPropagation()
+                                                    }
+                                                >
+                                                    {post.user?.name ??
+                                                        text.unknownUser}
+                                                </Link>
+                                                <LeaderboardTitleBadge
+                                                    title={
+                                                        post.user
+                                                            ?.leaderboard_title
+                                                    }
+                                                />
+                                            </>
                                         )}
-                                        {!post.is_anonymous && post.user?.id && currentUserId && post.user.id !== currentUserId ? (
+                                        {!post.is_anonymous &&
+                                        post.user?.id &&
+                                        currentUserId &&
+                                        post.user.id !== currentUserId ? (
                                             <BtnFollow
-                                                following={followStateByUser[post.user.id] ?? Boolean(post.user.is_following)}
-                                                loading={followingUserIds.includes(post.user.id)}
-                                                onClick={() => onToggleFollow(post.user!.id)}
+                                                following={
+                                                    followStateByUser[
+                                                        post.user.id
+                                                    ] ??
+                                                    Boolean(
+                                                        post.user.is_following,
+                                                    )
+                                                }
+                                                loading={followingUserIds.includes(
+                                                    post.user.id,
+                                                )}
+                                                onClick={() =>
+                                                    onToggleFollow(
+                                                        post.user!.id,
+                                                    )
+                                                }
                                             />
                                         ) : null}
                                         <span className="text-zinc-400">•</span>
-                                        <span className="text-sm text-zinc-500">{formatTimeAgo(post.created_at)}</span>
+                                        <span className="text-sm text-zinc-500">
+                                            {formatTimeAgo(post.created_at)}
+                                        </span>
                                     </div>
 
                                     <div className="flex items-center gap-1.5 text-sm text-zinc-500">
                                         {(() => {
-                                            const type = post.post_type === 'quiz' ? 'quiz' : post.post_type === 'question' ? 'question' : 'material';
-                                            const { bg, text: typeTextClass } = getPostTypeBadgeProps(type);
-                                            const label = type === 'quiz' ? text.createQuiz : type === 'question' ? text.askQuestion : text.shareMaterial;
+                                            const type =
+                                                post.post_type === 'quiz'
+                                                    ? 'quiz'
+                                                    : post.post_type ===
+                                                        'question'
+                                                      ? 'question'
+                                                      : 'material';
+                                            const { bg, text: typeTextClass } =
+                                                getPostTypeBadgeProps(type);
+                                            const label =
+                                                type === 'quiz'
+                                                    ? text.createQuiz
+                                                    : type === 'question'
+                                                      ? text.askQuestion
+                                                      : text.shareMaterial;
 
-                                            return <span className={`rounded-full px-2 py-0.5 font-medium ${bg} ${typeTextClass}`}>{label}</span>;
+                                            return (
+                                                <span
+                                                    className={`rounded-full px-2 py-0.5 font-medium ${bg} ${typeTextClass}`}
+                                                >
+                                                    {label}
+                                                </span>
+                                            );
                                         })()}
                                         {(() => {
-                                            const code = post.language?.code || 'en';
-                                            const { bg, text: langTextClass } = getLangBadgeProps(code);
-                                            const label = languageLabelByCode[code] ?? code;
-                                            return <span className={`rounded-full px-2 py-0.5 font-medium ${bg} ${langTextClass}`}>{label}</span>;
+                                            const code =
+                                                post.language?.code || 'en';
+                                            const { bg, text: langTextClass } =
+                                                getLangBadgeProps(code);
+                                            const label =
+                                                languageLabelByCode[code] ??
+                                                code;
+                                            return (
+                                                <span
+                                                    className={`rounded-full px-2 py-0.5 font-medium ${bg} ${langTextClass}`}
+                                                >
+                                                    {label}
+                                                </span>
+                                            );
                                         })()}
-                                        {post.subject?.name ? (() => {
-                                            const { bg, text: subjectTextClass } = getSubjectBadgeProps();
-                                            return <span className={`rounded-full px-2 py-0.5 font-medium ${bg} ${subjectTextClass}`}>{post.subject.name}</span>;
-                                        })() : null}
+                                        {post.subject?.name
+                                            ? (() => {
+                                                  const {
+                                                      bg,
+                                                      text: subjectTextClass,
+                                                  } = getSubjectBadgeProps();
+                                                  return (
+                                                      <span
+                                                          className={`rounded-full px-2 py-0.5 font-medium ${bg} ${subjectTextClass}`}
+                                                      >
+                                                          {post.subject.name}
+                                                      </span>
+                                                  );
+                                              })()
+                                            : null}
                                     </div>
                                 </div>
                             </div>
                         </header>
 
-                        <h2 className="mb-2 text-lg font-bold text-zinc-900">{post.title}</h2>
-                        <p className="mb-2 whitespace-pre-wrap text-base font-medium leading-6 text-zinc-700">
+                        <h2 className="mb-2 text-lg font-bold text-zinc-900">
+                            {post.title}
+                        </h2>
+                        <p className="mb-2 text-base leading-6 font-medium whitespace-pre-wrap text-zinc-700">
                             {formatFormulaText(post.content ?? '')}
                         </p>
 
-                        <Suspense fallback={<div className="h-48 rounded-xl bg-zinc-100" />}>
+                        <Suspense
+                            fallback={
+                                <div className="h-48 rounded-xl bg-zinc-100" />
+                            }
+                        >
                             <PostAttachments files={post.image} compact />
                         </Suspense>
                     </article>

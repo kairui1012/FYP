@@ -25,4 +25,18 @@ return [
     'no_badges_yet' => 'No badges yet.',
     'attachment_single' => 'attachment',
     'attachment_plural' => 'attachments',
+
+    // ── Badge showcase ────────────────────────────────────────────────────────
+    'no_featured_badges_hint' => 'Tip: click "Edit displayed badges" to showcase your earned badges.',
+    'close_badge_editor'      => 'Close badge editor',
+    'edit_displayed_badges'   => 'Edit displayed badges',
+    'badges_saved'            => 'Badges saved',
+    'choose_featured_badges'  => 'Choose featured badges',
+    'select_up_to'            => 'Select up to :max badges to display on your profile.',
+    'selected'                => 'selected',
+    'max_badges_reached'      => 'You\'ve reached the maximum number of featured badges.',
+    'saving'                  => 'Saving…',
+    'save'                    => 'Save',
+    'earn_badges_hint'        => 'Post, answer quizzes, and engage with the community to earn badges.',
+    'featured'                => 'Featured',
 ];

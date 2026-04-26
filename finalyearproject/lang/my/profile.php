@@ -25,4 +25,18 @@ return [
     'no_badges_yet' => 'Belum ada lencana.',
     'attachment_single' => 'lampiran',
     'attachment_plural' => 'lampiran',
+
+    // ── Badge showcase ────────────────────────────────────────────────────────
+    'no_featured_badges_hint' => 'Petua: klik "Edit lencana dipaparkan" untuk mempamerkan lencana yang telah anda perolehi.',
+    'close_badge_editor'      => 'Tutup editor lencana',
+    'edit_displayed_badges'   => 'Edit lencana dipaparkan',
+    'badges_saved'            => 'Lencana disimpan',
+    'choose_featured_badges'  => 'Pilih lencana pilihan',
+    'select_up_to'            => 'Pilih sehingga :max lencana untuk dipaparkan di profil anda.',
+    'selected'                => 'dipilih',
+    'max_badges_reached'      => 'Anda telah mencapai had maksimum lencana pilihan.',
+    'saving'                  => 'Menyimpan…',
+    'save'                    => 'Simpan',
+    'earn_badges_hint'        => 'Siar, jawab kuiz, dan berinteraksi dengan komuniti untuk mendapat lencana.',
+    'featured'                => 'Pilihan',
 ];

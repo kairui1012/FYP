@@ -19,12 +19,14 @@ export type CommentUser = {
     id: number;
     name: string;
     avatar?: string | null;
+    leaderboard_title?: string | null;
 } | null;
 
 export type CommentReplyUser = {
     id: number;
     name: string;
     avatar?: string | null;
+    leaderboard_title?: string | null;
 } | null;
 
 export type CommentItem = {
@@ -38,10 +40,12 @@ export type CommentItem = {
     likes_count?: number;
     upvotes_count?: number;
     downvotes_count?: number;
+    wrong_votes_count?: number;
     score?: number;
     user_vote?: number;
     is_upvoted?: boolean;
     is_downvoted?: boolean;
+    is_wrong?: boolean;
     is_liked?: boolean;
     reply_to_user?: CommentReplyUser;
     replies?: CommentItem[];
@@ -59,13 +63,18 @@ export type PostUser = {
     id: number;
     name: string;
     avatar?: string | null;
+    leaderboard_title?: string | null;
     is_following?: boolean;
 } | null;
 
 export type QuizData = {
     options: [string, string, string, string] | string[];
     answer_index: number;
-    questions?: { question: string | null; options: string[]; answer_index: number }[];
+    questions?: {
+        question: string | null;
+        options: string[];
+        answer_index: number;
+    }[];
 } | null;
 
 export type PostItem = {

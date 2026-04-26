@@ -60,4 +60,9 @@ class Comment extends Model
     {
         return $this->votes()->where('vote', -1);
     }
+
+    public function wrongvotes()
+    {
+        return $this->votes()->where('vote', -2);
+    }
 }
