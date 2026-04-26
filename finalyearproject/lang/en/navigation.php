@@ -6,7 +6,7 @@ return [
     'learning_materials' => 'Course Library',
     'popular' => 'Learning Trends',
     'leaderboard' => 'Study Leaderboard',
-    'following' => 'Study Circle',
+    'following' => 'Following',
     'login' => 'Login',
     'register' => 'Register',
     'repository' => 'Repository',

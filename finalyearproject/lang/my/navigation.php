@@ -6,7 +6,7 @@ return [
     'learning_materials' => 'Perpustakaan Kursus',
     'popular' => 'Trend Pembelajaran',
     'leaderboard' => 'Papan Kedudukan Belajar',
-    'following' => 'Rakan Belajar',
+    'following' => 'Following',
     'login' => 'Log masuk',
     'register' => 'Daftar',
     'repository' => 'Repositori',

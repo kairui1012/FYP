@@ -42,4 +42,13 @@ return [
     'best_answer_3' => 'A comment must have a score above 1 to qualify.',
     'best_answer_4' => 'If scores tie, the earlier comment is selected first.',
     'best_answer_5' => 'The AI panel explains why the selected answer is helpful; users should still judge the answer carefully.',
+    'manual_title' => 'User Manual / Guide',
+    'manual_summary' => 'Open this guide when you need a quick reminder of the main learning community workflow.',
+    'manual_step_1' => 'Register or log in before using the community features.',
+    'manual_step_2' => 'Use the language switcher to choose English, Bahasa Malaysia, or Mandarin.',
+    'manual_step_3' => 'Browse posts from the home page, categories page, following feed, or search bar.',
+    'manual_step_4' => 'Create a post by entering a title, content, post type, subject, language, and optional attachments.',
+    'manual_step_5' => 'Turn on anonymous posting if you want to ask a question without showing your name and avatar.',
+    'manual_step_6' => 'Open a post to reply, like helpful content, save it to your study folder, or follow the author.',
+    'manual_step_7' => 'Check your profile, achievements, bookmarks, and leaderboard to track learning activity and progress.',
 ];

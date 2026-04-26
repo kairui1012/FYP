@@ -1,6 +1,8 @@
+import { router } from '@inertiajs/react';
 import { Medal, Trophy } from 'lucide-react';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { profilePage } from '@/routes';
 
 type PodiumUser = {
     id: number;
@@ -8,6 +10,7 @@ type PodiumUser = {
     avatar: string | null;
     points: number;
     rank: number;
+    is_anonymous: boolean;
     leaderboard_title?: string | null;
 };
 
@@ -16,6 +19,7 @@ type PodiumCardProps = {
     isCurrentUser: boolean;
     rankLabel: string;
     pointsLabel: string;
+    anonymousUserLabel: string;
     currentUserLabel: string;
 };
 
@@ -25,7 +29,6 @@ const podiumTone: Record<number, string> = {
     3: 'bg-orange-50 text-orange-950',
 };
 
-// gradient used as the "border" via a wrapper div
 const rankBorderGradient: Record<number, string> = {
     1: 'bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-600',
     2: 'bg-gradient-to-br from-slate-300 via-gray-200 to-slate-500',
@@ -46,6 +49,7 @@ export function PodiumCard({
     isCurrentUser,
     rankLabel,
     pointsLabel,
+    anonymousUserLabel,
     currentUserLabel,
 }: PodiumCardProps) {
     const gradient =
@@ -53,11 +57,17 @@ export function PodiumCard({
         'bg-gradient-to-br from-zinc-300 to-zinc-400';
     const cardBg = podiumTone[user.rank] ?? 'bg-white text-zinc-950';
 
+    const handleClick = () => {
+        if (user.is_anonymous) return;
+        router.visit(profilePage({ user: user.id }).url);
+    };
+
     return (
         <div
+            onClick={handleClick}
             className={`rounded-xl ${gradient} ${
                 isCurrentUser ? 'p-0.75' : 'p-0.5'
-            } shadow-md ${
+            } shadow-md ${user.is_anonymous ? 'cursor-default opacity-80' : 'cursor-pointer'} ${
                 user.rank === 1 ? 'md:order-2' : ''
             } ${user.rank === 2 ? 'md:order-1' : ''} ${user.rank === 3 ? 'md:order-3' : ''}`}
         >
@@ -83,23 +93,47 @@ export function PodiumCard({
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <Avatar
-                        className={user.rank === 1 ? 'h-16 w-16' : 'h-12 w-12'}
-                    >
-                        <AvatarImage
-                            src={user.avatar ?? undefined}
-                            alt={user.name}
-                        />
-                        <AvatarFallback>{initials(user.name)}</AvatarFallback>
-                    </Avatar>
+                    {user.is_anonymous ? (
+                        <Avatar
+                            className={
+                                user.rank === 1 ? 'h-16 w-16' : 'h-12 w-12'
+                            }
+                        >
+                            <AvatarFallback className="bg-zinc-300 text-sm font-semibold text-zinc-500">
+                                ?
+                            </AvatarFallback>
+                        </Avatar>
+                    ) : (
+                        <Avatar
+                            className={
+                                user.rank === 1 ? 'h-16 w-16' : 'h-12 w-12'
+                            }
+                        >
+                            <AvatarImage
+                                src={user.avatar ?? undefined}
+                                alt={user.name}
+                            />
+                            <AvatarFallback>
+                                {initials(user.name)}
+                            </AvatarFallback>
+                        </Avatar>
+                    )}
                     <div className="min-w-0">
                         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                            <p className="truncate text-base font-semibold">
-                                {user.name}
-                            </p>
-                            <LeaderboardTitleBadge
-                                title={user.leaderboard_title}
-                            />
+                            {user.is_anonymous ? (
+                                <span className="text-base font-semibold text-zinc-500">
+                                    {anonymousUserLabel}
+                                </span>
+                            ) : (
+                                <>
+                                    <p className="truncate text-base font-semibold hover:underline">
+                                        {user.name}
+                                    </p>
+                                    <LeaderboardTitleBadge
+                                        title={user.leaderboard_title}
+                                    />
+                                </>
+                            )}
                         </div>
                         {isCurrentUser ? (
                             <p className="text-xs font-medium opacity-60">

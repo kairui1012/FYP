@@ -42,4 +42,13 @@ return [
     'best_answer_3' => 'Komen mesti mempunyai skor melebihi 1 untuk layak.',
     'best_answer_4' => 'Jika skor sama, komen yang lebih awal dipilih dahulu.',
     'best_answer_5' => 'Panel AI menerangkan mengapa jawapan dipilih membantu; pengguna masih perlu menilai jawapan dengan teliti.',
+    'manual_title' => 'Manual Pengguna / Panduan',
+    'manual_summary' => 'Buka panduan ini apabila anda memerlukan peringatan ringkas tentang aliran utama komuniti pembelajaran.',
+    'manual_step_1' => 'Daftar atau log masuk sebelum menggunakan ciri komuniti.',
+    'manual_step_2' => 'Gunakan penukar bahasa untuk memilih English, Bahasa Malaysia atau Mandarin.',
+    'manual_step_3' => 'Layari kiriman melalui halaman utama, halaman kategori, suapan diikuti atau bar carian.',
+    'manual_step_4' => 'Cipta kiriman dengan mengisi tajuk, kandungan, jenis kiriman, subjek, bahasa dan lampiran pilihan.',
+    'manual_step_5' => 'Hidupkan kiriman tanpa nama jika anda ingin bertanya soalan tanpa memaparkan nama dan avatar.',
+    'manual_step_6' => 'Buka kiriman untuk membalas, menyukai kandungan berguna, menyimpan ke folder belajar atau mengikuti penulis.',
+    'manual_step_7' => 'Semak profil, pencapaian, simpanan dan papan kedudukan untuk menjejak aktiviti serta kemajuan pembelajaran.',
 ];

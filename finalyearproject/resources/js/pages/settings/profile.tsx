@@ -1,6 +1,6 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Transition } from '@headlessui/react';
 import { Form, Head, Link, usePage } from '@inertiajs/react';
-import { reactLang } from '@erag/lang-sync-inertia';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
@@ -98,43 +98,6 @@ export default function Profile({
                                         className="mt-2"
                                         message={errors.email}
                                     />
-                                </div>
-
-                                <div className="flex items-start gap-3 rounded-lg border border-zinc-200 bg-white p-4">
-                                    <input
-                                        type="hidden"
-                                        name="show_leaderboard_badge"
-                                        value="0"
-                                    />
-                                    <input
-                                        id="show_leaderboard_badge"
-                                        type="checkbox"
-                                        name="show_leaderboard_badge"
-                                        value="1"
-                                        defaultChecked={Boolean(
-                                            auth.user.show_leaderboard_badge ??
-                                            true,
-                                        )}
-                                        className="mt-1 h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500"
-                                    />
-                                    <div className="space-y-1">
-                                        <Label htmlFor="show_leaderboard_badge">
-                                            {trans(
-                                                'settings.leaderboard_badge_label',
-                                            )}
-                                        </Label>
-                                        <p className="text-sm leading-5 text-zinc-500">
-                                            {trans(
-                                                'settings.leaderboard_badge_description',
-                                            )}
-                                        </p>
-                                        <InputError
-                                            className="mt-2"
-                                            message={
-                                                errors.show_leaderboard_badge
-                                            }
-                                        />
-                                    </div>
                                 </div>
 
                                 {mustVerifyEmail &&

@@ -74,16 +74,22 @@ export function PostCard({
         <article>
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2 text-sm text-zinc-500">
-                    <Link
-                        href={
-                            post.user?.id
-                                ? `/profilePage/${post.user.id}`
-                                : '/profilePage'
-                        }
-                        className="truncate font-semibold text-zinc-800 transition hover:text-zinc-950"
-                    >
-                        {post.user?.name ?? trans('bookmark.unknown_user')}
-                    </Link>
+                    {post.is_anonymous ? (
+                        <span className="truncate font-semibold text-zinc-500">
+                            Anonymous User
+                        </span>
+                    ) : (
+                        <Link
+                            href={
+                                post.user?.id
+                                    ? `/profilePage/${post.user.id}`
+                                    : '/profilePage'
+                            }
+                            className="truncate font-semibold text-zinc-800 transition hover:text-zinc-950"
+                        >
+                            {post.user?.name ?? trans('bookmark.unknown_user')}
+                        </Link>
+                    )}
                     <span>•</span>
                     <span className="shrink-0">
                         {formatTimeAgo(post.created_at)}

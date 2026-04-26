@@ -6,7 +6,7 @@ return [
     'learning_materials' => '课程资料库',
     'popular' => '学习热点',
     'leaderboard' => '学习榜单',
-    'following' => '同学动态',
+    'following' => 'Following',
     'login' => '登录',
     'register' => '注册',
     'repository' => '代码仓库',

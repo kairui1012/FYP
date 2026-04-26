@@ -28,6 +28,34 @@ class LeaderboardController extends Controller
 
     public function __construct(private readonly LeaderboardTitleService $leaderboardTitleService) {}
 
+    public function toggleVisibility(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $user = $request->user();
+        $user->show_on_leaderboard = ! $user->show_on_leaderboard;
+        $user->save();
+
+        Cache::forget("leaderboard.all_time.top-50");
+        Cache::forget("leaderboard.weekly.top-50");
+        Cache::forget("leaderboard.monthly.top-50");
+        Cache::forget('leaderboard.titles.all-time.top-three');
+
+        return back();
+    }
+
+    public function toggleTitleBadge(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $user = $request->user();
+        $user->show_leaderboard_badge = ! $user->show_leaderboard_badge;
+        $user->save();
+
+        Cache::forget("leaderboard.all_time.top-50");
+        Cache::forget("leaderboard.weekly.top-50");
+        Cache::forget("leaderboard.monthly.top-50");
+        Cache::forget('leaderboard.titles.all-time.top-three');
+
+        return back();
+    }
+
     public function index(Request $request): Response
     {
         $validated = $request->validate([
@@ -78,7 +106,7 @@ class LeaderboardController extends Controller
     }
 
     /**
-     * @return array<int, array{id: int, name: string, avatar: string|null, points: int, rank: int}>
+     * @return array<int, array{id: int, name: string, avatar: string|null, points: int, rank: int, is_anonymous: bool}>
      */
     private function cachedLeaderboard(string $period): array
     {
@@ -89,13 +117,14 @@ class LeaderboardController extends Controller
                 ->limit(self::MAX_RANK)
                 ->get()
                 ->map(fn ($user, int $index) => [
-                    'id' => (int) $user->id,
-                    'name' => $user->name,
-                    'avatar' => $user->avatar,
+                    'id' => (bool) $user->show_on_leaderboard ? (int) $user->id : 0,
+                    'name' => (bool) $user->show_on_leaderboard ? $user->name : '',
+                    'avatar' => (bool) $user->show_on_leaderboard ? $user->avatar : null,
                     'points' => (int) $user->points,
                     'rank' => $index + 1,
-                    'leaderboard_title' => $user->show_leaderboard_badge && (int) $user->points > 0
-                        ? $this->leaderboardTitleService->titleForRank($index + 1)
+                    'is_anonymous' => ! (bool) $user->show_on_leaderboard,
+                    'leaderboard_title' => (bool) $user->show_on_leaderboard && $user->show_leaderboard_badge
+                        ? $this->leaderboardTitleService->titleForUserId((int) $user->id)
                         : null,
                 ])
                 ->all(),
@@ -109,7 +138,7 @@ class LeaderboardController extends Controller
         }
 
         $leaderboardUser = User::query()
-            ->select(['id', 'total_points', 'show_on_leaderboard'])
+            ->select(['id', 'total_points', 'show_on_leaderboard', 'show_leaderboard_badge'])
             ->find($user->id);
 
         if (! $leaderboardUser) {
@@ -118,20 +147,12 @@ class LeaderboardController extends Controller
 
         $points = $this->pointsForUser($leaderboardUser, $period);
 
-        if (! $leaderboardUser->show_on_leaderboard) {
-            return [
-                'rank' => null,
-                'points' => $points,
-                'pointsToNext' => null,
-                'isHidden' => true,
-            ];
-        }
-
         return [
             'rank' => $this->rankForUser($leaderboardUser, $period, $points),
             'points' => $points,
             'pointsToNext' => $this->pointsToNextRank($leaderboardUser, $period, $points),
-            'isHidden' => false,
+            'isAnonymous' => ! $leaderboardUser->show_on_leaderboard,
+            'showLeaderboardBadge' => (bool) $leaderboardUser->show_leaderboard_badge,
         ];
     }
 
@@ -197,9 +218,10 @@ class LeaderboardController extends Controller
                 'ranked_users.name',
                 'ranked_users.points',
                 'ranked_users.show_leaderboard_badge',
+                'ranked_users.show_on_leaderboard',
                 DB::raw('MAX(social_accounts.avatar) as avatar'),
             ])
-            ->groupBy('ranked_users.id', 'ranked_users.name', 'ranked_users.points', 'ranked_users.show_leaderboard_badge')
+            ->groupBy('ranked_users.id', 'ranked_users.name', 'ranked_users.points', 'ranked_users.show_leaderboard_badge', 'ranked_users.show_on_leaderboard')
             ->orderByDesc('ranked_users.points')
             ->orderBy('ranked_users.id');
     }
@@ -208,11 +230,11 @@ class LeaderboardController extends Controller
     {
         if ($period === self::PERIOD_ALL_TIME) {
             return DB::table('users')
-                ->where('show_on_leaderboard', true)
                 ->select([
                     'id',
                     'name',
                     'show_leaderboard_badge',
+                    'show_on_leaderboard',
                     DB::raw('total_points as points'),
                 ]);
         }
@@ -223,14 +245,14 @@ class LeaderboardController extends Controller
                     ->on('users.id', '=', 'points_transactions.user_id')
                     ->where('points_transactions.created_at', '>=', $this->periodStart($period));
             })
-            ->where('users.show_on_leaderboard', true)
             ->select([
                 'users.id',
                 'users.name',
                 'users.show_leaderboard_badge',
+                'users.show_on_leaderboard',
                 DB::raw('COALESCE(SUM(points_transactions.points), 0) as points'),
             ])
-            ->groupBy('users.id', 'users.name', 'users.show_leaderboard_badge');
+            ->groupBy('users.id', 'users.name', 'users.show_leaderboard_badge', 'users.show_on_leaderboard');
     }
 
     /**

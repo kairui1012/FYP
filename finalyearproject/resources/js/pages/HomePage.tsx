@@ -34,7 +34,7 @@ export default function HomePage({
         (page.props as { pageContext?: 'home' | 'following' }).pageContext ??
         'home';
     const isHomePage = pageContext === 'home';
-    const isStudyCirclePage = pageContext === 'following';
+    const isFollowingPage = pageContext === 'following';
     const [activeTab, setActiveTab] = useState<'learn' | 'feed'>(
         isHomePage ? 'learn' : 'feed',
     );
@@ -278,19 +278,25 @@ export default function HomePage({
 
     return (
         <>
-            <Head title={homeText.pageTitle} />
+            <Head
+                title={
+                    isFollowingPage
+                        ? homeText.followingTitle
+                        : homeText.pageTitle
+                }
+            />
             <div className="pb-8">
                 <div className="mx-auto w-full max-w-5xl space-y-4 p-4 md:p-6 md:pb-10">
                     <HomeHeroSection
                         isHomePage={isHomePage}
-                        isStudyCirclePage={isStudyCirclePage}
+                        isFollowingPage={isFollowingPage}
                         activeTab={activeTab}
                         onChangeTab={setActiveTab}
                         text={{
                             heroTitle: homeText.heroTitle,
                             heroSubtitle: homeText.heroSubtitle,
-                            studyCircleTitle: homeText.studyCircleTitle,
-                            studyCircleSubtitle: homeText.studyCircleSubtitle,
+                            followingTitle: homeText.followingTitle,
+                            followingSubtitle: homeText.followingSubtitle,
                             learnTab: homeText.learnTab,
                             feedTab: homeText.feedTab,
                         }}
@@ -306,6 +312,9 @@ export default function HomePage({
                         <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200 md:p-5">
                             <HomeFeedSection
                                 posts={posts}
+                                emptyStateVariant={
+                                    isFollowingPage ? 'following' : 'home'
+                                }
                                 currentUserId={currentUserId}
                                 likeStateByPost={likeStateByPost}
                                 saveStateByPost={saveStateByPost}
@@ -323,6 +332,41 @@ export default function HomePage({
                                         homeText.emptyFeed === 'home.empty_feed'
                                             ? 'No posts yet.'
                                             : homeText.emptyFeed,
+                                    emptyFeedTitle:
+                                        homeText.emptyFeedTitle ===
+                                        'home.empty_feed_title'
+                                            ? 'No posts yet'
+                                            : homeText.emptyFeedTitle,
+                                    emptyFeedSubtitle:
+                                        homeText.emptyFeedSubtitle ===
+                                        'home.empty_feed_subtitle'
+                                            ? 'Fresh posts from the community will appear here.'
+                                            : homeText.emptyFeedSubtitle,
+                                    emptyFeedAction:
+                                        homeText.emptyFeedAction ===
+                                        'home.empty_feed_action'
+                                            ? 'Browse categories'
+                                            : homeText.emptyFeedAction,
+                                    followingEmptyTitle:
+                                        homeText.followingEmptyTitle ===
+                                        'home.following_empty_title'
+                                            ? 'No following updates yet'
+                                            : homeText.followingEmptyTitle,
+                                    followingEmptySubtitle:
+                                        homeText.followingEmptySubtitle ===
+                                        'home.following_empty_subtitle'
+                                            ? 'Follow classmates from community posts, then their newest posts will appear here.'
+                                            : homeText.followingEmptySubtitle,
+                                    followingEmptyAction:
+                                        homeText.followingEmptyAction ===
+                                        'home.following_empty_action'
+                                            ? 'Explore posts'
+                                            : homeText.followingEmptyAction,
+                                    followingEmptySecondaryAction:
+                                        homeText.followingEmptySecondaryAction ===
+                                        'home.following_empty_secondary_action'
+                                            ? 'View trends'
+                                            : homeText.followingEmptySecondaryAction,
                                     createQuiz: homeText.createQuiz,
                                     askQuestion: homeText.askQuestion,
                                     shareMaterial: homeText.shareMaterial,

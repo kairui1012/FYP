@@ -19,7 +19,6 @@ class ProfileUpdateRequest extends FormRequest
     {
         return [
             ...$this->profileRules($this->user()->id),
-            'show_leaderboard_badge' => ['sometimes', 'boolean'],
         ];
     }
 }

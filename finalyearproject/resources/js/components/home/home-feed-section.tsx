@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { ArrowRight, Search, UsersRound } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,6 +25,13 @@ const PostAttachments = lazy(() =>
 
 type FeedText = {
     emptyFeed: string;
+    emptyFeedTitle: string;
+    emptyFeedSubtitle: string;
+    emptyFeedAction: string;
+    followingEmptyTitle: string;
+    followingEmptySubtitle: string;
+    followingEmptyAction: string;
+    followingEmptySecondaryAction: string;
     createQuiz: string;
     askQuestion: string;
     shareMaterial: string;
@@ -36,6 +44,7 @@ type FeedText = {
 
 type HomeFeedSectionProps = {
     posts: PostItem[];
+    emptyStateVariant?: 'home' | 'following';
     currentUserId?: number;
     likeStateByPost: Record<number, { liked: boolean; likesCount: number }>;
     saveStateByPost: Record<number, { saved: boolean; savesCount: number }>;
@@ -106,6 +115,7 @@ function PostFooter({
 
 export function HomeFeedSection({
     posts,
+    emptyStateVariant = 'home',
     currentUserId,
     likeStateByPost,
     saveStateByPost,
@@ -128,9 +138,51 @@ export function HomeFeedSection({
     };
 
     if (posts.length === 0) {
+        const isFollowingEmpty = emptyStateVariant === 'following';
+
         return (
-            <div className="border border-dashed border-zinc-300 bg-white px-6 py-16 text-center text-3xl text-zinc-500">
-                <p>{text.emptyFeed}</p>
+            <div className="relative overflow-hidden rounded-2xl border border-dashed border-rose-200 bg-linear-to-br from-rose-50 via-white to-sky-50 px-5 py-12 text-center md:px-8 md:py-14">
+                <div className="mx-auto flex max-w-lg flex-col items-center">
+                    <div className="relative mb-5 h-20 w-28">
+                        <div className="absolute top-0 left-1/2 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-rose-100">
+                            <UsersRound className="h-7 w-7 text-[#e27193]" />
+                        </div>
+                        <div className="absolute bottom-0 left-3 h-10 w-10 rounded-full bg-sky-100 ring-4 ring-white" />
+                        <div className="absolute right-3 bottom-0 h-10 w-10 rounded-full bg-amber-100 ring-4 ring-white" />
+                    </div>
+                    <h2 className="text-lg font-bold text-zinc-900">
+                        {isFollowingEmpty
+                            ? text.followingEmptyTitle
+                            : text.emptyFeedTitle}
+                    </h2>
+                    <p className="mt-2 max-w-md text-sm leading-6 text-zinc-600">
+                        {isFollowingEmpty
+                            ? text.followingEmptySubtitle
+                            : text.emptyFeedSubtitle || text.emptyFeed}
+                    </p>
+                    <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                        <Link
+                            href={
+                                isFollowingEmpty ? '/homePage' : '/categories'
+                            }
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#e27193] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#cf5d80] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e27193]/40"
+                        >
+                            <Search className="h-4 w-4" />
+                            {isFollowingEmpty
+                                ? text.followingEmptyAction
+                                : text.emptyFeedAction}
+                        </Link>
+                        {isFollowingEmpty ? (
+                            <Link
+                                href="/popularPage"
+                                className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-zinc-700 shadow-sm ring-1 ring-zinc-200 transition hover:text-[#e27193] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e27193]/30"
+                            >
+                                {text.followingEmptySecondaryAction}
+                                <ArrowRight className="h-4 w-4" />
+                            </Link>
+                        ) : null}
+                    </div>
+                </div>
             </div>
         );
     }
@@ -192,7 +244,7 @@ export function HomeFeedSection({
                                 <div className="min-w-0 flex-1">
                                     <div className="mb-3 flex items-center gap-1.5 text-base">
                                         {post.is_anonymous ? (
-                                            <span className="font-semibold text-zinc-500 italic">
+                                            <span className="font-semibold text-zinc-500">
                                                 Anonymous
                                             </span>
                                         ) : (

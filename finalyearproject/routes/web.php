@@ -43,6 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/learning-materials', [PostController::class, 'learningMaterials'])->name('learningMaterialsPage');
     Route::get('/following', [FollowerController::class, 'index'])->name('followingPage');
     Route::get('/profilePage/{user?}', [ProfilePageController::class, 'show'])->whereNumber('user')->name('profilePage');
+    Route::post('/profilePage', [ProfilePageController::class, 'update'])->name('profilePage.update');
     Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::patch('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
@@ -52,6 +53,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/popularPage', [PostPopularController::class, 'index'])->name('popularPage');
     Route::get('/createPostPage', [PostCreateController::class, 'create'])->name('createPostPage');
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
+    Route::post('/leaderboard/toggle-visibility', [LeaderboardController::class, 'toggleVisibility'])->name('leaderboard.toggle-visibility');
+    Route::post('/leaderboard/toggle-title-badge', [LeaderboardController::class, 'toggleTitleBadge'])->name('leaderboard.toggle-title-badge');
     Route::post('/posts', [PostCreateController::class, 'store'])->name('posts.store');
     Route::patch('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');

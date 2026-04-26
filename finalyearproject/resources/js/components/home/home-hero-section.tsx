@@ -1,13 +1,13 @@
 type HomeHeroSectionProps = {
     isHomePage: boolean;
-    isStudyCirclePage: boolean;
+    isFollowingPage: boolean;
     activeTab: 'learn' | 'feed';
     onChangeTab: (tab: 'learn' | 'feed') => void;
     text: {
         heroTitle: string;
         heroSubtitle: string;
-        studyCircleTitle: string;
-        studyCircleSubtitle: string;
+        followingTitle: string;
+        followingSubtitle: string;
         learnTab: string;
         feedTab: string;
     };
@@ -15,7 +15,7 @@ type HomeHeroSectionProps = {
 
 export function HomeHeroSection({
     isHomePage,
-    isStudyCirclePage,
+    isFollowingPage,
     activeTab,
     onChangeTab,
     text,
@@ -25,10 +25,12 @@ export function HomeHeroSection({
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
-                        {isStudyCirclePage ? text.studyCircleTitle : text.heroTitle}
+                        {isFollowingPage ? text.followingTitle : text.heroTitle}
                     </h1>
                     <p className="mt-1 text-sm text-zinc-600">
-                        {isStudyCirclePage ? text.studyCircleSubtitle : text.heroSubtitle}
+                        {isFollowingPage
+                            ? text.followingSubtitle
+                            : text.heroSubtitle}
                     </p>
                 </div>
                 {isHomePage ? (
