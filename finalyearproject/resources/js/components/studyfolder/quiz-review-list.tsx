@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ExternalLink } from 'lucide-react';
+import { CheckCircle2, ExternalLink, XCircle } from 'lucide-react';
 import { Fragment } from 'react';
 import { formatTimeAgo } from '@/lib/post-utils';
 import { cn } from '@/lib/utils';
@@ -16,7 +16,8 @@ export function QuizReviewList({ items, mode, trans }: QuizReviewListProps) {
     if (items.length === 0) {
         return (
             <EmptyState
-                message={
+                icon={mode === 'correct' ? <CheckCircle2 /> : <XCircle />}
+                title={
                     mode === 'correct'
                         ? trans('bookmark.no_correct_answers')
                         : trans('bookmark.no_wrong_answers')

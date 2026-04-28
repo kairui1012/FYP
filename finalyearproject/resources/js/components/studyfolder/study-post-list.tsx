@@ -1,3 +1,4 @@
+import { BookOpen, CheckCircle2 } from 'lucide-react';
 import { Fragment } from 'react';
 import type { PostItem } from '@/types';
 import { EmptyState } from './empty-state';
@@ -25,7 +26,12 @@ export function StudyPostList({
             : trans('bookmark.no_correct_answers');
 
     if (posts.length === 0) {
-        return <EmptyState message={emptyMessage} />;
+        return (
+            <EmptyState
+                icon={studyMode === 'completed' ? <BookOpen /> : <CheckCircle2 />}
+                title={emptyMessage}
+            />
+        );
     }
 
     return (

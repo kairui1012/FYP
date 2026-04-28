@@ -1,6 +1,7 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { reactLang } from '@erag/lang-sync-inertia';
 import { HomeFeedSection } from '@/components/home/home-feed-section';
 import { HomeHeroSection } from '@/components/home/home-hero-section';
 import { buildHomeText } from '@/components/home/home-page-text';
@@ -16,17 +17,11 @@ type HomePageProps = {
     learningOverview?: StudyHomeOverview;
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Home',
-        href: homePage(),
-    },
-];
-
 export default function HomePage({
     posts = [],
     learningOverview,
 }: HomePageProps) {
+    const { trans } = reactLang();
     const page = usePage();
     const currentUserId = (page.props as { auth?: { user?: { id?: number } } })
         .auth?.user?.id;
@@ -82,6 +77,13 @@ export default function HomePage({
     });
     const [followingUserIds, setFollowingUserIds] = useState<number[]>([]);
     const homeText = buildHomeText(page as any);
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: trans('navigation.home'),
+            href: homePage(),
+        },
+    ];
 
     // posts prop changes on Inertia navigation (home ↔ following) without remount —
     // re-seed followStateByUser so the toggle handler reads the correct initial state.

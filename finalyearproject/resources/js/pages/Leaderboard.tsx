@@ -163,7 +163,7 @@ export default function Leaderboard({ leaderboard }: LeaderboardProps) {
                                         onClick={() => visitPeriod(tab.key)}
                                         className={`min-h-9 flex-1 rounded-full px-4 text-sm font-medium transition md:flex-none ${
                                             isActive
-                                                ? 'bg-zinc-950 text-white shadow-sm'
+                                                ? 'bg-[#e27193] text-white shadow-sm'
                                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950'
                                         }`}
                                     >
@@ -224,7 +224,7 @@ export default function Leaderboard({ leaderboard }: LeaderboardProps) {
                                         onClick={toggleVisibility}
                                         className={`inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium ring-1 transition ${
                                             leaderboard.currentUser.isAnonymous
-                                                ? 'bg-zinc-950 text-white ring-zinc-950 hover:bg-zinc-800'
+                                                ? 'bg-[#e27193] text-white  hover:bg-[#f78faf]'
                                                 : 'bg-white text-zinc-700 ring-zinc-200 hover:bg-zinc-50'
                                         }`}
                                     >

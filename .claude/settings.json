@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(php artisan *)"
+      "Bash(php artisan *)",
+      "Bash(docker exec *)",
+      "Bash(echo \"Exit: $?, Lines: $\\(wc -l < /Users/project/FInalYear/FYP/finalyearproject/database/schema/mysql-schema.sql\\)\")",
+      "Bash(grep -v \"^\\\\s*$\")"
+    ],
+    "additionalDirectories": [
+      "/Users/project/FInalYear/FYP/finalyearproject/database/migrations"
     ]
   }
 }

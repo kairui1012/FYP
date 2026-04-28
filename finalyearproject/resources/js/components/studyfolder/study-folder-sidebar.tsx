@@ -238,7 +238,9 @@ function FolderManagementPanel({
 
                 {folders.length === 0 ? (
                     <EmptyState
-                        message={trans('bookmark.no_folders')}
+                        icon={<FolderPlus />}
+                        title={trans('bookmark.create_folder')}
+                        subtitle={trans('bookmark.no_folders')}
                         compact
                     />
                 ) : (

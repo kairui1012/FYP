@@ -34,7 +34,7 @@ export function HomeHeroSection({
                     </p>
                 </div>
                 {isHomePage ? (
-                    <div className="inline-flex rounded-full bg-white/80 p-1 shadow-sm ring-1 ring-zinc-200">
+                    <div className="inline-flex w-fit self-start rounded-full bg-white/80 p-1 shadow-sm ring-1 ring-zinc-200">
                         <button
                             type="button"
                             className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeTab === 'learn' ? 'bg-[#e27193] text-white shadow-sm' : 'text-zinc-600 hover:text-[#e27193]'}`}

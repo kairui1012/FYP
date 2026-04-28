@@ -1,3 +1,4 @@
+import { Bookmark } from 'lucide-react';
 import { Fragment } from 'react';
 import type { BookmarkFolderItem, PostItem } from '@/types';
 import { EmptyState } from './empty-state';
@@ -50,7 +51,11 @@ export function SavedPostsPanel({
 
             <div className="mt-6">
                 {posts.length === 0 ? (
-                    <EmptyState message={trans('bookmark.no_bookmarks')} />
+                    <EmptyState
+                        icon={<Bookmark />}
+                        title={trans('bookmark.no_bookmarks')}
+                        subtitle={trans('bookmark.save_posts')}
+                    />
                 ) : (
                     <div>
                         {posts.map((post, index) => (

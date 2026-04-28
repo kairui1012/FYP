@@ -37,6 +37,7 @@ export function LeaderboardRow({
 }: LeaderboardRowProps) {
     const handleClick = () => {
         if (user.is_anonymous) return;
+
         router.visit(profilePage({ user: user.id }).url);
     };
 
@@ -52,22 +53,29 @@ export function LeaderboardRow({
             <span className="text-sm font-semibold text-zinc-700">
                 #{user.rank}
             </span>
+
             <div className="flex min-w-0 items-center gap-3">
-                {user.is_anonymous ? (
-                    <Avatar className="h-10 w-10">
+                <Avatar
+                    key={`${user.id}-${user.is_anonymous ? 'anonymous' : 'public'}-${user.avatar || 'no-avatar'}`}
+                    className="h-10 w-10"
+                >
+                    {user.is_anonymous ? (
                         <AvatarFallback className="bg-zinc-300 text-sm font-semibold text-zinc-500">
                             ?
                         </AvatarFallback>
-                    </Avatar>
-                ) : (
-                    <Avatar className="h-10 w-10">
-                        <AvatarImage
-                            src={user.avatar ?? undefined}
-                            alt={user.name}
-                        />
-                        <AvatarFallback>{initials(user.name)}</AvatarFallback>
-                    </Avatar>
-                )}
+                    ) : (
+                        <>
+                            <AvatarImage
+                                src={user.avatar || undefined}
+                                alt={user.name}
+                            />
+                            <AvatarFallback>
+                                {initials(user.name)}
+                            </AvatarFallback>
+                        </>
+                    )}
+                </Avatar>
+
                 <div className="min-w-0">
                     <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                         {user.is_anonymous ? (
@@ -85,6 +93,7 @@ export function LeaderboardRow({
                             </>
                         )}
                     </div>
+
                     {isCurrentUser ? (
                         <p className="text-xs text-zinc-500">
                             {currentUserLabel}
@@ -92,6 +101,7 @@ export function LeaderboardRow({
                     ) : null}
                 </div>
             </div>
+
             <span className="text-right text-sm font-semibold text-zinc-950">
                 {user.points}
             </span>

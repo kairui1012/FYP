@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SubjectsSeeder::class,
             LanguagesSeeder::class,
+            BadgesSeeder::class,
+            AchievementsSeeder::class,
         ]);
 
         // User::factory(10)->create();

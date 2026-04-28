@@ -9,6 +9,7 @@ use App\Models\PostSave;
 use App\Models\QuizMistake;
 use App\Models\User;
 use App\Models\UserAchievement;
+use App\Models\UserProgress;
 
 class AchievementService
 {
@@ -29,6 +30,10 @@ class AchievementService
             $user->updateQuietly(['points' => $points]);
             $user->refresh();
         }
+
+        // Keep total_questions_posted in sync with actual post count
+        UserProgress::where('user_id', $user->id)
+            ->update(['total_questions_posted' => $postsCount]);
 
         $eligibleBadgeIds = Badge::query()
             ->where('points_required', '<=', $points)

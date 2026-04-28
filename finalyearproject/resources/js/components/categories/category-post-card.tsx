@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { lazy, Suspense } from 'react';
+import { PostAttachments } from '@/components/post-attachments';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnComment } from '@/components/ui/btn-comment';
@@ -12,12 +12,6 @@ import { formatTimeAgo, getLanguageLabel } from '@/lib/post-utils';
 import type { PostItem } from '@/types';
 import { getLangBadgeProps, getPostTypeBadgeProps } from './categories-config';
 import type { TransFn } from './types';
-
-const PostAttachments = lazy(() =>
-    import('@/components/post-attachments').then((m) => ({
-        default: m.PostAttachments,
-    })),
-);
 
 type CategoryPostCardProps = {
     post: PostItem;
@@ -179,11 +173,7 @@ export function CategoryPostCard({
                 <p className="mb-2 text-base leading-6 font-medium whitespace-pre-wrap text-zinc-700">
                     {formatFormulaText(post.content ?? '')}
                 </p>
-                <Suspense
-                    fallback={<div className="h-48 rounded-xl bg-zinc-100" />}
-                >
-                    <PostAttachments files={post.image} compact />
-                </Suspense>
+                <PostAttachments files={post.image} compact />
             </article>
 
             <div className="mt-2 flex items-center gap-3 px-5 text-sm text-zinc-900">

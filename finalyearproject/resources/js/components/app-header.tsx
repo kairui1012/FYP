@@ -10,13 +10,18 @@ import {
 } from 'react';
 import {
     Bell,
-    BookOpen,
+    Bookmark,
     FileText,
+    Flame,
     Folder,
-    LayoutGrid,
+    HomeIcon,
     Menu,
+    ScrollText,
     Search,
+    Star,
+    Trophy,
     User,
+    Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
@@ -39,8 +44,7 @@ import {
 } from '@/components/ui/sheet';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
-import { toUrl } from '@/lib/utils';
-import { homePage } from '@/routes';
+import { homePage, popularPage } from '@/routes';
 import type { NavItem } from '@/types';
 
 const BtnChangeLang = lazy(() =>
@@ -53,20 +57,42 @@ const mainNavItems: NavItem[] = [
     {
         title: 'home',
         href: homePage(),
-        icon: LayoutGrid,
+        icon: HomeIcon,
     },
-];
-
-const rightNavItems: NavItem[] = [
     {
-        title: 'repository',
-        href: 'https://github.com/laravel/react-starter-kit',
+        title: 'categories',
+        href: '/categories',
         icon: Folder,
     },
     {
-        title: 'documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
+        title: 'popular',
+        href: popularPage(),
+        icon: Flame,
+    },
+    {
+        title: 'following',
+        href: '/following',
+        icon: Users,
+    },
+    {
+        title: 'bookmarks',
+        href: '/bookmarks',
+        icon: Bookmark,
+    },
+    {
+        title: 'achievements',
+        href: '/achievements',
+        icon: Star,
+    },
+    {
+        title: 'leaderboard',
+        href: '/leaderboard',
+        icon: Trophy,
+    },
+    {
+        title: 'rules',
+        href: '/rules',
+        icon: ScrollText,
     },
 ];
 
@@ -96,8 +122,14 @@ export function AppHeader() {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<SearchResults | null>(null);
     const [isOpen, setIsOpen] = useState(false);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Close Sheet when page navigation completes
+    useEffect(() => {
+        setIsSheetOpen(false);
+    }, [page.url]);
 
     const fetchResults = useCallback(async (q: string) => {
         if (q.trim().length < 2) {
@@ -159,7 +191,7 @@ export function AppHeader() {
                 <div className="flex h-16 w-full items-center px-2 md:px-8">
                     {/* Mobile Menu */}
                     <div className="lg:hidden">
-                        <Sheet>
+                        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                             <SheetTrigger asChild>
                                 <Button
                                     variant="ghost"
@@ -179,6 +211,139 @@ export function AppHeader() {
                                 <SheetHeader className="flex justify-start text-left">
                                     <AppLogoIcon className="h-6 w-6 fill-current text-black dark:text-white" />
                                 </SheetHeader>
+                                
+                                {/* Mobile Search */}
+                                <div className="px-4">
+                                    <div ref={containerRef} className="relative">
+                                        <Search className="pointer-events-none absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            type="search"
+                                            value={query}
+                                            onChange={(e) => setQuery(e.target.value)}
+                                            onKeyDown={handleKeyDown}
+                                            onFocus={() => results && setIsOpen(true)}
+                                            placeholder={trans(
+                                                'navigation.search_placeholder',
+                                            )}
+                                            className="h-10 rounded-full border-2 border-[#f090aa] pl-9 focus-visible:border-[#ef97ad] focus-visible:ring-2 focus-visible:ring-[#e36a8b]/35 dark:border-[#F0838F] dark:focus-visible:border-[#F0838F] dark:focus-visible:ring-[#F0838F]/30"
+                                            aria-label={trans(
+                                                'navigation.search_placeholder',
+                                            )}
+                                        />
+                                        {isOpen && (
+                                            <div className="absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-2xl border border-white/80 bg-white/95 shadow-[0_12px_30px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-neutral-700 dark:bg-neutral-900">
+                                                {showEmpty && (
+                                                    <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+                                                        {trans(
+                                                            'navigation.search_no_results',
+                                                        )}
+                                                    </p>
+                                                )}
+                                                {hasResults && (
+                                                    <>
+                                                        {results!.users.length > 0 && (
+                                                            <div>
+                                                                <p className="px-4 pt-3 pb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                                                                    {trans(
+                                                                        'navigation.search_users',
+                                                                    )}
+                                                                </p>
+                                                                {results!.users.map((u) => (
+                                                                    <button
+                                                                        key={u.id}
+                                                                        onClick={() => {
+                                                                            go(
+                                                                                `/profilePage/${u.id}`,
+                                                                            );
+                                                                            setIsSheetOpen(false);
+                                                                        }}
+                                                                        className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm transition-colors hover:bg-[#f090aa]/10"
+                                                                    >
+                                                                        {u.avatar ? (
+                                                                            <img
+                                                                                src={
+                                                                                    u.avatar
+                                                                                }
+                                                                                alt={u.name}
+                                                                                className="h-7 w-7 rounded-full object-cover"
+                                                                            />
+                                                                        ) : (
+                                                                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f090aa]/20">
+                                                                                <User className="h-4 w-4 text-[#f090aa]" />
+                                                                            </div>
+                                                                        )}
+                                                                        <span className="flex min-w-0 items-center gap-1.5">
+                                                                            <span className="truncate font-medium">
+                                                                                {u.name}
+                                                                            </span>
+                                                                            <LeaderboardTitleBadge
+                                                                                title={
+                                                                                    u.leaderboard_title
+                                                                                }
+                                                                            />
+                                                                        </span>
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        {results!.posts.length > 0 && (
+                                                            <div
+                                                                className={
+                                                                    results!.users.length >
+                                                                    0
+                                                                        ? 'border-t border-neutral-100 dark:border-neutral-800'
+                                                                        : ''
+                                                                }
+                                                            >
+                                                                <p className="px-4 pt-3 pb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                                                                    {trans(
+                                                                        'navigation.search_posts',
+                                                                    )}
+                                                                </p>
+                                                                {results!.posts.map((p) => (
+                                                                    <button
+                                                                        key={p.id}
+                                                                        onClick={() => {
+                                                                            go(
+                                                                                `/posts/${p.id}`,
+                                                                            );
+                                                                            setIsSheetOpen(false);
+                                                                        }}
+                                                                        className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm transition-colors hover:bg-[#f090aa]/10"
+                                                                    >
+                                                                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f090aa]/20">
+                                                                            <FileText className="h-4 w-4 text-[#f090aa]" />
+                                                                        </div>
+                                                                        <div className="min-w-0">
+                                                                            <div className="truncate font-medium">
+                                                                                {p.title}
+                                                                            </div>
+                                                                            {p.author && (
+                                                                                <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                                                                                    <span className="truncate">
+                                                                                        {
+                                                                                            p.author
+                                                                                        }
+                                                                                    </span>
+                                                                                    <LeaderboardTitleBadge
+                                                                                        title={
+                                                                                            p.author_leaderboard_title
+                                                                                        }
+                                                                                    />
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                
                                 <div className="flex h-full flex-1 flex-col space-y-4 p-4">
                                     <div className="flex h-full flex-col justify-between text-sm">
                                         <div className="flex flex-col space-y-4">
@@ -186,6 +351,7 @@ export function AppHeader() {
                                                 <Link
                                                     key={item.title}
                                                     href={item.href}
+                                                    onClick={() => setIsSheetOpen(false)}
                                                     className="flex items-center space-x-2 font-medium"
                                                 >
                                                     {item.icon && (
@@ -199,26 +365,10 @@ export function AppHeader() {
                                                 </Link>
                                             ))}
                                         </div>
-
-                                        <div className="flex flex-col space-y-4">
-                                            {rightNavItems.map((item) => (
-                                                <a
-                                                    key={item.title}
-                                                    href={toUrl(item.href)}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex items-center space-x-2 font-medium"
-                                                >
-                                                    {item.icon && (
-                                                        <item.icon className="h-5 w-5" />
-                                                    )}
-                                                    <span>
-                                                        {trans(
-                                                            `navigation.${item.title}`,
-                                                        )}
-                                                    </span>
-                                                </a>
-                                            ))}
+                                        
+                                        {/* Mobile Language Switch */}
+                                        <div className="pt-4">
+                                            <BtnChangeLang hideOnMobile={false} />
                                         </div>
                                     </div>
                                 </div>
@@ -381,7 +531,9 @@ export function AppHeader() {
                                 />
                             }
                         >
-                            <BtnChangeLang />
+                            <div className="hidden md:block">
+                                <BtnChangeLang />
+                            </div>
                         </Suspense>
 
                         <BtnCreatePost />

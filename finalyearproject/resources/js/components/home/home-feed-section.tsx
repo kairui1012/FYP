@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Search, UsersRound } from 'lucide-react';
-import { lazy, Suspense } from 'react';
+import { PostAttachments } from '@/components/post-attachments';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnComment } from '@/components/ui/btn-comment';
@@ -16,12 +16,6 @@ import {
     getPostTypeBadgeProps,
     getSubjectBadgeProps,
 } from './home-page-text';
-
-const PostAttachments = lazy(() =>
-    import('@/components/post-attachments').then((m) => ({
-        default: m.PostAttachments,
-    })),
-);
 
 type FeedText = {
     emptyFeed: string;
@@ -369,13 +363,7 @@ export function HomeFeedSection({
                             {formatFormulaText(post.content ?? '')}
                         </p>
 
-                        <Suspense
-                            fallback={
-                                <div className="h-48 rounded-xl bg-zinc-100" />
-                            }
-                        >
-                            <PostAttachments files={post.image} compact />
-                        </Suspense>
+                        <PostAttachments files={post.image} compact />
                     </article>
 
                     {(() => {

@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { lazy, Suspense } from 'react';
+import { PostAttachments } from '@/components/post-attachments';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnFollow } from '@/components/ui/btn-follow';
@@ -13,12 +13,6 @@ import {
 } from './learning-trends-config';
 import { LearningTrendsPostFooter } from './learning-trends-post-footer';
 import type { TransFn } from './types';
-
-const PostAttachments = lazy(() =>
-    import('@/components/post-attachments').then((module) => ({
-        default: module.PostAttachments,
-    })),
-);
 
 type LearningTrendsPostCardProps = {
     post: PostItem;
@@ -198,11 +192,7 @@ export function LearningTrendsPostCard({
                     {formatFormulaText(post.content ?? '')}
                 </p>
 
-                <Suspense
-                    fallback={<div className="h-48 rounded-xl bg-zinc-100" />}
-                >
-                    <PostAttachments files={post.image} compact />
-                </Suspense>
+                <PostAttachments files={post.image} compact />
             </article>
 
             <LearningTrendsPostFooter

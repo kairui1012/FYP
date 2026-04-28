@@ -80,15 +80,14 @@ class ProgressService
     {
         $progress = UserProgress::firstOrCreate(['user_id' => $user->id]);
 
-        // Recount so deletions don't cause drift
-        $progress->total_questions_posted = $user->posts()
-            ->whereIn('post_type', ['question', 'quiz'])
-            ->count();
+        // Recount so deletions don't cause drift (all post types count)
+        $progress->total_questions_posted = $user->posts()->count();
 
         $progress->save();
 
         return $this->achievementService->evaluateAchievements($user->fresh());
     }
+    
 
     /**
      * Recount likes received from DB (robust against un-likes) and re-evaluate.

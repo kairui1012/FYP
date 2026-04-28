@@ -6,6 +6,7 @@ import {
     Camera,
     Check,
     Crown,
+    FileText,
     MessageCircle,
     Pencil,
     Settings2,
@@ -907,11 +908,17 @@ export default function ProfilePage() {
                 {activeTab === 'posts' && (
                     <section className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                         {posts.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-16 text-center">
-                                <p className="text-3xl">✍️</p>
-                                <p className="mt-3 text-sm text-zinc-500">
-                                    {t.noPostsYet}
-                                </p>
+                            <div className="relative overflow-hidden rounded-2xl border border-dashed border-rose-200 bg-linear-to-br from-rose-50 via-white to-sky-50 px-5 py-12 text-center md:px-8 md:py-14">
+                                <div className="mx-auto flex max-w-lg flex-col items-center">
+                                    <div className="relative mb-5 h-20 w-28">
+                                        <div className="absolute top-0 left-1/2 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-rose-100">
+                                            <FileText className="h-7 w-7 text-[#e27193]" />
+                                        </div>
+                                        <div className="absolute bottom-0 left-3 h-10 w-10 rounded-full bg-sky-100 ring-4 ring-white" />
+                                        <div className="absolute right-3 bottom-0 h-10 w-10 rounded-full bg-amber-100 ring-4 ring-white" />
+                                    </div>
+                                    <h2 className="text-lg font-bold text-zinc-900">{t.noPostsYet}</h2>
+                                </div>
                             </div>
                         ) : (
                             <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -978,16 +985,20 @@ export default function ProfilePage() {
                 {activeTab === 'badges' && (
                     <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                         {earnedBadges.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-16 text-center">
-                                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-                                    <Trophy className="h-8 w-8 text-zinc-300 dark:text-zinc-600" />
+                            <div className="relative overflow-hidden rounded-2xl border border-dashed border-rose-200 bg-linear-to-br from-rose-50 via-white to-sky-50 px-5 py-12 text-center md:px-8 md:py-14">
+                                <div className="mx-auto flex max-w-lg flex-col items-center">
+                                    <div className="relative mb-5 h-20 w-28">
+                                        <div className="absolute top-0 left-1/2 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-rose-100">
+                                            <Trophy className="h-7 w-7 text-[#e27193]" />
+                                        </div>
+                                        <div className="absolute bottom-0 left-3 h-10 w-10 rounded-full bg-sky-100 ring-4 ring-white" />
+                                        <div className="absolute right-3 bottom-0 h-10 w-10 rounded-full bg-amber-100 ring-4 ring-white" />
+                                    </div>
+                                    <h2 className="text-lg font-bold text-zinc-900">{t.noBadgesYet}</h2>
+                                    <p className="mt-2 max-w-md text-sm leading-6 text-zinc-600">
+                                        {trans('profile.earn_badges_hint')}
+                                    </p>
                                 </div>
-                                <p className="font-semibold text-zinc-700 dark:text-zinc-300">
-                                    {t.noBadgesYet}
-                                </p>
-                                <p className="mt-1 text-sm text-zinc-400">
-                                    {trans('profile.earn_badges_hint')}
-                                </p>
                             </div>
                         ) : (
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

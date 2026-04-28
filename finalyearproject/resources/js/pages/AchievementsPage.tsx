@@ -91,3 +91,4 @@ export default function AchievementsPage() {
 AchievementsPage.layout = (page: ReactNode) => (
     <AppLayout breadcrumbs={breadcrumbs}>{page}</AppLayout>
 );
+

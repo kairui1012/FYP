@@ -67,16 +67,6 @@ class PostPopularController extends Controller
                 'bookmarkItems as is_saved' => fn ($query) => $query->where('user_id', Auth::id()),
             ]);
 
-        if (! $hasCategoryFilter) {
-            $popularPostsQuery->whereHas('likes', function ($likeQuery) use ($startAt, $endAt, $range) {
-                if ($range === 'all') {
-                    return;
-                }
-
-                $likeQuery->whereBetween('created_at', [$startAt, $endAt]);
-            });
-        }
-
         if ($languageCode !== '') {
             $popularPostsQuery->whereHas('language', fn ($q) => $q->where('code', $languageCode));
         }

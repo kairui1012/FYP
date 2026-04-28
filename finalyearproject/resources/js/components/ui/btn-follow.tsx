@@ -1,5 +1,6 @@
-import { Loader2, UserCheck, UserPlus } from 'lucide-react';
 import { reactLang } from '@erag/lang-sync-inertia';
+import { Loader2, UserCheck, UserPlus } from 'lucide-react';
+import type React from 'react';
 
 type BtnFollowProps = {
     following?: boolean;
@@ -17,11 +18,11 @@ export function BtnFollow({
     const { trans } = reactLang();
 
     const baseClass =
-        'inline-flex h-[26px] items-center gap-[5px] rounded-full px-[10px] text-[11px] font-semibold tracking-[0.01em] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300/50 disabled:cursor-not-allowed disabled:opacity-60';
+        'inline-flex h-[26px] items-center justify-center gap-[2px] whitespace-nowrap rounded-full border pl-[6px] pr-[8px] text-[11px] font-semibold tracking-[0.01em] outline-none transition-all duration-150 active:scale-[0.98] will-change-transform focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60 [&_svg]:pointer-events-none [&_svg]:shrink-0';
 
     const stateClass = following
-        ? 'border-2 border-zinc-300 bg-transparent text-zinc-500 hover:border-rose-400 hover:text-rose-500'
-        : 'border-2 border-[#e0526f] bg-[#e88ea0] text-white hover:bg-[#c94461] hover:border-[#c94461]';
+        ? 'border-zinc-300 bg-transparent text-zinc-500 hover:border-[#d85380] hover:text-[#d85380]'
+        : 'border-[#ef99b0] bg-linear-to-r from-[#ef99b0] to-[#e27193] text-white hover:border-[#d85380] hover:from-[#f5c4d6] hover:to-[#f39db8] hover:text-black';
 
     const Icon = loading ? Loader2 : following ? UserCheck : UserPlus;
 
@@ -35,7 +36,9 @@ export function BtnFollow({
                 onClick?.(event);
             }}
         >
-            <Icon className={`h-2.5 w-2.5${loading ? ' animate-spin' : ''}`} />
+            <Icon
+                className={`h-2.5 w-2.5 shrink-0${loading ? ' animate-spin' : ''}`}
+            />
             <span>
                 {following
                     ? trans('navigation.following_action')
