@@ -54,7 +54,7 @@ function PostBadges({
     const { bg: subjectBg, text: subjectText } = getSubjectBadgeProps();
 
     return (
-        <div className="flex items-center gap-2 text-sm text-zinc-500">
+        <div className="flex flex-wrap items-center gap-1.5 text-sm text-zinc-500">
             <span
                 className={`rounded-full px-2 py-0.5 font-medium ${typeBg} ${typeText}`}
             >
@@ -89,11 +89,11 @@ export function PostBackAuthorHeader({
     onFollowAuthor,
 }: PostBackAuthorHeaderProps) {
     return (
-        <div className="flex items-center justify-between px-4 pt-7 pb-6">
-            <div className="mb-5 flex items-center gap-6">
+        <div className="flex items-start justify-between px-4 pt-6 pb-4">
+            <div className="flex items-start gap-3 sm:gap-6">
                 <Link
                     href={backHref}
-                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-2 border-sidebar-border bg-background from-[#ef99b0] to-[#e27193] text-foreground hover:border-2 hover:border-[#e27193] hover:bg-linear-to-r hover:text-white"
+                    className="mt-0.5 flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-sidebar-border bg-background from-[#ef99b0] to-[#e27193] text-foreground hover:border-2 hover:border-[#e27193] hover:bg-linear-to-r hover:text-white sm:h-10 sm:w-10"
                 >
                     <ArrowLeft className="h-4 w-4" />
                 </Link>
@@ -107,7 +107,7 @@ export function PostBackAuthorHeader({
                         </Avatar>
                         <div className="flex flex-col leading-tight">
                             <div className="min-w-0 flex-1">
-                                <div className="mb-4 flex flex-wrap items-center gap-3 text-base">
+                                <div className="mb-1.5 flex flex-wrap items-center gap-2 text-sm sm:mb-3 sm:gap-3 sm:text-base">
                                     <span className="font-semibold text-zinc-900">
                                         {displayName}
                                     </span>
@@ -150,7 +150,7 @@ export function PostBackAuthorHeader({
                         </Link>
                         <div className="flex flex-col leading-tight">
                             <div className="min-w-0 flex-1">
-                                <div className="mb-4 flex flex-wrap items-center gap-3 text-base">
+                                <div className="mb-1.5 flex flex-wrap items-center gap-2 text-sm sm:mb-3 sm:gap-3 sm:text-base">
                                     <Link
                                         href={
                                             post.user?.id

@@ -22,7 +22,7 @@ export function ActionButton({
         <button
             type="button"
             onClick={onClick}
-            className={`${alignRight ? 'ml-auto' : ''}${baseClass}`}
+            className={`${alignRight ? 'ml-auto' : ''}inline-flex items-center gap-2 ${baseClass}`}
         >
             {Icon && <Icon className="h-3.5 w-3.5" />}
             {label}

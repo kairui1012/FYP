@@ -19,6 +19,7 @@ class Post extends Model
         'subject_id',
         'language_id',
         'image',
+        'video_url',
     ];
 
     protected function casts(): array

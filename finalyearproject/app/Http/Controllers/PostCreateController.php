@@ -52,6 +52,7 @@ class PostCreateController extends Controller
             'quiz_questions.*.answer_index'     => ['required', 'integer', 'min:0'],
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['file', 'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx,xls,xlsx,ppt,pptx', 'max:10240'],
+            'video_url' => ['nullable', 'string', 'max:500'],
         ]);
 
         $quizData = null;
@@ -116,6 +117,7 @@ class PostCreateController extends Controller
                 'subject_id' => $subject->id,
                 'language_id' => $language->id,
                 'image' => count($storedAttachments) > 0 ? $storedAttachments : null,
+                'video_url' => $validated['video_url'] ?? null,
             ]);
         });
 

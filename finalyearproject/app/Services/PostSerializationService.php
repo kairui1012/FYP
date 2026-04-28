@@ -22,6 +22,7 @@ class PostSerializationService
             'post_type' => $post->post_type,
             'quiz_data' => $post->quiz_data,
             'image' => $post->image,
+            'video_url' => $post->video_url,
             'created_at' => optional($post->created_at)->toISOString(),
             'saved_at' => optional($post->saved_at)->toISOString(),
             'bookmark_folder_id' => $post->bookmark_folder_id ?? $post->pivot?->bookmark_folder_id,

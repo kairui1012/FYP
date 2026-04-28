@@ -518,7 +518,7 @@ export default function PostContent({ post }: PostContentProps) {
         <>
             <Head title={translated?.title ?? post.title} />
 
-            <div className="w-full bg-white pb-40">
+            <div className="w-full bg-white pb-20 sm:pb-40">
                 <div className="mx-auto w-full max-w-3xl">
                     <PostBackAuthorHeader
                         post={post}
@@ -595,7 +595,7 @@ export default function PostContent({ post }: PostContentProps) {
                     />
 
                     <div className="my-10 w-full border-t border-zinc-200" />
-                    <div id="comments" className="scroll-mt-40 pb-32">
+                    <div id="comments" className="scroll-mt-20 pb-16 sm:scroll-mt-40 sm:pb-32">
                         <CommentSection
                             post={post}
                             onCommentsCountChange={setCommentsCount}
