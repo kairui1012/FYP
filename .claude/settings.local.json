@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(php artisan *)",
+      "Bash(grep -v \"post\\\\.ts$\")",
+      "Bash(npm run *)",
+      "Bash(grep -E \"\\\\.php$\")"
+    ]
+  }
+}
