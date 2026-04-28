@@ -12,6 +12,7 @@ import {
     Users,
 } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { router } from '@inertiajs/react';
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, useSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
@@ -92,6 +93,10 @@ export function AppSidebar({ className }: AppSidebarProps) {
             title: trans('navigation.following'),
             href: '/following',
             icon: Users,
+            onClick: (e) => {
+                e.preventDefault();
+                router.visit('/following', { preserveState: false });
+            },
         },
         {
             title: trans('navigation.bookmarks'),

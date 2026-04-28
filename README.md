@@ -444,3 +444,10 @@ The system should remain focused on education and provide a clean, user-friendly
 - Final presentation slides
 - Demonstration video
 - Real-life system evaluation for the third project objective
+
+
+
+
+
+----
+用户可以通过获得点赞或粉丝来解锁成就，并在排行榜上展示自己的排名，甚至分享到社交媒体，以展示自己的能力与贡献。

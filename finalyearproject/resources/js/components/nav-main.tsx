@@ -30,7 +30,11 @@ export function NavMain({ items = [], groupLabel = 'Platform' }: NavMainProps) {
                             className="ml-0 mr-auto h-10 w-[87.5%] text-[15px] data-[active=true]:bg-[#e36a8b] data-[active=true]:text-white"
                             tooltip={{ children: item.title }}
                         >
-                            <Link href={toUrl(item.href)} prefetch>
+                            <Link
+                                href={toUrl(item.href)}
+                                prefetch
+                                onClick={item.onClick}
+                            >
                                 {item.icon && <item.icon />}
                                 <span>{item.title}</span>
                             </Link>

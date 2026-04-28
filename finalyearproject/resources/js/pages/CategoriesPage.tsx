@@ -63,6 +63,15 @@ export default function CategoriesPage() {
             setLocalPosts(props.filteredPosts);
             setLikeStateByPost({});
             setSaveStateByPost({});
+            // Seed follow state from server data so toggle handler reads correct initial state
+            const states: Record<number, boolean> = {};
+            props.filteredPosts.forEach((post) => {
+                if (post.user?.id) {
+                    states[post.user.id] = Boolean(post.user.is_following);
+                }
+            });
+            setFollowStateByUser(states);
+            setFollowingUserIds([]);
             setView('results');
             setIsLoading(false);
         }
@@ -206,12 +215,16 @@ export default function CategoriesPage() {
         if (followingUserIds.includes(userId)) return;
 
         const previous = followStateByUser[userId] ?? false;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+
         setFollowingUserIds((prev) => [...prev, userId]);
         setFollowStateByUser((prev) => ({ ...prev, [userId]: !previous }));
 
         try {
             const response = await fetch(`/users/${userId}/follow`, {
                 method: 'POST',
+                signal: controller.signal,
                 headers: csrfHeaders(),
             });
             if (!response.ok) throw new Error();
@@ -223,9 +236,11 @@ export default function CategoriesPage() {
                 ...prev,
                 [userId]: payload.is_following,
             }));
+            sessionStorage.setItem('followingPageDirty', '1');
         } catch {
             setFollowStateByUser((prev) => ({ ...prev, [userId]: previous }));
         } finally {
+            clearTimeout(timeout);
             setFollowingUserIds((prev) => prev.filter((id) => id !== userId));
         }
     };

@@ -83,11 +83,35 @@ export default function HomePage({
     const [followingUserIds, setFollowingUserIds] = useState<number[]>([]);
     const homeText = buildHomeText(page as any);
 
+    // posts prop changes on Inertia navigation (home ↔ following) without remount —
+    // re-seed followStateByUser so the toggle handler reads the correct initial state.
+    const postIdsKey = posts.map((p) => p.id).join(',');
+    useEffect(() => {
+        const states: Record<number, boolean> = {};
+        posts.forEach((post) => {
+            if (post.user?.id) {
+                states[post.user.id] = Boolean(post.user.is_following);
+            }
+        });
+        setFollowStateByUser(states);
+        setFollowingUserIds([]);
+        // postIdsKey is a stable string derived from posts — intentionally omitting
+        // the full `posts` array to avoid re-running on every render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [postIdsKey]);
+
     useEffect(() => {
         if (!isHomePage) {
             setActiveTab('feed');
         }
     }, [isHomePage]);
+
+    useEffect(() => {
+        if (isFollowingPage && sessionStorage.getItem('followingPageDirty')) {
+            sessionStorage.removeItem('followingPageDirty');
+            router.reload({ only: ['posts'] });
+        }
+    }, [isFollowingPage]);
 
     useEffect(() => {
         document.documentElement.classList.remove('nprogress-busy');
@@ -266,6 +290,7 @@ export default function HomePage({
                 ...prev,
                 [userId]: payload.is_following,
             }));
+            sessionStorage.setItem('followingPageDirty', '1');
         } catch {
             setFollowStateByUser((prev) => ({
                 ...prev,

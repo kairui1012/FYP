@@ -304,10 +304,10 @@ export default function ProfilePage() {
         setProfileAvatarPreview(null);
     }, [profileUser.avatar, profileUser.name, profileUser.about]);
     useEffect(() => {
-        setIsFollowing(Boolean(profileUser.is_following));
+        if (!followLoading) setIsFollowing(Boolean(profileUser.is_following));
     }, [profileUser.is_following]);
     useEffect(() => {
-        setFollowersCount(profileUser.followers_count ?? 0);
+        if (!followLoading) setFollowersCount(profileUser.followers_count ?? 0);
     }, [profileUser.followers_count]);
 
     useEffect(() => {
@@ -332,6 +332,8 @@ export default function ProfilePage() {
             return;
         const previous = isFollowing;
         const optimistic = !previous;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
         setFollowLoading(true);
         setIsFollowing(optimistic);
         setFollowersCount((count) =>
@@ -343,6 +345,7 @@ export default function ProfilePage() {
         try {
             const response = await fetch(`/users/${profileUser.id}/follow`, {
                 method: 'POST',
+                signal: controller.signal,
                 headers: {
                     Accept: 'application/json',
                     'X-CSRF-TOKEN': csrfToken,
@@ -359,12 +362,14 @@ export default function ProfilePage() {
                     Math.max(0, count + (payload.is_following ? 1 : -1)),
                 );
             }
+            sessionStorage.setItem('followingPageDirty', '1');
         } catch {
             setIsFollowing(previous);
             setFollowersCount((count) =>
                 Math.max(0, count + (previous ? 1 : -1)),
             );
         } finally {
+            clearTimeout(timeout);
             setFollowLoading(false);
         }
     };

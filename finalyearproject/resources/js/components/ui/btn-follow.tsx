@@ -1,4 +1,4 @@
-import { UserCheck, UserPlus } from 'lucide-react';
+import { Loader2, UserCheck, UserPlus } from 'lucide-react';
 import { reactLang } from '@erag/lang-sync-inertia';
 
 type BtnFollowProps = {
@@ -17,13 +17,13 @@ export function BtnFollow({
     const { trans } = reactLang();
 
     const baseClass =
-        'inline-flex h-[26px] items-center gap-[5px] rounded-full px-[10px] text-[11px] font-semibold tracking-[0.01em] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300/50 disabled:cursor-not-allowed disabled:opacity-50';
+        'inline-flex h-[26px] items-center gap-[5px] rounded-full px-[10px] text-[11px] font-semibold tracking-[0.01em] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300/50 disabled:cursor-not-allowed disabled:opacity-60';
 
     const stateClass = following
-        ? 'border border-zinc-300 bg-transparent text-zinc-500 hover:border-rose-400 hover:text-rose-500'
-        : 'border border-[#e0526f] bg-[#e88ea0] text-white hover:bg-[#c94461] hover:border-[#c94461]';
+        ? 'border-2 border-zinc-300 bg-transparent text-zinc-500 hover:border-rose-400 hover:text-rose-500'
+        : 'border-2 border-[#e0526f] bg-[#e88ea0] text-white hover:bg-[#c94461] hover:border-[#c94461]';
 
-    const Icon = following ? UserCheck : UserPlus;
+    const Icon = loading ? Loader2 : following ? UserCheck : UserPlus;
 
     return (
         <button
@@ -35,7 +35,7 @@ export function BtnFollow({
                 onClick?.(event);
             }}
         >
-            <Icon className="h-2.5 w-2.75" />
+            <Icon className={`h-2.5 w-2.5${loading ? ' animate-spin' : ''}`} />
             <span>
                 {following
                     ? trans('navigation.following_action')
