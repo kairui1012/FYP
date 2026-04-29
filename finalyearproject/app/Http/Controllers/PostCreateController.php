@@ -20,7 +20,7 @@ use Inertia\Response;
 
 class PostCreateController extends Controller
 {
-    private const POST_TYPES = ['material', 'question', 'discussion', 'quiz'];
+    private const POST_TYPES = ['material', 'question', 'quiz'];
 
     public function __construct(
         private readonly AchievementService $achievementService,
@@ -111,10 +111,6 @@ class PostCreateController extends Controller
             throw ValidationException::withMessages([
                 'content' => 'Please add content before publishing.',
             ]);
-        }
-
-        if (($validated['post_type'] ?? null) === 'discussion') {
-            $validated['is_anonymous'] = false;
         }
 
         $quizData = null;

@@ -57,8 +57,6 @@ export function CategoryPostCard({
     const typeLabel =
         post.post_type === 'quiz'
             ? trans('createPost.create_quiz')
-            : post.post_type === 'discussion'
-              ? trans('createPost.create_discussion')
             : post.post_type === 'question'
               ? trans('createPost.ask_question')
               : trans('createPost.share_material');

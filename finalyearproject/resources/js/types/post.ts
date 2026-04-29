@@ -120,7 +120,7 @@ export type PostItem = {
     title: string;
     content: string;
     content_blocks?: MaterialContentBlock[] | null;
-    post_type: 'material' | 'question' | 'discussion' | 'quiz' | string;
+    post_type: 'material' | 'question' | 'quiz' | string;
     quiz_data?: QuizData;
     parent_material_id?: number | null;
     material_improved_from_feedback?: boolean;

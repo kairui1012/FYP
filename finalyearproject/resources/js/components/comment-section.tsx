@@ -960,9 +960,14 @@ function CommentCard({
     const isOwnComment = comment.user?.id === currentUserId;
     const canReply = !isBestAnswer;
     const canReport = !isOwnComment;
-    const isUpvoted = Boolean(comment.is_upvoted ?? comment.is_liked);
-    const isDownvoted = Boolean(comment.is_downvoted);
-    const isWrong = Boolean(comment.is_wrong);
+    const userVote = Number(comment.user_vote ?? 0);
+    const isUpvoted =
+        userVote === 1 ||
+        toStrictBoolean(comment.is_upvoted) ||
+        (comment.is_upvoted == null && toStrictBoolean(comment.is_liked));
+    const isDownvoted =
+        userVote === -1 || toStrictBoolean(comment.is_downvoted);
+    const isWrong = userVote === -2 || toStrictBoolean(comment.is_wrong);
     const helpfulCount = comment.upvotes_count ?? comment.likes_count ?? 0;
     const confusingCount = comment.downvotes_count ?? 0;
     const wrongCount = comment.wrong_votes_count ?? 0;
@@ -1500,11 +1505,10 @@ function sortCommentsForDisplay(
 }
 
 function selectBestAnswer(items: CommentItem[]): CommentItem | null {
-    const flattened = flattenComments(items);
+    if (items.length === 0) return null;
 
-    if (flattened.length === 0) return null;
-
-    const sorted = [...flattened].sort((left, right) => {
+    // Best answer must be selected from top-level comments only.
+    const sorted = [...items].sort((left, right) => {
         const scoreDelta = getCommentScore(right) - getCommentScore(left);
         if (scoreDelta !== 0) return scoreDelta;
         return (
@@ -1521,13 +1525,6 @@ function selectBestAnswer(items: CommentItem[]): CommentItem | null {
     return candidate;
 }
 
-function flattenComments(items: CommentItem[]): CommentItem[] {
-    return items.flatMap((item) => [
-        item,
-        ...(item.replies ? flattenComments(item.replies) : []),
-    ]);
-}
-
 function renderCommentContent(content: string): ReactNode {
     return content.split('\n').map((line, lineIndex, lines) => (
         <span key={`${line}-${lineIndex}`}>
@@ -1539,4 +1536,8 @@ function renderCommentContent(content: string): ReactNode {
 
 function formatScore(score: number): string {
     return score > 0 ? `+${score}` : String(score);
+}
+
+function toStrictBoolean(value: unknown): boolean {
+    return value === true || value === 1 || value === '1';
 }

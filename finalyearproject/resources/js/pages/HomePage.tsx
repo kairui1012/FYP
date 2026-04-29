@@ -393,8 +393,6 @@ export default function HomePage({
                                             ? 'View trends'
                                             : homeText.followingEmptySecondaryAction,
                                     createQuiz: homeText.createQuiz,
-                                    createDiscussion:
-                                        homeText.createDiscussion,
                                     askQuestion: homeText.askQuestion,
                                     shareMaterial: homeText.shareMaterial,
                                     unknownUser:

@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
@@ -13,8 +13,6 @@ import type { NavItem } from '@/types';
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { trans } = reactLang();
     const { isCurrentOrParentUrl } = useCurrentUrl();
-    const page = usePage();
-    const userRole = (page.props.auth as { user: { role?: string } } | null)?.user?.role ?? 'student';
 
     const sidebarNavItems: NavItem[] = [
         {
@@ -32,9 +30,6 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             href: '/settings/two-factor',
             icon: null,
         },
-        ...(userRole !== 'admin'
-            ? [{ title: trans('settings.sidebar_teacher_certification'), href: '/settings/teacher-certification', icon: null }]
-            : []),
     ];
 
     // When server-side rendering, we only render the layout on the client...

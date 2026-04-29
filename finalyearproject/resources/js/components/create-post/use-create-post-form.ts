@@ -412,8 +412,6 @@ export function useCreatePostForm({
         if (value === 'material') {
             setSelectedMaterialId('');
             setIsAnonymous(false);
-        } else if (value === 'discussion') {
-            setIsAnonymous(false);
         }
     };
 

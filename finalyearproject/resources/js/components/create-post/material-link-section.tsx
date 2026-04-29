@@ -1,5 +1,12 @@
 import { BookOpenCheck, Sparkles } from 'lucide-react';
 import { reactLang } from '@erag/lang-sync-inertia';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import type { LearningMaterialOption } from './create-post-config';
 
 type MaterialLinkSectionProps = {
@@ -22,6 +29,7 @@ export function MaterialLinkSection({
     materialQuizError,
 }: MaterialLinkSectionProps) {
     const { trans } = reactLang();
+    const emptyValue = '__none__';
 
     if (selectedPostType === 'material') {
         return null;
@@ -49,20 +57,29 @@ export function MaterialLinkSection({
                 </div>
             </div>
 
-            <select
-                value={selectedMaterialId}
-                onChange={(event) => onSelectMaterial(event.target.value)}
-                className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+            <Select
+                value={selectedMaterialId || emptyValue}
+                onValueChange={(value) =>
+                    onSelectMaterial(value === emptyValue ? '' : value)
+                }
             >
-                <option value="">
-                    {trans('createPost.material_link_none')}
-                </option>
-                {materials.map((material) => (
-                    <option key={material.id} value={material.id}>
-                        {material.title}
-                    </option>
-                ))}
-            </select>
+                <SelectTrigger className="h-11 w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-800 focus-visible:border-emerald-400 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-emerald-100">
+                    <SelectValue placeholder={trans('createPost.material_link_none')} />
+                </SelectTrigger>
+                <SelectContent
+                    className="text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] w-44 overflow-hidden rounded-2xl border border-white/80 bg-white/95 p-1.5 shadow-[0_12px_30px_rgba(15,23,42,0.08)] backdrop-blur-sm"
+                    align="start"
+                >
+                    <SelectItem value={emptyValue}>
+                        {trans('createPost.material_link_none')}
+                    </SelectItem>
+                    {materials.map((material) => (
+                        <SelectItem key={material.id} value={String(material.id)}>
+                            {material.title}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
 
             {selectedMaterial ? (
                 <div className="rounded-lg bg-zinc-50 p-3 text-sm text-zinc-600">

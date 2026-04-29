@@ -9,7 +9,6 @@ import {
     useState,
 } from 'react';
 import {
-    Bell,
     Bookmark,
     FileText,
     Flame,
@@ -514,15 +513,6 @@ export function AppHeader() {
                     </div>
 
                     <div className="ml-auto flex items-center space-x-4">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="hidden size-9 md:inline-flex"
-                            aria-label={trans('navigation.notifications')}
-                        >
-                            <Bell className="h-4 w-4" />
-                        </Button>
-
                         <Suspense
                             fallback={
                                 <div
@@ -542,7 +532,7 @@ export function AppHeader() {
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    className="size-10 rounded-full p-1"
+                                    className="size-10 rounded-full p-1 focus-visible:ring-0"
                                 >
                                     <Avatar className="size-8 overflow-hidden rounded-full">
                                         <AvatarImage

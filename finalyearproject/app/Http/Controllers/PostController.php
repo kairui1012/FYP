@@ -34,7 +34,7 @@ use Inertia\Response;
 
 class PostController extends Controller
 {
-    private const POST_TYPES = ['material', 'question', 'discussion', 'quiz'];
+    private const POST_TYPES = ['material', 'question', 'quiz'];
 
     public function __construct(
         private readonly AchievementService $achievementService,
@@ -53,7 +53,7 @@ class PostController extends Controller
 
     public function questions(Request $request): Response
     {
-        return $this->renderHomePage($request, ['question', 'discussion', 'quiz'], 'questions');
+        return $this->renderHomePage($request, ['question', 'quiz'], 'questions');
     }
 
     public function learningMaterials(Request $request): Response

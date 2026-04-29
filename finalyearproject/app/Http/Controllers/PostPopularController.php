@@ -26,7 +26,7 @@ class PostPopularController extends Controller
             'sort'          => ['nullable', 'string', Rule::in(['newest', 'hottest'])],
             'language_code' => ['nullable', 'string', Rule::exists('languages', 'code')],
             'subject_id'    => ['nullable', 'integer', Rule::exists('subjects', 'id')],
-            'post_type'     => ['nullable', 'string', Rule::in(['material', 'question', 'discussion', 'quiz'])],
+            'post_type'     => ['nullable', 'string', Rule::in(['material', 'question', 'quiz'])],
         ]);
 
         $languageCode = $validated['language_code'] ?? '';

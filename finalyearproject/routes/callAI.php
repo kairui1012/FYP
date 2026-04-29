@@ -1071,7 +1071,7 @@ Route::post('/ai-learning-objectives', function (Request $request) {
     $request->validate([
         'post_title'   => 'required|string|max:300',
         'post_content' => 'nullable|string|max:3000',
-        'post_type'    => 'nullable|string|in:material,question,discussion,quiz,sharing',
+        'post_type'    => 'nullable|string|in:material,question,quiz,sharing',
         'provider'     => 'required|in:deepseek,gemini',
     ]);
 
@@ -1090,7 +1090,6 @@ Route::post('/ai-learning-objectives', function (Request $request) {
     $typeLabel = match ($postType) {
         'material' => 'a learning materials post',
         'question' => 'a learning question',
-        'discussion' => 'a learning discussion',
         'quiz'     => 'a quiz post',
         default    => 'a learning sharing post',
     };

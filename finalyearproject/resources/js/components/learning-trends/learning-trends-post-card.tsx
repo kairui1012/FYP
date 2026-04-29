@@ -59,8 +59,6 @@ export function LearningTrendsPostCard({
     const type =
         post.post_type === 'quiz'
             ? 'quiz'
-            : post.post_type === 'discussion'
-              ? 'discussion'
             : post.post_type === 'question'
               ? 'question'
               : 'material';
@@ -68,8 +66,6 @@ export function LearningTrendsPostCard({
     const typeLabel =
         type === 'quiz'
             ? trans('createPost.create_quiz')
-            : type === 'discussion'
-              ? trans('createPost.create_discussion')
             : type === 'question'
               ? trans('createPost.ask_question')
               : trans('createPost.share_material');

@@ -306,7 +306,16 @@ class CommentController extends Controller
         $downvotesCount = (int) ($comment->downvotes_count ?? 0);
         $wrongVotesCount = (int) ($comment->wrong_votes_count ?? 0);
         $score = $upvotesCount - $downvotesCount - (2 * $wrongVotesCount);
-        $userVote = $comment->relationLoaded('votes') ? (int) ($comment->votes->first()?->vote ?? 0) : (int) ($comment->is_liked ?? 0);
+        $currentUserId = Auth::id();
+        $userVote = 0;
+
+        if ($comment->relationLoaded('votes') && $currentUserId) {
+            $userVote = (int) ($comment->votes
+                ->firstWhere('user_id', $currentUserId)
+                ?->vote ?? 0);
+        } else {
+            $userVote = (int) ($comment->is_liked ?? 0);
+        }
 
         return [
             'id' => $comment->id,

@@ -1,6 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
-import { LogOut, Settings, User as UserIcon } from 'lucide-react';
+import { GraduationCap, LogOut, Settings, Shield, User as UserIcon } from 'lucide-react';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -20,6 +20,9 @@ type Props = {
 export function UserMenuContent({ user }: Props) {
     const { trans } = reactLang();
     const cleanup = useMobileNavigation();
+    const normalizedUserRole = (user.role ?? 'student').toString().trim().toLowerCase();
+    const isAdmin = normalizedUserRole === 'admin';
+    const canApplyTeacher = !['admin', 'teacher'].includes(normalizedUserRole);
 
     const handleLogout = () => {
         cleanup();
@@ -56,6 +59,32 @@ export function UserMenuContent({ user }: Props) {
                         {trans('navigation.settings')}
                     </Link>
                 </DropdownMenuItem>
+                {canApplyTeacher ? (
+                    <DropdownMenuItem asChild>
+                        <Link
+                            className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 outline-none transition-colors focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100"
+                            href="/settings/teacher-certification"
+                            prefetch
+                            onClick={cleanup}
+                        >
+                            <GraduationCap className="mr-2" />
+                            {trans('settings.teacher_cert_heading')}
+                        </Link>
+                    </DropdownMenuItem>
+                ) : null}
+                {isAdmin ? (
+                    <DropdownMenuItem asChild>
+                        <Link
+                            className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 outline-none transition-colors focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100"
+                            href="/admin/users"
+                            prefetch
+                            onClick={cleanup}
+                        >
+                            <Shield className="mr-2" />
+                            {trans('navigation.admin_panel')}
+                        </Link>
+                    </DropdownMenuItem>
+                ) : null}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>

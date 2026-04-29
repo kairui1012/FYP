@@ -3,10 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\Comment;
+use App\Models\CommentLike;
 use App\Models\Like;
 use App\Models\Post;
 use App\Models\PostSave;
 use App\Models\QuizMistake;
+use App\Models\SocialAccount;
 use App\Models\StudyMaterialFeedback;
 use App\Models\Subject;
 use App\Models\User;
@@ -21,8 +23,16 @@ class DemoPresentationSeeder extends Seeder
 {
     public function run(): void
     {
-        $englishId = (int) DB::table('languages')->where('code', 'en')->value('id');
-        $mathId = (int) Subject::query()->where('name', 'Mathematics')->value('id');
+        $languageIds = DB::table('languages')->pluck('id', 'code');
+        $subjectIds = Subject::query()->pluck('id', 'name');
+
+        $englishId = (int) $languageIds->get('en');
+        $chineseId = (int) $languageIds->get('zh', $englishId);
+        $malayId = (int) $languageIds->get('bm', $englishId);
+
+        $mathId = (int) $subjectIds->get('Mathematics');
+        $chineseSubjectId = (int) $subjectIds->get('Chinese', $mathId);
+        $malaySubjectId = (int) $subjectIds->get('Malay', $mathId);
 
         $teacher = $this->upsertUser('teacher.demo@example.com', 'Ms Nur Aisyah', 'teacher');
         $student = $this->upsertUser('student.demo@example.com', 'Adam Lee', 'student');
@@ -33,6 +43,13 @@ class DemoPresentationSeeder extends Seeder
             ['email' => 'student.c@example.com', 'name' => 'Chloe Wong'],
             ['email' => 'student.d@example.com', 'name' => 'Daniel Ng'],
             ['email' => 'student.e@example.com', 'name' => 'Eva Chan'],
+            ['email' => 'student.f@example.com', 'name' => 'Farah Ismail'],
+            ['email' => 'student.g@example.com', 'name' => 'Gavin Teo'],
+            ['email' => 'student.h@example.com', 'name' => 'Hui Min'],
+            ['email' => 'student.i@example.com', 'name' => 'Irfan Hakim'],
+            ['email' => 'student.j@example.com', 'name' => 'Jasmine Low'],
+            ['email' => 'student.k@example.com', 'name' => 'Kai Wen'],
+            ['email' => 'student.l@example.com', 'name' => 'Liyana Omar'],
         ])->map(fn (array $reviewer) => $this->upsertUser($reviewer['email'], $reviewer['name'], 'student'));
 
         $allDemoUsers = collect([$teacher, $student])
@@ -172,67 +189,115 @@ class DemoPresentationSeeder extends Seeder
 
         $questionPosts = collect([
             [
-                'title' => 'How do I know when a quadratic is already in vertex form?',
+                'title' => 'Primary Mathematics: Why do we carry 1 when adding?',
+                'content' => 'In 58 + 27, I know the answer is 85, but why does the 10 from the ones column move to the tens column?',
+                'subject_id' => $mathId,
+                'language_id' => $englishId,
+                'created_at' => now()->subDays(14),
+            ],
+            [
+                'title' => '小学华文：怎样分辨比喻句和拟人句？',
+                'content' => '“月亮像小船”和“风儿在唱歌”有什么不同？考试时我应该先看哪些词？',
+                'subject_id' => $chineseSubjectId,
+                'language_id' => $chineseId,
+                'created_at' => now()->subDays(13),
+            ],
+            [
+                'title' => 'Bahasa Melayu Sekolah Rendah: Bagaimana bezakan imbuhan meN- dan ber-?',
+                'content' => 'Saya keliru apabila kata kerja berubah bentuk. Adakah ada cara mudah untuk memilih imbuhan yang betul?',
+                'subject_id' => $malaySubjectId,
+                'language_id' => $malayId,
+                'created_at' => now()->subDays(12),
+            ],
+            [
+                'title' => 'Lower Secondary Mathematics: Why does a negative times a negative become positive?',
+                'content' => 'I can remember the rule, but I do not understand the reason behind it when simplifying expressions.',
+                'subject_id' => $mathId,
+                'language_id' => $englishId,
+                'created_at' => now()->subDays(11),
+            ],
+            [
+                'title' => '初中华文：议论文怎样写出清楚的论点？',
+                'content' => '我常常有例子，但开头的论点写得不够明确。有没有一个简单的句型可以练习？',
+                'subject_id' => $chineseSubjectId,
+                'language_id' => $chineseId,
+                'created_at' => now()->subDays(10),
+            ],
+            [
+                'title' => 'Bahasa Melayu Menengah Rendah: Cara mengenal pasti ayat majmuk',
+                'content' => 'Apabila ada kata hubung seperti dan, tetapi, atau kerana, adakah ayat itu sentiasa ayat majmuk?',
+                'subject_id' => $malaySubjectId,
+                'language_id' => $malayId,
+                'created_at' => now()->subDays(10),
+            ],
+            [
+                'title' => 'Secondary Mathematics: How do I know when a quadratic is already in vertex form?',
                 'content' => 'I can identify the vertex sometimes, but I still get confused when the bracket has a plus sign.',
+                'subject_id' => $mathId,
+                'language_id' => $englishId,
                 'created_at' => now()->subDays(9),
             ],
             [
-                'title' => 'Why must we move everything to one side before factorising?',
-                'content' => 'I understand the algebra steps, but I want to explain the reason properly during revision.',
+                'title' => '中学华文：说明文和议论文的结构有什么不同？',
+                'content' => '我会把资料写出来，但不确定什么时候应该解释现象，什么时候应该提出立场。',
+                'subject_id' => $chineseSubjectId,
+                'language_id' => $chineseId,
+                'created_at' => now()->subDays(9),
+            ],
+            [
+                'title' => 'Bahasa Melayu Menengah Atas: Bagaimana huraikan isi karangan dengan matang?',
+                'content' => 'Saya ada isi utama, tetapi huraian saya terlalu pendek. Bagaimana tambah contoh dan kesan dengan lebih jelas?',
+                'subject_id' => $malaySubjectId,
+                'language_id' => $malayId,
                 'created_at' => now()->subDays(8),
             ],
             [
-                'title' => 'How can I sketch a quadratic faster in exam conditions?',
+                'title' => 'Secondary Mathematics: Why must we move everything to one side before factorising?',
+                'content' => 'I understand the algebra steps, but I want to explain the reason properly during revision.',
+                'subject_id' => $mathId,
+                'language_id' => $englishId,
+                'created_at' => now()->subDays(8),
+            ],
+            [
+                'title' => 'Secondary Mathematics: How can I sketch a quadratic faster in exam conditions?',
                 'content' => 'I spend too long plotting points. Is vertex plus intercept enough for a reasonable sketch?',
+                'subject_id' => $mathId,
+                'language_id' => $englishId,
                 'created_at' => now()->subDays(7),
             ],
             [
-                'title' => 'I keep mixing up axis of symmetry and turning point',
+                'title' => 'Secondary Mathematics: I keep mixing up axis of symmetry and turning point',
                 'content' => 'Can someone give me a simple trick to remember the difference between them?',
+                'subject_id' => $mathId,
+                'language_id' => $englishId,
                 'created_at' => now()->subDays(6),
             ],
             [
-                'title' => 'How do I choose the correct pair when factorising?',
+                'title' => 'Secondary Mathematics: How do I choose the correct pair when factorising?',
                 'content' => 'The multiply and add method makes sense, but I still choose the wrong pair under pressure.',
-                'created_at' => now()->subDays(5),
-            ],
-        ])->map(function (array $post) use ($student, $mathId, $englishId) {
-            return Post::query()->create([
-                'user_id' => $student->id,
-                'is_anonymous' => false,
-                'title' => $post['title'],
-                'content' => $post['content'],
-                'content_blocks' => null,
-                'post_type' => 'question',
-                'parent_material_id' => null,
-                'quiz_data' => null,
                 'subject_id' => $mathId,
                 'language_id' => $englishId,
-                'image' => null,
-                'video_url' => null,
-                'material_improved_from_feedback' => false,
-                'created_at' => $post['created_at'],
-                'updated_at' => $post['created_at'],
-            ]);
+                'created_at' => now()->subDays(5),
+            ],
+        ])->map(function (array $post) use ($student) {
+            return $this->createQuestion(
+                $student,
+                $post['subject_id'],
+                $post['language_id'],
+                $post['title'],
+                $post['content'],
+                $post['created_at'],
+            );
         });
 
-        $studentReflection = Post::query()->create([
-            'user_id' => $student->id,
-            'is_anonymous' => false,
-            'title' => 'Weekly Reflection: Quadratic Functions Revision',
-            'content' => 'This week I improved in identifying the vertex, but I still need more guided practice for factorisation questions.',
-            'content_blocks' => null,
-            'post_type' => 'discussion',
-            'parent_material_id' => null,
-            'quiz_data' => null,
-            'subject_id' => $mathId,
-            'language_id' => $englishId,
-            'image' => null,
-            'video_url' => null,
-            'material_improved_from_feedback' => false,
-            'created_at' => now()->subDays(4),
-            'updated_at' => now()->subDays(4),
-        ]);
+        $studentReflection = $this->createQuestion(
+            $student,
+            $mathId,
+            $englishId,
+            'Secondary Mathematics: What should I practise after learning vertex form?',
+            'I can identify the vertex now, but I still need more guided practice for factorisation questions. Which topic should I review next?',
+            now()->subDays(4),
+        );
 
         $likedStudentPosts = $questionPosts->take(3)->push($studentReflection);
         foreach ($reviewers as $reviewer) {
@@ -253,6 +318,8 @@ class DemoPresentationSeeder extends Seeder
             $quizzes['vertex'],
             $quizzes['factorisation'],
             $quizzes['graphs'],
+            ...$questionPosts->take(8)->all(),
+            $studentReflection,
         ];
 
         $commentTexts = [
@@ -270,10 +337,12 @@ class DemoPresentationSeeder extends Seeder
             'The linked quizzes make the materials easier to revise independently.',
         ];
 
+        $rootComments = collect();
+
         foreach ($commentTexts as $index => $text) {
             $target = $commentTargets[$index % count($commentTargets)];
 
-            Comment::query()->create([
+            $rootComments->push(Comment::query()->create([
                 'user_id' => $student->id,
                 'post_id' => $target->id,
                 'parent_id' => null,
@@ -282,7 +351,75 @@ class DemoPresentationSeeder extends Seeder
                 'mentions' => null,
                 'created_at' => now()->subDays(4 - min(3, $index % 4)),
                 'updated_at' => now()->subDays(4 - min(3, $index % 4)),
+            ]));
+        }
+
+        $replyTexts = [
+            'I agree with this point. The worked steps are very practical.',
+            'Thanks for sharing this. I used the same method in revision.',
+            'This was helpful for me too, especially before quiz practice.',
+            'Maybe we can add one more challenge example for stronger students.',
+            'The summary is clear and easy to remember before exams.',
+            'Good point. I had the same confusion last week.',
+            'The linked quiz feedback helped me fix my mistakes quickly.',
+            'I think this should be pinned for our next study session.',
+        ];
+
+        foreach ($rootComments as $index => $rootComment) {
+            $firstReplyUser = $reviewers[$index % $reviewers->count()];
+            $secondReplyUser = $reviewers[($index + 3) % $reviewers->count()];
+            $replyCreatedAt = now()->subDays(max(1, 3 - ($index % 3)));
+
+            Comment::query()->create([
+                'user_id' => $firstReplyUser->id,
+                'post_id' => $rootComment->post_id,
+                'parent_id' => $rootComment->id,
+                'content' => $replyTexts[$index % count($replyTexts)],
+                'attachments' => null,
+                'mentions' => null,
+                'created_at' => $replyCreatedAt,
+                'updated_at' => $replyCreatedAt,
             ]);
+
+            Comment::query()->create([
+                'user_id' => $secondReplyUser->id,
+                'post_id' => $rootComment->post_id,
+                'parent_id' => $rootComment->id,
+                'content' => $replyTexts[($index + 2) % count($replyTexts)],
+                'attachments' => null,
+                'mentions' => null,
+                'created_at' => $replyCreatedAt->copy()->addHours(2),
+                'updated_at' => $replyCreatedAt->copy()->addHours(2),
+            ]);
+        }
+
+        $allSeededComments = Comment::query()
+            ->whereIn('post_id', collect($commentTargets)->pluck('id'))
+            ->get();
+
+        foreach ($allSeededComments as $index => $comment) {
+            $voterA = $reviewers[$index % $reviewers->count()];
+            $voterB = $reviewers[($index + 4) % $reviewers->count()];
+            $votedAt = now()->subDays(max(1, 3 - ($index % 3)));
+
+            if ($voterA->id !== $comment->user_id) {
+                CommentLike::query()->updateOrCreate(
+                    ['user_id' => $voterA->id, 'comment_id' => $comment->id],
+                    ['vote' => 1, 'created_at' => $votedAt, 'updated_at' => $votedAt],
+                );
+            }
+
+            if ($voterB->id !== $comment->user_id) {
+                $vote = $index % 7 === 0 ? -1 : 1;
+                CommentLike::query()->updateOrCreate(
+                    ['user_id' => $voterB->id, 'comment_id' => $comment->id],
+                    [
+                        'vote' => $vote,
+                        'created_at' => $votedAt->copy()->addMinutes(15),
+                        'updated_at' => $votedAt->copy()->addMinutes(15),
+                    ],
+                );
+            }
         }
 
         foreach ($commentTargets as $post) {
@@ -390,14 +527,17 @@ class DemoPresentationSeeder extends Seeder
             ]);
         }
 
+        $studentQuestionCount = $questionPosts->count() + 1;
+        $studentLikeCount = $likedStudentPosts->count() * $reviewers->count();
+
         UserProgress::query()->create([
             'user_id' => $student->id,
             'total_questions_answered' => 24,
-            'total_questions_posted' => 5,
-            'total_post_posted' => 6,
+            'total_questions_posted' => $studentQuestionCount,
+            'total_post_posted' => $studentQuestionCount,
             'quizzes_completed' => 12,
             'correct_answers_count' => 20,
-            'total_likes_received' => 19,
+            'total_likes_received' => $studentLikeCount,
             'quiz_scores' => [42, 50, 58, 67, 78, 83],
             'improvement_score' => 16,
             'created_at' => now()->subDays(10),
@@ -447,7 +587,7 @@ class DemoPresentationSeeder extends Seeder
 
     private function upsertUser(string $email, string $name, string $role): User
     {
-        return User::query()->updateOrCreate(
+        $user = User::query()->updateOrCreate(
             ['email' => $email],
             [
                 'name' => $name,
@@ -459,6 +599,37 @@ class DemoPresentationSeeder extends Seeder
                 'show_leaderboard_badge' => true,
             ],
         );
+
+        $this->syncDemoAvatar($user);
+
+        return $user;
+    }
+
+    private function syncDemoAvatar(User $user): void
+    {
+        SocialAccount::query()->updateOrCreate(
+            [
+                'provider' => 'demo-avatar',
+                'provider_id' => $user->email,
+            ],
+            [
+                'user_id' => $user->id,
+                'avatar' => $this->demoAvatarUrl($user->name),
+            ],
+        );
+    }
+
+    private function demoAvatarUrl(string $name): string
+    {
+        $params = http_build_query([
+            'name' => $name,
+            'background' => substr(md5($name), 0, 6),
+            'color' => 'ffffff',
+            'size' => 128,
+            'bold' => 'true',
+        ]);
+
+        return "https://ui-avatars.com/api/?{$params}";
     }
 
     private function resetDemoData(Collection $users): void
@@ -476,6 +647,33 @@ class DemoPresentationSeeder extends Seeder
         DB::table('user_achievements')->whereIn('user_id', $userIds)->delete();
         UserProgress::query()->whereIn('user_id', $userIds)->delete();
         Post::query()->whereIn('user_id', $userIds)->delete();
+    }
+
+    private function createQuestion(
+        User $author,
+        int $subjectId,
+        int $languageId,
+        string $title,
+        string $content,
+        $createdAt,
+    ): Post {
+        return Post::query()->create([
+            'user_id' => $author->id,
+            'is_anonymous' => false,
+            'title' => $title,
+            'content' => $content,
+            'content_blocks' => null,
+            'post_type' => 'question',
+            'parent_material_id' => null,
+            'quiz_data' => null,
+            'subject_id' => $subjectId,
+            'language_id' => $languageId,
+            'image' => null,
+            'video_url' => null,
+            'material_improved_from_feedback' => false,
+            'created_at' => $createdAt,
+            'updated_at' => $createdAt,
+        ]);
     }
 
     private function createMaterial(

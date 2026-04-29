@@ -31,7 +31,9 @@ return [
     'share_link_copy_failed' => 'Failed to copy link.',
     'categories' => 'Subject Categories',
     'rules' => 'Rules',
+    'apply_teacher' => 'Apply as Teacher',
     'teacher_material_insights' => 'Teacher Material Insights',
+    'admin_panel' => 'Admin Panel',
     'achievements' => 'Learning Milestones',
     'bookmarks' => 'My Study Folder',
 ];

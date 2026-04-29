@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Comment;
 use App\Models\Post;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class PostSerializationService
 {
@@ -226,9 +227,14 @@ class PostSerializationService
      */
     private function resolveUserVote(Comment $comment): int
     {
-        $vote = $comment->relationLoaded('votes')
-            ? $comment->votes->first()?->vote
-            : null;
+        $currentUserId = Auth::id();
+        $vote = null;
+
+        if ($comment->relationLoaded('votes') && $currentUserId) {
+            $vote = $comment->votes
+                ->firstWhere('user_id', $currentUserId)
+                ?->vote;
+        }
 
         if ($vote !== null) {
             return (int) $vote;

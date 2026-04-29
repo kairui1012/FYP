@@ -38,8 +38,6 @@ function PostBadges({
     const type =
         post.post_type === 'quiz'
             ? 'quiz'
-            : post.post_type === 'discussion'
-              ? 'discussion'
             : post.post_type === 'question'
               ? 'question'
               : 'material';
@@ -47,8 +45,6 @@ function PostBadges({
     const typeLabel =
         type === 'quiz'
             ? trans('createPost.create_quiz', page)
-            : type === 'discussion'
-              ? trans('createPost.create_discussion', page)
             : type === 'question'
               ? trans('createPost.ask_question', page)
               : trans('createPost.share_material', page);

@@ -126,9 +126,7 @@ export type CreatePostText = {
     subjectRequired: string;
     shareMaterial: string;
     askQuestion: string;
-    createDiscussion: string;
     questionPurpose: string;
-    discussionPurpose: string;
     materialPurpose: string;
     quizPurpose: string;
     materialEditorTitle: string;
@@ -281,9 +279,7 @@ export const buildCreatePostText = (
     subjectRequired: trans('createPost.subject_required'),
     shareMaterial: trans('createPost.share_material'),
     askQuestion: trans('createPost.ask_question'),
-    createDiscussion: trans('createPost.create_discussion'),
     questionPurpose: trans('createPost.question_purpose'),
-    discussionPurpose: trans('createPost.discussion_purpose'),
     materialPurpose: trans('createPost.material_purpose'),
     quizPurpose: trans('createPost.quiz_purpose'),
     materialEditorTitle: trans('createPost.material_editor_title'),

@@ -51,7 +51,7 @@ export function BtnChangeLang({ className, hideOnMobile = true }: Props) {
                 <Button
                     variant="ghost"
                     className={cn(
-                        'h-9 items-center gap-2 rounded-full border-2 border-[#ef99b0] bg-white px-3 text-black shadow-none transition-colors duration-200 hover:border-[#de6b89] hover:bg-neutral-100 hover:text-black focus-visible:border-[#de6b89] focus-visible:ring-[#de6b89]/25 md:inline-flex dark:border-[#eea3b7] dark:bg-white dark:text-black dark:hover:border-[#de6b89] dark:hover:bg-neutral-100 dark:focus-visible:border-[#de6b89] dark:focus-visible:ring-[#de6b89]/25',
+                        'h-9 items-center gap-2 rounded-full border-2 border-[#ef99b0] bg-white px-3 text-black shadow-none transition-colors duration-200 hover:border-[#de6b89] hover:bg-neutral-100 hover:text-black focus-visible:border-[#de6b89] focus-visible:ring-0 md:inline-flex dark:border-[#eea3b7] dark:bg-white dark:text-black dark:hover:border-[#de6b89] dark:hover:bg-neutral-100 dark:focus-visible:border-[#de6b89] dark:focus-visible:ring-0',
                         hideOnMobile && 'hidden',
                         className,
                     )}

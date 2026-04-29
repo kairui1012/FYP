@@ -31,7 +31,9 @@ return [
     'share_link_copy_failed' => 'Gagal menyalin pautan.',
     'categories' => 'Kategori Subjek',
     'rules' => 'Peraturan',
+    'apply_teacher' => 'Mohon Jadi Guru',
     'teacher_material_insights' => 'Analitik Bahan Guru',
+    'admin_panel' => 'Panel Admin',
     'achievements' => 'Pencapaian Pembelajaran',
     'bookmarks' => 'Folder Belajar Saya',
 ];

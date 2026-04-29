@@ -76,6 +76,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
     const currentUserRole =
         (usePage().props as { auth?: { user?: { role?: string } } }).auth
             ?.user?.role ?? 'student';
+    const normalizedUserRole = currentUserRole.toString().trim().toLowerCase();
     const mainNavItems: NavItem[] = [
         {
             title: trans('navigation.home'),
@@ -121,7 +122,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
             href: '/rules',
             icon: ScrollText,
         },
-        ...(['admin', 'teacher'].includes(currentUserRole)
+        ...(['admin', 'teacher'].includes(normalizedUserRole)
             ? [
                   {
                       title: trans('navigation.teacher_material_insights'),

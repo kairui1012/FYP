@@ -35,7 +35,6 @@ type FeedText = {
     followingEmptyAction: string;
     followingEmptySecondaryAction: string;
     createQuiz: string;
-    createDiscussion: string;
     askQuestion: string;
     shareMaterial: string;
     unknownUser: string;
@@ -413,9 +412,6 @@ export function HomeFeedSection({
                                                 post.post_type === 'quiz'
                                                     ? 'quiz'
                                                     : post.post_type ===
-                                                        'discussion'
-                                                      ? 'discussion'
-                                                      : post.post_type ===
                                                           'question'
                                                         ? 'question'
                                                         : 'material';
@@ -424,9 +420,7 @@ export function HomeFeedSection({
                                             const label =
                                                 type === 'quiz'
                                                     ? text.createQuiz
-                                                    : type === 'discussion'
-                                                      ? text.createDiscussion
-                                                      : type === 'question'
+                                                    : type === 'question'
                                                         ? text.askQuestion
                                                         : text.shareMaterial;
 

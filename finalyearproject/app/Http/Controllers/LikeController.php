@@ -124,7 +124,7 @@ class LikeController extends Controller
 
     private function leaderboardActionForPost(Post $post): ?string
     {
-        return in_array($post->post_type, ['question', 'discussion', 'quiz', 'material'], true)
+        return in_array($post->post_type, ['question', 'quiz', 'material'], true)
             ? 'question_upvoted'
             : null;
     }
