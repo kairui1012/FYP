@@ -17,6 +17,13 @@ type HomePageProps = {
     learningOverview?: StudyHomeOverview;
 };
 
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Home',
+        href: homePage(),
+    },
+];
+
 export default function HomePage({
     posts = [],
     learningOverview,
@@ -77,13 +84,6 @@ export default function HomePage({
     });
     const [followingUserIds, setFollowingUserIds] = useState<number[]>([]);
     const homeText = buildHomeText(page as any);
-
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: trans('navigation.home'),
-            href: homePage(),
-        },
-    ];
 
     // posts prop changes on Inertia navigation (home ↔ following) without remount —
     // re-seed followStateByUser so the toggle handler reads the correct initial state.

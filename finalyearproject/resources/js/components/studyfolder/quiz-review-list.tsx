@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { CheckCircle2, ExternalLink, XCircle } from 'lucide-react';
 import { Fragment } from 'react';
-import { formatTimeAgo } from '@/lib/post-utils';
+import { formatTimeAgo, getSubjectLabel } from '@/lib/post-utils';
 import { cn } from '@/lib/utils';
 import { EmptyState } from './empty-state';
 import type { QuizFolderMode, QuizReviewItem, TransFn } from './types';
@@ -45,6 +45,8 @@ type QuizReviewCardProps = {
 };
 
 function QuizReviewCard({ item, mode, trans }: QuizReviewCardProps) {
+    const subjectLabel = getSubjectLabel(item.subject_name, trans);
+
     return (
         <article>
             <div className="flex items-start justify-between gap-4">
@@ -72,9 +74,9 @@ function QuizReviewCard({ item, mode, trans }: QuizReviewCardProps) {
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
-                {item.subject_name ? (
+                {subjectLabel ? (
                     <span className="rounded-full bg-zinc-100 px-2 py-1 font-medium text-zinc-700">
-                        {item.subject_name}
+                        {subjectLabel}
                     </span>
                 ) : null}
                 <span className="rounded-full bg-zinc-100 px-2 py-1 font-medium text-zinc-600">

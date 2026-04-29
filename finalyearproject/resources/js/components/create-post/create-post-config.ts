@@ -1,8 +1,25 @@
-import { Activity, Atom, BookOpen, Calculator, Dna, Globe, GraduationCap, Landmark, Languages, Laptop, Music, Palette, Scissors, TestTube, type LucideIcon } from 'lucide-react';
+import {
+    Activity,
+    Atom,
+    BookOpen,
+    Calculator,
+    Dna,
+    Globe,
+    GraduationCap,
+    Landmark,
+    Languages,
+    Laptop,
+    Music,
+    Palette,
+    Scissors,
+    TestTube,
+    type LucideIcon,
+} from 'lucide-react';
 
 export const MAX_TITLE_LENGTH = 150;
 export const MAX_CONTENT_LENGTH = 2000;
-export const ACCEPTED_FILE_TYPES = 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation';
+export const ACCEPTED_FILE_TYPES =
+    'image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation';
 export const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB per file
 export const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 50MB total upload
 
@@ -31,10 +48,21 @@ export const pillSubmitButton =
 export const pillIconButton =
     'rounded-full border-2 border-zinc-200 bg-white p-2 text-zinc-500 shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-[#ef99b0] hover:bg-rose-50 hover:text-[#c94461] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300/50';
 
+export const QUIZ_AI_ANSWER_PLACEMENTS = [
+    'A',
+    'B',
+    'C',
+    'D',
+    'random',
+] as const;
+
+export type QuizAiAnswerPlacement = (typeof QUIZ_AI_ANSWER_PLACEMENTS)[number];
+
 export type QuizItem = {
     question: string;
     options: string[];
     answerIndex: string;
+    aiAnswerPlacement: QuizAiAnswerPlacement;
 };
 
 export type LocalAttachment = {
@@ -121,11 +149,21 @@ export type CreatePostText = {
     quizAnswerLabel: string;
     quizAnswerPlaceholder: string;
     quizRequiredHint: string;
+    quizAiAddOptions: string;
+    quizAiAddingOptions: string;
+    quizAiOptionsError: string;
+    quizAiQuestionRequired: string;
+    quizAiAnswerPlacementLabel: string;
+    quizAiAnswerPlacementRandom: string;
+    anonymousLabel: string;
+    anonymousHint: string;
     publishing: string;
     publishPost: string;
 };
 
-export const buildCreatePostText = (trans: (key: string) => string): CreatePostText => ({
+export const buildCreatePostText = (
+    trans: (key: string) => string,
+): CreatePostText => ({
     pageTitle: trans('createPost.page_title'),
     heading: trans('createPost.heading'),
     subtitle: trans('createPost.subtitle'),
@@ -203,6 +241,18 @@ export const buildCreatePostText = (trans: (key: string) => string): CreatePostT
     quizAnswerLabel: trans('createPost.quiz_answer_label'),
     quizAnswerPlaceholder: trans('createPost.quiz_answer_placeholder'),
     quizRequiredHint: trans('createPost.quiz_required_hint'),
+    quizAiAddOptions: trans('createPost.quiz_ai_add_options'),
+    quizAiAddingOptions: trans('createPost.quiz_ai_adding_options'),
+    quizAiOptionsError: trans('createPost.quiz_ai_options_error'),
+    quizAiQuestionRequired: trans('createPost.quiz_ai_question_required'),
+    quizAiAnswerPlacementLabel: trans(
+        'createPost.quiz_ai_answer_placement_label',
+    ),
+    quizAiAnswerPlacementRandom: trans(
+        'createPost.quiz_ai_answer_placement_random',
+    ),
+    anonymousLabel: trans('createPost.anonymous_label'),
+    anonymousHint: trans('createPost.anonymous_hint'),
     publishing: trans('createPost.publishing'),
     publishPost: trans('createPost.publish_post'),
 });
@@ -213,18 +263,44 @@ export const getSubjectIcon = (subjectName: string): LucideIcon => {
     if (lowerCaseName.includes('math')) return Calculator;
     if (lowerCaseName.includes('physics')) return Atom;
     if (lowerCaseName.includes('chemistry')) return TestTube;
-    if (lowerCaseName.includes('biology') || lowerCaseName.includes('science')) return Dna;
+    if (lowerCaseName.includes('biology') || lowerCaseName.includes('science'))
+        return Dna;
     if (lowerCaseName.includes('computer')) return Laptop;
     if (lowerCaseName.includes('islamic')) return BookOpen;
-    if (lowerCaseName.includes('moral') || lowerCaseName.includes('studies')) return BookOpen;
-    if (lowerCaseName.includes('language') || lowerCaseName.includes('english') || lowerCaseName.includes('chinese') || lowerCaseName.includes('tamil') || lowerCaseName.includes('malay')) return Languages;
+    if (lowerCaseName.includes('moral') || lowerCaseName.includes('studies'))
+        return BookOpen;
+    if (
+        lowerCaseName.includes('language') ||
+        lowerCaseName.includes('english') ||
+        lowerCaseName.includes('chinese') ||
+        lowerCaseName.includes('tamil') ||
+        lowerCaseName.includes('malay')
+    )
+        return Languages;
     if (lowerCaseName.includes('history')) return GraduationCap;
-    if (lowerCaseName.includes('geography') || lowerCaseName.includes('citizenship')) return Globe;
-    if (lowerCaseName.includes('economics') || lowerCaseName.includes('accounting') || lowerCaseName.includes('business')) return Landmark;
+    if (
+        lowerCaseName.includes('geography') ||
+        lowerCaseName.includes('citizenship')
+    )
+        return Globe;
+    if (
+        lowerCaseName.includes('economics') ||
+        lowerCaseName.includes('accounting') ||
+        lowerCaseName.includes('business')
+    )
+        return Landmark;
     if (lowerCaseName.includes('art')) return Palette;
     if (lowerCaseName.includes('music')) return Music;
-    if (lowerCaseName.includes('physical') || lowerCaseName.includes('education')) return Activity;
-    if (lowerCaseName.includes('design') || lowerCaseName.includes('technology')) return Scissors;
+    if (
+        lowerCaseName.includes('physical') ||
+        lowerCaseName.includes('education')
+    )
+        return Activity;
+    if (
+        lowerCaseName.includes('design') ||
+        lowerCaseName.includes('technology')
+    )
+        return Scissors;
 
     return BookOpen;
 };

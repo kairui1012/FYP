@@ -3,6 +3,7 @@
 return [
     'description' => 'Susun kiriman yang disimpan ke dalam folder tersuai supaya lebih mudah dirujuk semula.',
     'saved_items' => 'Kiriman disimpan',
+    'saved_quizzes' => 'Kuiz disimpan',
     'total_saves' => 'Jumlah simpanan',
     'no_bookmarks' => 'Belum ada kiriman dalam folder ini.',
     'save_posts' => 'Simpan kiriman dari halaman utama atau pindahkan ke folder lain di sini.',

@@ -52,8 +52,12 @@ export default function CreatePostPage() {
         updateQuizQuestion,
         updateQuizOption,
         updateQuizAnswerIndex,
+        updateQuizAiAnswerPlacement,
         addQuizOption,
         removeQuizOption,
+        generateQuizOptions,
+        generatingQuizOptionIds,
+        quizOptionErrors,
         selectedPostType,
         setSelectedPostType,
         selectedSubject,
@@ -183,12 +187,11 @@ export default function CreatePostPage() {
                             </button>
                             <div className="min-w-0 flex-1">
                                 <p className="text-base font-medium text-zinc-800">
-                                    Post Anonymously
+                                    {t.anonymousLabel}
                                 </p>
                                 {isAnonymous ? (
                                     <p className="mt-0.5 text-sm text-zinc-500">
-                                        Your name and avatar will be hidden from
-                                        others
+                                        {t.anonymousHint}
                                     </p>
                                 ) : null}
                             </div>
@@ -202,8 +205,16 @@ export default function CreatePostPage() {
                                 onUpdateQuestion={updateQuizQuestion}
                                 onUpdateOption={updateQuizOption}
                                 onUpdateAnswerIndex={updateQuizAnswerIndex}
+                                onUpdateAiAnswerPlacement={
+                                    updateQuizAiAnswerPlacement
+                                }
                                 onAddOption={addQuizOption}
                                 onRemoveOption={removeQuizOption}
+                                onGenerateQuizOptions={generateQuizOptions}
+                                generatingQuizOptionIds={
+                                    generatingQuizOptionIds
+                                }
+                                quizOptionErrors={quizOptionErrors}
                                 text={{
                                     quizSectionTitle: t.quizSectionTitle,
                                     quizSectionHint: t.quizSectionHint,
@@ -223,6 +234,12 @@ export default function CreatePostPage() {
                                     quizAnswerPlaceholder:
                                         t.quizAnswerPlaceholder,
                                     quizRequiredHint: t.quizRequiredHint,
+                                    quizAiAddOptions: t.quizAiAddOptions,
+                                    quizAiAddingOptions: t.quizAiAddingOptions,
+                                    quizAiAnswerPlacementLabel:
+                                        t.quizAiAnswerPlacementLabel,
+                                    quizAiAnswerPlacementRandom:
+                                        t.quizAiAnswerPlacementRandom,
                                 }}
                             />
                         ) : null}

@@ -1,5 +1,11 @@
+import { useState } from 'react';
 import { BtnAiAns } from '@/components/ui/btn-ai-ans';
 import type { PostContentTransFn, QuizData, QuizResultState } from './types';
+
+type TranslatedQuestion = {
+    question: string;
+    options: string[];
+};
 
 type PostQuizPanelProps = {
     postId: number;
@@ -24,15 +30,32 @@ export function PostQuizPanel({
     onAnswerSelect,
     onCheckAnswer,
 }: PostQuizPanelProps) {
+    const [translatedQuestions, setTranslatedQuestions] = useState<
+        Record<number, TranslatedQuestion>
+    >({});
+
     if (!quizData) {
         return null;
     }
+
+    const handleTranslateQuestion = (
+        questionIndex: number,
+        translated: TranslatedQuestion,
+    ) => {
+        setTranslatedQuestions((prev) => ({
+            ...prev,
+            [questionIndex]: translated,
+        }));
+    };
 
     return (
         <div className="mx-4 mb-7 space-y-4">
             {quizData.questions.map((question, questionIndex) => {
                 const selected = selectedAnswers[questionIndex] ?? '';
                 const result = resultStates[questionIndex] ?? null;
+                const translated = translatedQuestions[questionIndex];
+                const displayQuestion = translated?.question ?? question.question;
+                const displayOptions = translated?.options ?? question.options;
 
                 return (
                     <div
@@ -44,16 +67,21 @@ export function PostQuizPanel({
                                 Q{questionIndex + 1}
                             </p>
                         )}
-                        {question.question && (
+                        {displayQuestion && (
                             <p className="mb-2 text-sm font-semibold text-zinc-800">
-                                {question.question}
+                                {displayQuestion}
+                            </p>
+                        )}
+                        {translated && (
+                            <p className="mb-2 text-xs text-zinc-400 italic">
+                                {trans('createPost.quiz_ai_translated_label', page)}: {question.question}
                             </p>
                         )}
                         <p className="text-sm font-semibold text-amber-800">
                             {trans('createPost.quiz_take_label', page)}
                         </p>
                         <div className="mt-3 space-y-2">
-                            {question.options.map((option, index) => {
+                            {displayOptions.map((option, index) => {
                                 const optionLabel = String.fromCharCode(
                                     65 + index,
                                 );
@@ -94,6 +122,9 @@ export function PostQuizPanel({
                             selected={selected}
                             manualResult={result}
                             onCheckAnswer={() => onCheckAnswer(questionIndex)}
+                            onTranslateQuestion={(t) =>
+                                handleTranslateQuestion(questionIndex, t)
+                            }
                         />
 
                         {selected === '' && (

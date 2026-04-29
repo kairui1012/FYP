@@ -5,6 +5,31 @@ export function getLanguageLabel(code?: string) {
     return code ?? 'Unknown';
 }
 
+export function getSubjectLabel(
+    subjectName: string | null | undefined,
+    trans: (key: string) => string,
+) {
+    if (!subjectName) return '';
+
+    const key = `subjects.${subjectName}`;
+    const translated = trans(key);
+
+    return translated === key ? subjectName : translated;
+}
+
+export function getSubjectLabelFromPage<PageContext>(
+    subjectName: string | null | undefined,
+    trans: (key: string, page: PageContext) => string,
+    page: PageContext,
+) {
+    if (!subjectName) return '';
+
+    const key = `subjects.${subjectName}`;
+    const translated = trans(key, page);
+
+    return translated === key ? subjectName : translated;
+}
+
 export function formatTimeAgo(dateString: string) {
     const now = new Date().getTime();
     const target = new Date(dateString).getTime();

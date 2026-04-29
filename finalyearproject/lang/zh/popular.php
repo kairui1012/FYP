@@ -1,14 +1,16 @@
 <?php
 
 return [
-    'description' => '根据所选时间范围内的点赞数进行排序。',
-    'hot_posts' => '热门帖子',
-    'posts' => '帖子数',
-    'likes' => '点赞数',
+    'description' => '根据所选时间范围内的帮助标记数排列学习帖子。',
+    'hot_posts' => '学习亮点',
+    'posts' => '学习帖子',
+    'likes' => '帮助标记数',
     'today' => '今日',
     'week' => '本周',
     'month' => '本月',
     'all' => '全部',
-    'no_posts' => '这个时间段还没有热门帖子。',
+    'hottest' => '最有帮助',
+    'newest' => '最新',
+    'no_posts' => '这个时间段还没有学习亮点。',
     'try_other_range' => '可以换个时间范围再看看。',
 ];

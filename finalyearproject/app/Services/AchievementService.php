@@ -31,9 +31,13 @@ class AchievementService
             $user->refresh();
         }
 
-        // Keep total_questions_posted in sync with actual post count
+        $questionPostsCount = $user->posts()->where('post_type', 'question')->count();
+
         UserProgress::where('user_id', $user->id)
-            ->update(['total_questions_posted' => $postsCount]);
+            ->update([
+                'total_post_posted'      => $postsCount,
+                'total_questions_posted' => $questionPostsCount,
+            ]);
 
         $eligibleBadgeIds = Badge::query()
             ->where('points_required', '<=', $points)
@@ -105,9 +109,9 @@ class AchievementService
             'top_contributor'     => $progress->total_likes_received >= 50,
 
             // ── Posting ──────────────────────────────────────────────────────
-            'first_post'          => $progress->total_questions_posted >= 1,
-            'active_author'       => $progress->total_questions_posted >= 20,
-            'prolific_poster'     => $progress->total_questions_posted >= 50,
+            'first_post'          => $progress->total_post_posted >= 1,
+            'active_author'       => $progress->total_post_posted >= 20,
+            'prolific_poster'     => $progress->total_post_posted >= 50,
 
             // ── Commenting ───────────────────────────────────────────────────
             'first_comment'       => $commentsCount >= 1,

@@ -4,7 +4,7 @@ import type { ComponentProps } from 'react';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnFollow } from '@/components/ui/btn-follow';
-import { formatTimeAgo } from '@/lib/post-utils';
+import { formatTimeAgo, getSubjectLabelFromPage } from '@/lib/post-utils';
 import type { PostItem } from '@/types';
 import {
     getLangBadgeProps,
@@ -52,6 +52,11 @@ function PostBadges({
     const { bg: langBg, text: langText } = getLangBadgeProps(code);
     const languageLabel = trans(`language_label.${code}`, page);
     const { bg: subjectBg, text: subjectText } = getSubjectBadgeProps();
+    const subjectLabel = getSubjectLabelFromPage(
+        post.subject?.name,
+        trans,
+        page,
+    );
 
     return (
         <div className="flex flex-wrap items-center gap-1.5 text-sm text-zinc-500">
@@ -65,11 +70,11 @@ function PostBadges({
             >
                 {languageLabel}
             </span>
-            {post.subject?.name ? (
+            {subjectLabel ? (
                 <span
                     className={`rounded-full px-2 py-0.5 font-medium ${subjectBg} ${subjectText}`}
                 >
-                    {post.subject.name}
+                    {subjectLabel}
                 </span>
             ) : null}
         </div>

@@ -17,9 +17,7 @@ import type {
 import AppLayout from '@/layouts/app-layout';
 import type { BookmarkFolderItem, BreadcrumbItem } from '@/types';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'My Study Folder', href: '/bookmarks' },
-];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'My Study Folder', href: '/bookmarks' }];
 
 function withCsrfHeaders() {
     const csrfToken =

@@ -95,6 +95,7 @@ export function PodiumCard({
                 <div className="flex items-center gap-3">
                     {user.is_anonymous ? (
                         <Avatar
+                            key={`${user.id}-anon`}
                             className={
                                 user.rank === 1 ? 'h-16 w-16' : 'h-12 w-12'
                             }
@@ -105,6 +106,7 @@ export function PodiumCard({
                         </Avatar>
                     ) : (
                         <Avatar
+                            key={`${user.id}-public`}
                             className={
                                 user.rank === 1 ? 'h-16 w-16' : 'h-12 w-12'
                             }

@@ -3,6 +3,7 @@
 return [
     'description' => '把已收藏的帖子分到自定义收藏夹里，方便按主题整理和回看。',
     'saved_items' => '已收藏帖子',
+    'saved_quizzes' => '已收藏测验',
     'total_saves' => '收藏总数',
     'no_bookmarks' => '这个收藏夹里还没有帖子。',
     'save_posts' => '先从首页收藏帖子，或者把帖子移动到其他收藏夹。',

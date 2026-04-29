@@ -66,7 +66,7 @@ export const DEFAULT_LANGUAGE_STYLE: LanguageTagStyle = {
     active: 'border-zinc-700 bg-zinc-100 text-zinc-900 dark:border-zinc-300 dark:bg-zinc-800 dark:text-zinc-100',
     inactive:
         'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-500 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:bg-zinc-800/70',
-    countActive: 'bg-white/25 text-white',
+    countActive: 'bg-zinc-700 text-white dark:bg-zinc-300 dark:text-zinc-900',
     countInactive:
         'bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-200',
 };

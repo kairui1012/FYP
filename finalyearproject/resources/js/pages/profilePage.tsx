@@ -918,6 +918,9 @@ export default function ProfilePage() {
                                         <div className="absolute right-3 bottom-0 h-10 w-10 rounded-full bg-amber-100 ring-4 ring-white" />
                                     </div>
                                     <h2 className="text-lg font-bold text-zinc-900">{t.noPostsYet}</h2>
+                                    <p className="mt-2 max-w-md text-sm leading-6 text-zinc-600">
+                                        {trans('profile.earn_badges_hint')}
+                                    </p>
                                 </div>
                             </div>
                         ) : (

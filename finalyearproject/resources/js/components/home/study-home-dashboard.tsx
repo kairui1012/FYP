@@ -14,7 +14,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { formatTimeAgo } from '@/lib/post-utils';
+import { formatTimeAgo, getSubjectLabelFromPage } from '@/lib/post-utils';
 import { cn } from '@/lib/utils';
 import { achievements } from '@/routes';
 import { getPostTypeBadgeProps, transFromPage } from './home-page-text';
@@ -230,6 +230,8 @@ export function StudyHomeDashboard({
         : null;
 
     const t = (key: string) => transFromPage(key, page as never);
+    const subjectLabel = (subjectName: string | null | undefined) =>
+        getSubjectLabelFromPage(subjectName, transFromPage, page);
 
     return (
         <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
@@ -355,7 +357,9 @@ export function StudyHomeDashboard({
                                                     </span>
                                                     {post.subject_name ? (
                                                         <span>
-                                                            {post.subject_name}
+                                                            {subjectLabel(
+                                                                post.subject_name,
+                                                            )}
                                                         </span>
                                                     ) : null}
                                                     {overview?.latest_posts
@@ -462,7 +466,9 @@ export function StudyHomeDashboard({
                                         <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
                                             {mistake.subject_name ? (
                                                 <span>
-                                                    {mistake.subject_name}
+                                                    {subjectLabel(
+                                                        mistake.subject_name,
+                                                    )}
                                                 </span>
                                             ) : null}
                                             <span>

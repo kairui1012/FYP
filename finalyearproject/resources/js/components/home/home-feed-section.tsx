@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { reactLang } from '@erag/lang-sync-inertia';
 import { ArrowRight, Search, UsersRound } from 'lucide-react';
 import { PostAttachments } from '@/components/post-attachments';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
@@ -9,7 +10,7 @@ import { BtnLike } from '@/components/ui/btn-like';
 import { BtnSave } from '@/components/ui/btn-save';
 import { BtnShare } from '@/components/ui/btn-share';
 import { formatFormulaText } from '@/lib/formula-display';
-import { formatTimeAgo } from '@/lib/post-utils';
+import { formatTimeAgo, getSubjectLabel } from '@/lib/post-utils';
 import type { PostItem } from '@/types';
 import {
     getLangBadgeProps,
@@ -124,6 +125,7 @@ export function HomeFeedSection({
     onToggleFollow,
     text,
 }: HomeFeedSectionProps) {
+    const { trans } = reactLang();
     const languageLabelByCode: Record<string, string> = {
         en: text.langEn,
         zh: text.langZh,
@@ -342,11 +344,16 @@ export function HomeFeedSection({
                                                       bg,
                                                       text: subjectTextClass,
                                                   } = getSubjectBadgeProps();
+                                                  const subjectLabel =
+                                                      getSubjectLabel(
+                                                          post.subject?.name,
+                                                          trans,
+                                                      );
                                                   return (
                                                       <span
                                                           className={`rounded-full px-2 py-0.5 font-medium ${bg} ${subjectTextClass}`}
                                                       >
-                                                          {post.subject.name}
+                                                          {subjectLabel}
                                                       </span>
                                                   );
                                               })()

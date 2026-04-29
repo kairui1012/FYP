@@ -18,7 +18,7 @@ export function StudyFolderHeader({
             <div className="flex flex-wrap items-start justify-between gap-6">
                 <div className="max-w-2xl">
                     <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
-                        My Study Folder
+                        {trans('navigation.bookmarks')}
                     </h1>
                     <p className="mt-2 text-sm leading-6 text-zinc-600">
                         {trans('bookmark.description')}
@@ -28,12 +28,12 @@ export function StudyFolderHeader({
                 <div className="flex w-full flex-wrap items-center gap-2.5 lg:justify-end">
                     <StatusPill
                         icon={<Bookmark className="h-4 w-4" />}
-                        label="Saved Posts"
+                        label={trans('bookmark.saved_items')}
                         value={totalSaves}
                     />
                     <StatusPill
                         icon={<BookOpen className="h-4 w-4" />}
-                        label="Saved Quizzes"
+                        label={trans('bookmark.saved_quizzes')}
                         value={savedQuizzesCount}
                     />
                 </div>

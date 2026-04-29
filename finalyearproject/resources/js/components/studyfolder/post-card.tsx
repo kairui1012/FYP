@@ -4,7 +4,11 @@ import { lazy, Suspense } from 'react';
 import { BtnSave } from '@/components/ui/btn-save';
 import { QuizStatusBadge } from '@/components/ui/quiz-status-badge';
 import { formatFormulaText } from '@/lib/formula-display';
-import { formatTimeAgo, getLanguageLabel } from '@/lib/post-utils';
+import {
+    formatTimeAgo,
+    getLanguageLabel,
+    getSubjectLabel,
+} from '@/lib/post-utils';
 import type { BookmarkFolderItem, PostItem } from '@/types';
 import {
     getFirstQuizQuestion,
@@ -51,6 +55,7 @@ export function PostCard({
               ? 'question'
               : 'material';
     const { bg, text } = getPostTypeBadgeProps(type);
+    const subjectLabel = getSubjectLabel(post.subject?.name, trans);
     const typeLabel =
         type === 'quiz'
             ? trans('createPost.create_quiz')
@@ -170,7 +175,7 @@ export function PostCard({
                     </span>
                 ) : null}
 
-                {post.subject?.name
+                {subjectLabel
                     ? (() => {
                           const { bg: subjectBg, text: subjectText } =
                               getSubjectBadgeProps();
@@ -178,7 +183,7 @@ export function PostCard({
                               <span
                                   className={`rounded-full px-2.5 py-1 text-xs font-medium ${subjectBg} ${subjectText}`}
                               >
-                                  {post.subject.name}
+                                  {subjectLabel}
                               </span>
                           );
                       })()

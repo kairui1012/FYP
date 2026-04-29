@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { CheckCircle2, Circle, Loader2, Sparkles, XCircle } from 'lucide-react';
+import { CheckCircle2, Circle, Languages, Loader2, Sparkles, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { explainAnswer, type QuizAiAnalysis } from '@/lib/ai-explain';
 
 type ManualResult = 'correct' | 'wrong' | null;
 
 type TransFn = (key: string, page: unknown) => string;
+
+type TranslatedQuestion = {
+    question: string;
+    options: string[];
+};
 
 type Props = {
     page: unknown;
@@ -16,6 +21,7 @@ type Props = {
     selected: string;
     manualResult: ManualResult;
     onCheckAnswer: () => void;
+    onTranslateQuestion?: (translated: TranslatedQuestion) => void;
 };
 
 function StatusBadge({
@@ -107,6 +113,36 @@ function AnalysisBadge({
     );
 }
 
+async function translateTexts(texts: string[]): Promise<Record<string, string>> {
+    const res = await fetch('/translate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN':
+                document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+                    ?.content ?? '',
+        },
+        body: JSON.stringify({ texts, provider: 'deepseek' }),
+    });
+    if (!res.ok) {
+        const fallback = await fetch('/translate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN':
+                    document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+                        ?.content ?? '',
+            },
+            body: JSON.stringify({ texts, provider: 'gemini' }),
+        });
+        if (!fallback.ok) throw new Error('Translation failed');
+        const { translations } = await fallback.json();
+        return translations;
+    }
+    const { translations } = await res.json();
+    return translations;
+}
+
 export function BtnAiAns({
     page,
     trans,
@@ -116,10 +152,14 @@ export function BtnAiAns({
     selected,
     manualResult,
     onCheckAnswer,
+    onTranslateQuestion,
 }: Props) {
     const [analysis, setAnalysis] = useState<QuizAiAnalysis | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [translating, setTranslating] = useState(false);
+    const [translateError, setTranslateError] = useState<string | null>(null);
+    const [translated, setTranslated] = useState(false);
     const cacheRef = useRef<Record<string, QuizAiAnalysis>>({});
     const inFlightRef = useRef<string | null>(null);
     const mountedRef = useRef(true);
@@ -142,6 +182,27 @@ export function BtnAiAns({
         setAnalysis(null);
         setError(null);
     }, [cacheKey]);
+
+    const handleTranslate = async () => {
+        if (translating || translated || !onTranslateQuestion) return;
+        setTranslateError(null);
+        setTranslating(true);
+        try {
+            const texts = [question, ...options];
+            const result = await translateTexts(texts);
+            if (!mountedRef.current) return;
+            onTranslateQuestion({
+                question: result[question] ?? question,
+                options: options.map((opt) => result[opt] ?? opt),
+            });
+            setTranslated(true);
+        } catch {
+            if (!mountedRef.current) return;
+            setTranslateError(trans('createPost.quiz_ai_translate_error', page));
+        } finally {
+            if (mountedRef.current) setTranslating(false);
+        }
+    };
 
     const handleAiAnswer = async () => {
         if (loading || selected === '') {
@@ -237,6 +298,30 @@ export function BtnAiAns({
                         : trans('createPost.quiz_ai_answer', page)}
                 </button>
 
+                {onTranslateQuestion && (
+                    <button
+                        type="button"
+                        onClick={() => void handleTranslate()}
+                        disabled={translating || translated}
+                        className={cn(
+                            'inline-flex items-center gap-2 rounded-full border-2 border-sky-400 bg-linear-to-r from-sky-400 to-sky-500 px-4 py-2 text-sm font-semibold text-white transition-all duration-200',
+                            'hover:border-sky-600 hover:from-sky-100 hover:to-sky-200 hover:text-sky-800',
+                            'disabled:cursor-not-allowed disabled:opacity-60',
+                        )}
+                    >
+                        {translating ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Languages className="h-4 w-4" />
+                        )}
+                        {translating
+                            ? trans('createPost.quiz_ai_translate_loading', page)
+                            : translated
+                              ? trans('createPost.quiz_ai_translated_label', page)
+                              : trans('createPost.quiz_ai_translate', page)}
+                    </button>
+                )}
+
                 <StatusBadge
                     status={manualStatus}
                     label={
@@ -248,6 +333,12 @@ export function BtnAiAns({
                     }
                 />
             </div>
+
+            {translateError && (
+                <p className="mt-2 text-xs font-medium text-rose-600">
+                    {translateError}
+                </p>
+            )}
 
             {(analysis !== null || error !== null) && (
                 <div

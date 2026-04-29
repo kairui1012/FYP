@@ -1,5 +1,5 @@
-import { Plus, Trash2, X } from 'lucide-react';
-import type { QuizItem } from './create-post-config';
+import { Loader2, Plus, Sparkles, Trash2, X } from 'lucide-react';
+import type { QuizAiAnswerPlacement, QuizItem } from './create-post-config';
 
 const MAX_OPTIONS = 8;
 const MIN_OPTIONS = 2;
@@ -11,8 +11,15 @@ type QuizSetupSectionProps = {
     onUpdateQuestion: (qIndex: number, value: string) => void;
     onUpdateOption: (qIndex: number, optIndex: number, value: string) => void;
     onUpdateAnswerIndex: (qIndex: number, value: string) => void;
+    onUpdateAiAnswerPlacement: (
+        qIndex: number,
+        value: QuizAiAnswerPlacement,
+    ) => void;
     onAddOption: (qIndex: number) => void;
     onRemoveOption: (qIndex: number, optIndex: number) => void;
+    onGenerateQuizOptions: (qIndex: number) => void;
+    generatingQuizOptionIds: number[];
+    quizOptionErrors: Record<number, string>;
     text: {
         quizSectionTitle: string;
         quizSectionHint: string;
@@ -28,6 +35,10 @@ type QuizSetupSectionProps = {
         quizAnswerLabel: string;
         quizAnswerPlaceholder: string;
         quizRequiredHint: string;
+        quizAiAddOptions: string;
+        quizAiAddingOptions: string;
+        quizAiAnswerPlacementLabel: string;
+        quizAiAnswerPlacementRandom: string;
     };
 };
 
@@ -38,21 +49,38 @@ export function QuizSetupSection({
     onUpdateQuestion,
     onUpdateOption,
     onUpdateAnswerIndex,
+    onUpdateAiAnswerPlacement,
     onAddOption,
     onRemoveOption,
+    onGenerateQuizOptions,
+    generatingQuizOptionIds,
+    quizOptionErrors,
     text,
 }: QuizSetupSectionProps) {
     return (
         <div className="space-y-4">
             <div>
-                <p className="text-base font-semibold text-amber-800 dark:text-amber-300">{text.quizSectionTitle}</p>
-                <p className="text-sm text-amber-700 dark:text-amber-400">{text.quizSectionHint}</p>
+                <p className="text-base font-semibold text-amber-800 dark:text-amber-300">
+                    {text.quizSectionTitle}
+                </p>
+                <p className="text-sm text-amber-700 dark:text-amber-400">
+                    {text.quizSectionHint}
+                </p>
             </div>
 
             <div className="space-y-4">
                 {quizzes.map((quiz, qIndex) => {
                     const canRemoveOption = quiz.options.length > MIN_OPTIONS;
                     const canAddOption = quiz.options.length < MAX_OPTIONS;
+                    const isGeneratingOptions =
+                        generatingQuizOptionIds.includes(qIndex);
+                    const answerPlacementOptions: QuizAiAnswerPlacement[] = [
+                        'A',
+                        'B',
+                        'C',
+                        'D',
+                        'random',
+                    ];
 
                     return (
                         <div
@@ -64,16 +92,35 @@ export function QuizSetupSection({
                                 <span className="text-sm font-bold text-amber-700 dark:text-amber-400">
                                     {text.quizNumberLabel} {qIndex + 1}
                                 </span>
-                                {quizzes.length > 1 && (
+                                <div className="flex items-center gap-2">
                                     <button
                                         type="button"
-                                        onClick={() => onRemoveQuiz(qIndex)}
-                                        title={text.quizRemoveQuiz}
-                                        className="flex h-7 w-7 items-center justify-center rounded-full bg-red-100 text-red-500 transition-all hover:scale-110 hover:bg-red-200 active:scale-95 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-800/50"
+                                        onClick={() =>
+                                            onGenerateQuizOptions(qIndex)
+                                        }
+                                        disabled={isGeneratingOptions}
+                                        className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:border-amber-500 hover:bg-amber-100 disabled:pointer-events-none disabled:opacity-60 dark:border-amber-700 dark:bg-zinc-900 dark:text-amber-300 dark:hover:bg-amber-950/40"
                                     >
-                                        <Trash2 className="h-3.5 w-3.5" />
+                                        {isGeneratingOptions ? (
+                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                            <Sparkles className="h-3.5 w-3.5" />
+                                        )}
+                                        {isGeneratingOptions
+                                            ? text.quizAiAddingOptions
+                                            : text.quizAiAddOptions}
                                     </button>
-                                )}
+                                    {quizzes.length > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => onRemoveQuiz(qIndex)}
+                                            title={text.quizRemoveQuiz}
+                                            className="flex h-7 w-7 items-center justify-center rounded-full bg-red-100 text-red-500 transition-all hover:scale-110 hover:bg-red-200 active:scale-95 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-800/50"
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Question input */}
@@ -81,38 +128,96 @@ export function QuizSetupSection({
                                 <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                                     {text.quizQuestionInputLabel}
                                 </label>
-                                <input
-                                    type="text"
+                                <textarea
                                     value={quiz.question}
-                                    onChange={(e) => onUpdateQuestion(qIndex, e.target.value)}
+                                    onChange={(e) =>
+                                        onUpdateQuestion(qIndex, e.target.value)
+                                    }
                                     placeholder={text.quizQuestionPlaceholder}
-                                    className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition placeholder:text-zinc-500 focus:bg-zinc-100 focus:ring-0 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:bg-zinc-700"
+                                    rows={3}
+                                    className="min-h-24 w-full resize-y rounded-xl border-0 bg-white px-4 py-3 text-sm text-zinc-800 transition outline-none placeholder:text-zinc-500 focus:bg-zinc-100 focus:ring-0 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:bg-zinc-700"
                                 />
+                            </div>
+
+                            <div className="mb-4 space-y-2">
+                                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                    {text.quizAiAnswerPlacementLabel}
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {answerPlacementOptions.map((placement) => {
+                                        const isSelected =
+                                            quiz.aiAnswerPlacement ===
+                                            placement;
+                                        const label =
+                                            placement === 'random'
+                                                ? text.quizAiAnswerPlacementRandom
+                                                : placement;
+
+                                        return (
+                                            <button
+                                                key={placement}
+                                                type="button"
+                                                onClick={() =>
+                                                    onUpdateAiAnswerPlacement(
+                                                        qIndex,
+                                                        placement,
+                                                    )
+                                                }
+                                                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                                                    isSelected
+                                                        ? 'border-amber-600 bg-amber-500 text-white shadow-sm'
+                                                        : 'border-amber-300 bg-white text-amber-700 hover:border-amber-500 hover:bg-amber-100 dark:border-amber-700 dark:bg-zinc-900 dark:text-amber-300 dark:hover:bg-amber-950/40'
+                                                }`}
+                                            >
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
 
                             {/* Options grid */}
                             <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 {quiz.options.map((option, optIndex) => {
-                                    const optionLabel = String.fromCharCode(65 + optIndex);
+                                    const optionLabel = String.fromCharCode(
+                                        65 + optIndex,
+                                    );
                                     return (
-                                        <div key={optIndex} className="group relative space-y-1">
+                                        <div
+                                            key={optIndex}
+                                            className="group relative space-y-1"
+                                        >
                                             <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                                                {text.quizOptionLabel} {optionLabel}
+                                                {text.quizOptionLabel}{' '}
+                                                {optionLabel}
                                             </label>
                                             <div className="relative">
                                                 <input
                                                     type="text"
                                                     value={option}
-                                                    onChange={(e) => onUpdateOption(qIndex, optIndex, e.target.value)}
+                                                    onChange={(e) =>
+                                                        onUpdateOption(
+                                                            qIndex,
+                                                            optIndex,
+                                                            e.target.value,
+                                                        )
+                                                    }
                                                     placeholder={`${text.quizOptionPlaceholder} ${optionLabel}`}
-                                                    className="w-full rounded-xl border-0 bg-white px-4 py-3 pr-9 text-sm text-zinc-800 outline-none transition placeholder:text-zinc-500 focus:bg-zinc-100 focus:ring-0 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:bg-zinc-700"
+                                                    className="w-full rounded-xl border-0 bg-white px-4 py-3 pr-9 text-sm text-zinc-800 transition outline-none placeholder:text-zinc-500 focus:bg-zinc-100 focus:ring-0 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:bg-zinc-700"
                                                 />
                                                 {canRemoveOption && (
                                                     <button
                                                         type="button"
-                                                        onClick={() => onRemoveOption(qIndex, optIndex)}
-                                                        title={text.quizRemoveOption}
-                                                        className="absolute right-2 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-200 text-zinc-500 opacity-0 transition-all hover:bg-red-100 hover:text-red-600 group-hover:opacity-100 dark:bg-zinc-700 dark:text-zinc-400 dark:hover:bg-red-900/40 dark:hover:text-red-400"
+                                                        onClick={() =>
+                                                            onRemoveOption(
+                                                                qIndex,
+                                                                optIndex,
+                                                            )
+                                                        }
+                                                        title={
+                                                            text.quizRemoveOption
+                                                        }
+                                                        className="absolute top-1/2 right-2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-zinc-200 text-zinc-500 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-100 hover:text-red-600 dark:bg-zinc-700 dark:text-zinc-400 dark:hover:bg-red-900/40 dark:hover:text-red-400"
                                                     >
                                                         <X className="h-3 w-3" />
                                                     </button>
@@ -150,20 +255,37 @@ export function QuizSetupSection({
                                 <select
                                     id={`quiz-answer-${qIndex}`}
                                     value={quiz.answerIndex}
-                                    onChange={(e) => onUpdateAnswerIndex(qIndex, e.target.value)}
-                                    className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:bg-zinc-100 focus:ring-0 dark:bg-zinc-800 dark:text-zinc-100 dark:focus:bg-zinc-700"
+                                    onChange={(e) =>
+                                        onUpdateAnswerIndex(
+                                            qIndex,
+                                            e.target.value,
+                                        )
+                                    }
+                                    className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-zinc-800 transition outline-none focus:bg-zinc-100 focus:ring-0 dark:bg-zinc-800 dark:text-zinc-100 dark:focus:bg-zinc-700"
                                 >
-                                    <option value="">{text.quizAnswerPlaceholder}</option>
+                                    <option value="">
+                                        {text.quizAnswerPlaceholder}
+                                    </option>
                                     {quiz.options.map((_, optIndex) => {
-                                        const optionLabel = String.fromCharCode(65 + optIndex);
+                                        const optionLabel = String.fromCharCode(
+                                            65 + optIndex,
+                                        );
                                         return (
-                                            <option key={optIndex} value={optIndex}>
+                                            <option
+                                                key={optIndex}
+                                                value={optIndex}
+                                            >
                                                 {optionLabel}
                                             </option>
                                         );
                                     })}
                                 </select>
                             </div>
+                            {quizOptionErrors[qIndex] ? (
+                                <p className="mt-3 text-xs font-medium text-red-600 dark:text-red-400">
+                                    {quizOptionErrors[qIndex]}
+                                </p>
+                            ) : null}
                         </div>
                     );
                 })}
@@ -182,7 +304,9 @@ export function QuizSetupSection({
                 {text.quizAddQuiz}
             </button>
 
-            <p className="text-xs text-amber-700 dark:text-amber-400">{text.quizRequiredHint}</p>
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+                {text.quizRequiredHint}
+            </p>
         </div>
     );
 }

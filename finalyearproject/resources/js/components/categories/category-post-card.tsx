@@ -8,7 +8,11 @@ import { BtnLike } from '@/components/ui/btn-like';
 import { BtnSave } from '@/components/ui/btn-save';
 import { BtnShare } from '@/components/ui/btn-share';
 import { formatFormulaText } from '@/lib/formula-display';
-import { formatTimeAgo, getLanguageLabel } from '@/lib/post-utils';
+import {
+    formatTimeAgo,
+    getLanguageLabel,
+    getSubjectLabel,
+} from '@/lib/post-utils';
 import type { PostItem } from '@/types';
 import { getLangBadgeProps, getPostTypeBadgeProps } from './categories-config';
 import type { TransFn } from './types';
@@ -57,6 +61,7 @@ export function CategoryPostCard({
               : trans('createPost.share_material');
     const langCode = post.language?.code ?? 'en';
     const { bg: langBg, text: langText } = getLangBadgeProps(langCode);
+    const subjectLabel = getSubjectLabel(post.subject?.name, trans);
 
     return (
         <div>
@@ -94,7 +99,9 @@ export function CategoryPostCard({
                                     {post.user?.avatar && (
                                         <AvatarImage
                                             src={post.user.avatar}
-                                            alt={post.user?.name ?? 'User avatar'}
+                                            alt={
+                                                post.user?.name ?? 'User avatar'
+                                            }
                                         />
                                     )}
                                     <AvatarFallback className="bg-zinc-200 text-sm font-semibold text-zinc-700">
@@ -119,7 +126,9 @@ export function CategoryPostCard({
                                                 : '/profilePage'
                                         }
                                         className="cursor-pointer font-semibold text-zinc-900 transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89]"
-                                        onClick={(event) => event.stopPropagation()}
+                                        onClick={(event) =>
+                                            event.stopPropagation()
+                                        }
                                     >
                                         {post.user?.name ?? 'Unknown User'}
                                     </Link>
@@ -129,7 +138,8 @@ export function CategoryPostCard({
                                         title={post.user?.leaderboard_title}
                                     />
                                 )}
-                                {!post.is_anonymous && post.user?.id &&
+                                {!post.is_anonymous &&
+                                    post.user?.id &&
                                     currentUserId &&
                                     post.user.id !== currentUserId && (
                                         <BtnFollow
@@ -157,9 +167,9 @@ export function CategoryPostCard({
                                     {post.language?.name ??
                                         getLanguageLabel(langCode)}
                                 </span>
-                                {post.subject?.name && (
+                                {subjectLabel && (
                                     <span className="rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
-                                        {post.subject.name}
+                                        {subjectLabel}
                                     </span>
                                 )}
                             </div>

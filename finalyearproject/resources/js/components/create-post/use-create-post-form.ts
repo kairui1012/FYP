@@ -1,5 +1,14 @@
 import { router } from '@inertiajs/react';
-import { ChangeEvent, DragEvent, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import {
+    ChangeEvent,
+    DragEvent,
+    FormEvent,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
+import { requestQuizOptions } from '@/lib/ai-quiz-options';
 import { formatFormulaText } from '@/lib/formula-display';
 import type { PostSubject } from '@/types';
 import {
@@ -12,6 +21,7 @@ import {
     POST_TYPE_OPTIONS,
     type CreatePostText,
     type LocalAttachment,
+    type QuizAiAnswerPlacement,
     type QuizItem,
     getSubjectIcon,
 } from './create-post-config';
@@ -22,16 +32,45 @@ type UseCreatePostFormParams = {
     trans: (key: string) => string;
 };
 
-export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParams) {
+const AI_QUIZ_OPTION_COUNT = 4;
+
+const createEmptyQuizOptions = () =>
+    Array.from({ length: AI_QUIZ_OPTION_COUNT }, () => '');
+
+const createEmptyQuiz = (): QuizItem => ({
+    question: '',
+    options: createEmptyQuizOptions(),
+    answerIndex: '',
+    aiAnswerPlacement: 'random',
+});
+
+const applyGeneratedOptionsToQuiz = (
+    currentOptions: string[],
+    generatedOptions: string[],
+) => {
+    const normalizedGeneratedOptions = Array.from(
+        { length: AI_QUIZ_OPTION_COUNT },
+        (_, index) => generatedOptions[index] ?? currentOptions[index] ?? '',
+    );
+
+    return [
+        ...normalizedGeneratedOptions,
+        ...currentOptions.slice(AI_QUIZ_OPTION_COUNT),
+    ];
+};
+
+export function useCreatePostForm({
+    subjects,
+    t,
+    trans,
+}: UseCreatePostFormParams) {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null);
     const attachmentsRef = useRef<LocalAttachment[]>([]);
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [quizzes, setQuizzes] = useState<QuizItem[]>([
-        { question: '', options: ['', '', '', ''], answerIndex: '' },
-    ]);
+    const [quizzes, setQuizzes] = useState<QuizItem[]>([createEmptyQuiz()]);
     const [selectedPostType, setSelectedPostType] = useState<string>('');
     const [selectedSubject, setSelectedSubject] = useState<string>('');
     const [selectedLanguage, setSelectedLanguage] = useState<string>('');
@@ -41,6 +80,12 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [fileError, setFileError] = useState<string | null>(null);
+    const [generatingQuizOptionIds, setGeneratingQuizOptionIds] = useState<
+        number[]
+    >([]);
+    const [quizOptionErrors, setQuizOptionErrors] = useState<
+        Record<number, string>
+    >({});
 
     useEffect(() => {
         attachmentsRef.current = attachments;
@@ -56,19 +101,39 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
         };
     }, []);
 
-    const remainingTitleChars = useMemo(() => MAX_TITLE_LENGTH - title.length, [title.length]);
-    const remainingContentChars = useMemo(() => MAX_CONTENT_LENGTH - content.length, [content.length]);
+    const remainingTitleChars = useMemo(
+        () => MAX_TITLE_LENGTH - title.length,
+        [title.length],
+    );
+    const remainingContentChars = useMemo(
+        () => MAX_CONTENT_LENGTH - content.length,
+        [content.length],
+    );
 
     const selectedSubjectName = useMemo(() => {
-        const matchedSubject = subjects.find((subject) => String(subject?.id) === selectedSubject);
+        const matchedSubject = subjects.find(
+            (subject) => String(subject?.id) === selectedSubject,
+        );
         return matchedSubject?.name ?? '';
     }, [selectedSubject, subjects]);
 
-    const isMathSubjectSelected = useMemo(() => selectedSubjectName.toLowerCase().includes('math'), [selectedSubjectName]);
-    const isPhysicsSubjectSelected = useMemo(() => selectedSubjectName.toLowerCase().includes('physics'), [selectedSubjectName]);
-    const isChemistrySubjectSelected = useMemo(() => selectedSubjectName.toLowerCase().includes('chemistry'), [selectedSubjectName]);
+    const isMathSubjectSelected = useMemo(
+        () => selectedSubjectName.toLowerCase().includes('math'),
+        [selectedSubjectName],
+    );
+    const isPhysicsSubjectSelected = useMemo(
+        () => selectedSubjectName.toLowerCase().includes('physics'),
+        [selectedSubjectName],
+    );
+    const isChemistrySubjectSelected = useMemo(
+        () => selectedSubjectName.toLowerCase().includes('chemistry'),
+        [selectedSubjectName],
+    );
 
-    const showSymbolPreview = isMathSubjectSelected || isPhysicsSubjectSelected || isChemistrySubjectSelected;
+    const showSymbolPreview =
+        isMathSubjectSelected ||
+        isPhysicsSubjectSelected ||
+        isChemistrySubjectSelected;
     const previewContent = useMemo(() => formatFormulaText(content), [content]);
     const isQuizSelected = selectedPostType === 'quiz';
     const hasValidQuiz =
@@ -95,8 +160,16 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
             { key: 'derivative', label: "f'(x)", snippet: '\\frac{d}{dx}' },
             { key: 'partial', label: '∂', snippet: '\\partial' },
             { key: 'doubleIntegral', label: '∬', snippet: '\\iint_{}' },
-            { key: 'matrix', label: '[]', snippet: '\\begin{bmatrix} \\\\ \\end{bmatrix}' },
-            { key: 'determinant', label: '| |', snippet: '\\begin{vmatrix} \\\\ \\end{vmatrix}' },
+            {
+                key: 'matrix',
+                label: '[]',
+                snippet: '\\begin{bmatrix} \\\\ \\end{bmatrix}',
+            },
+            {
+                key: 'determinant',
+                label: '| |',
+                snippet: '\\begin{vmatrix} \\\\ \\end{vmatrix}',
+            },
             { key: 'vector', label: '\\vec{}', snippet: '\\vec{}' },
             { key: 'infinity', label: '∞', snippet: '\\infty' },
             { key: 'belongs', label: '∈', snippet: '\\in' },
@@ -113,14 +186,26 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
             { key: 'beta', label: 'β', snippet: '\\beta' },
             { key: 'gamma', label: 'γ', snippet: '\\gamma' },
         ],
-        [t.mathInline, t.mathBlock, t.mathFraction, t.mathSqrt, t.mathPower, t.mathIntegral, t.mathSigma]
+        [
+            t.mathInline,
+            t.mathBlock,
+            t.mathFraction,
+            t.mathSqrt,
+            t.mathPower,
+            t.mathIntegral,
+            t.mathSigma,
+        ],
     );
 
     const physicsSymbolPresets = useMemo(
         () => [
             { key: 'force', label: t.physicsForce, snippet: '\\vec{F}' },
             { key: 'velocity', label: t.physicsVelocity, snippet: '\\vec{v}' },
-            { key: 'acceleration', label: t.physicsAcceleration, snippet: '\\vec{a}' },
+            {
+                key: 'acceleration',
+                label: t.physicsAcceleration,
+                snippet: '\\vec{a}',
+            },
             { key: 'delta', label: t.physicsDelta, snippet: '\\Delta' },
             { key: 'theta', label: t.physicsTheta, snippet: '\\theta' },
             { key: 'lambda', label: t.physicsLambda, snippet: '\\lambda' },
@@ -150,18 +235,38 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
             t.physicsLambda,
             t.physicsOmega,
             t.physicsApprox,
-        ]
+        ],
     );
 
     const chemistrySymbolPresets = useMemo(
         () => [
-            { key: 'reaction', label: t.chemistryReaction, snippet: '\\rightarrow' },
-            { key: 'equilibrium', label: t.chemistryEquilibrium, snippet: '\\leftrightarrow' },
+            {
+                key: 'reaction',
+                label: t.chemistryReaction,
+                snippet: '\\rightarrow',
+            },
+            {
+                key: 'equilibrium',
+                label: t.chemistryEquilibrium,
+                snippet: '\\leftrightarrow',
+            },
             { key: 'water', label: t.chemistryWater, snippet: '_{(l)}' },
-            { key: 'carbonDioxide', label: t.chemistryCarbonDioxide, snippet: '_{(g)}' },
-            { key: 'sulfuricAcid', label: t.chemistrySulfuricAcid, snippet: '_{(aq)}' },
+            {
+                key: 'carbonDioxide',
+                label: t.chemistryCarbonDioxide,
+                snippet: '_{(g)}',
+            },
+            {
+                key: 'sulfuricAcid',
+                label: t.chemistrySulfuricAcid,
+                snippet: '_{(aq)}',
+            },
             { key: 'ion', label: t.chemistryIon, snippet: '^{+}' },
-            { key: 'concentration', label: t.chemistryConcentration, snippet: '[ ]' },
+            {
+                key: 'concentration',
+                label: t.chemistryConcentration,
+                snippet: '[ ]',
+            },
             { key: 'minusCharge', label: '−', snippet: '^{-}' },
             { key: 'doublePlus', label: '2+', snippet: '^{2+}' },
             { key: 'doubleMinus', label: '2−', snippet: '^{2-}' },
@@ -186,7 +291,7 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
             t.chemistrySulfuricAcid,
             t.chemistryIon,
             t.chemistryConcentration,
-        ]
+        ],
     );
 
     const postTypeOptions = useMemo(
@@ -198,16 +303,16 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
                     postType.value === 'question'
                         ? 'border-emerald-600 bg-linear-to-r from-emerald-400 to-emerald-600 text-white shadow-[0_8px_20px_rgba(5,150,105,0.25)]'
                         : postType.value === 'quiz'
-                            ? 'border-amber-600 bg-linear-to-r from-amber-400 to-amber-600 text-white shadow-[0_8px_20px_rgba(217,119,6,0.25)]'
-                            : 'border-violet-600 bg-linear-to-r from-violet-400 to-violet-600 text-white shadow-[0_8px_20px_rgba(124,58,237,0.25)]',
+                          ? 'border-amber-600 bg-linear-to-r from-amber-400 to-amber-600 text-white shadow-[0_8px_20px_rgba(217,119,6,0.25)]'
+                          : 'border-violet-600 bg-linear-to-r from-violet-400 to-violet-600 text-white shadow-[0_8px_20px_rgba(124,58,237,0.25)]',
                 idleClass:
                     postType.value === 'question'
                         ? 'border-zinc-200 bg-white text-zinc-700 shadow-[0_1px_0_rgba(255,255,255,0.8)] hover:-translate-y-[1px] hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700'
                         : postType.value === 'quiz'
-                            ? 'border-zinc-200 bg-white text-zinc-700 shadow-[0_1px_0_rgba(255,255,255,0.8)] hover:-translate-y-[1px] hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700'
-                            : 'border-zinc-200 bg-white text-zinc-700 shadow-[0_1px_0_rgba(255,255,255,0.8)] hover:-translate-y-[1px] hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700',
+                          ? 'border-zinc-200 bg-white text-zinc-700 shadow-[0_1px_0_rgba(255,255,255,0.8)] hover:-translate-y-[1px] hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700'
+                          : 'border-zinc-200 bg-white text-zinc-700 shadow-[0_1px_0_rgba(255,255,255,0.8)] hover:-translate-y-[1px] hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700',
             })),
-        [t]
+        [t],
     );
 
     const subjectOptions = useMemo(
@@ -219,11 +324,14 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
 
                 return {
                     id: String(subject?.id),
-                    displayName: translatedSubjectName === subjectTranslationKey ? subjectName : translatedSubjectName,
+                    displayName:
+                        translatedSubjectName === subjectTranslationKey
+                            ? subjectName
+                            : translatedSubjectName,
                     Icon: getSubjectIcon(subjectName),
                 };
             }),
-        [subjects, trans]
+        [subjects, trans],
     );
 
     const languageOptions = useMemo(
@@ -235,16 +343,16 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
                     language.code === 'en'
                         ? 'border-blue-600 bg-linear-to-r from-blue-400 to-blue-600 text-white shadow-[0_8px_20px_rgba(37,99,235,0.25)]'
                         : language.code === 'zh'
-                            ? 'border-rose-600 bg-linear-to-r from-rose-400 to-rose-600 text-white shadow-[0_8px_20px_rgba(225,29,72,0.25)]'
-                            : 'border-amber-500 bg-linear-to-r from-amber-300 to-amber-500 text-white shadow-[0_8px_20px_rgba(245,158,11,0.3)]',
+                          ? 'border-rose-600 bg-linear-to-r from-rose-400 to-rose-600 text-white shadow-[0_8px_20px_rgba(225,29,72,0.25)]'
+                          : 'border-amber-500 bg-linear-to-r from-amber-300 to-amber-500 text-white shadow-[0_8px_20px_rgba(245,158,11,0.3)]',
                 idleClass:
                     language.code === 'en'
                         ? 'border-zinc-200 bg-white text-zinc-700 shadow-[0_1px_0_rgba(255,255,255,0.8)] hover:-translate-y-[1px] hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700'
                         : language.code === 'zh'
-                            ? 'border-zinc-200 bg-white text-zinc-700 shadow-[0_1px_0_rgba(255,255,255,0.8)] hover:-translate-y-[1px] hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700'
-                            : 'border-zinc-200 bg-white text-zinc-700 shadow-[0_1px_0_rgba(255,255,255,0.8)] hover:-translate-y-[1px] hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700',
+                          ? 'border-zinc-200 bg-white text-zinc-700 shadow-[0_1px_0_rgba(255,255,255,0.8)] hover:-translate-y-[1px] hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700'
+                          : 'border-zinc-200 bg-white text-zinc-700 shadow-[0_1px_0_rgba(255,255,255,0.8)] hover:-translate-y-[1px] hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700',
             })),
-        []
+        [],
     );
 
     const canSubmit =
@@ -258,7 +366,15 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
 
     const isSupportedDocument = (file: File) => {
         const extension = file.name.toLowerCase().split('.').pop() ?? '';
-        const supportedExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+        const supportedExtensions = [
+            'pdf',
+            'doc',
+            'docx',
+            'xls',
+            'xlsx',
+            'ppt',
+            'pptx',
+        ];
 
         return supportedExtensions.includes(extension);
     };
@@ -267,7 +383,9 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
         setFileError(null);
 
         const validFiles = Array.from(incomingFiles).filter((file) => {
-            if (!(file.type.startsWith('image/') || isSupportedDocument(file))) {
+            if (
+                !(file.type.startsWith('image/') || isSupportedDocument(file))
+            ) {
                 return false;
             }
             if (file.size > MAX_FILE_SIZE) {
@@ -277,7 +395,11 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
             return true;
         });
 
-        const selectedKinds = new Set(validFiles.map((file) => (file.type.startsWith('image/') ? 'image' : 'document')));
+        const selectedKinds = new Set(
+            validFiles.map((file) =>
+                file.type.startsWith('image/') ? 'image' : 'document',
+            ),
+        );
 
         if (selectedKinds.size > 1) {
             setFileError(t.fileTypeLimit);
@@ -291,14 +413,21 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
 
         setAttachments((prev) => {
             const currentKind = prev[0]?.type ?? null;
-            const batchKind = validFiles[0].type.startsWith('image/') ? 'image' : 'document';
+            const batchKind = validFiles[0].type.startsWith('image/')
+                ? 'image'
+                : 'document';
 
             if (currentKind && currentKind !== batchKind) {
                 setFileError(t.fileTypeLimit);
                 return prev;
             }
 
-            const existingKeys = new Set(prev.map((item) => `${item.file.name}-${item.file.size}-${item.file.lastModified}`));
+            const existingKeys = new Set(
+                prev.map(
+                    (item) =>
+                        `${item.file.name}-${item.file.size}-${item.file.lastModified}`,
+                ),
+            );
             const nextAttachments: LocalAttachment[] = [];
             let totalSize = prev.reduce((sum, item) => sum + item.file.size, 0);
 
@@ -355,7 +484,9 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
         const textarea = contentTextareaRef.current;
 
         if (!textarea) {
-            setContent((prev) => `${prev}${snippet}`.slice(0, MAX_CONTENT_LENGTH));
+            setContent((prev) =>
+                `${prev}${snippet}`.slice(0, MAX_CONTENT_LENGTH),
+            );
             return;
         }
 
@@ -363,8 +494,14 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
         const selectionEnd = textarea.selectionEnd ?? content.length;
         const before = content.slice(0, selectionStart);
         const after = content.slice(selectionEnd);
-        const nextContent = `${before}${snippet}${after}`.slice(0, MAX_CONTENT_LENGTH);
-        const nextCursor = Math.min(selectionStart + snippet.length, nextContent.length);
+        const nextContent = `${before}${snippet}${after}`.slice(
+            0,
+            MAX_CONTENT_LENGTH,
+        );
+        const nextCursor = Math.min(
+            selectionStart + snippet.length,
+            nextContent.length,
+        );
 
         setContent(nextContent);
 
@@ -392,11 +529,20 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
 
         if (isQuizSelected) {
             quizzes.forEach((quiz, qi) => {
-                formData.append(`quiz_questions[${qi}][question]`, quiz.question.trim());
+                formData.append(
+                    `quiz_questions[${qi}][question]`,
+                    quiz.question.trim(),
+                );
                 quiz.options.forEach((opt) => {
-                    formData.append(`quiz_questions[${qi}][options][]`, opt.trim());
+                    formData.append(
+                        `quiz_questions[${qi}][options][]`,
+                        opt.trim(),
+                    );
                 });
-                formData.append(`quiz_questions[${qi}][answer_index]`, quiz.answerIndex);
+                formData.append(
+                    `quiz_questions[${qi}][answer_index]`,
+                    quiz.answerIndex,
+                );
             });
         }
 
@@ -418,7 +564,7 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
                 });
                 setTitle('');
                 setContent('');
-                setQuizzes([{ question: '', options: ['', '', '', ''], answerIndex: '' }]);
+                setQuizzes([createEmptyQuiz()]);
                 setSelectedPostType('');
                 setSelectedSubject('');
                 setSelectedLanguage('');
@@ -431,7 +577,7 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
     };
 
     const addQuiz = () => {
-        setQuizzes((prev) => [...prev, { question: '', options: ['', '', '', ''], answerIndex: '' }]);
+        setQuizzes((prev) => [...prev, createEmptyQuiz()]);
     };
 
     const removeQuiz = (qIndex: number) => {
@@ -440,19 +586,47 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
     };
 
     const updateQuizQuestion = (qIndex: number, value: string) => {
-        setQuizzes((prev) => prev.map((q, i) => (i === qIndex ? { ...q, question: value } : q)));
+        setQuizzes((prev) =>
+            prev.map((q, i) => (i === qIndex ? { ...q, question: value } : q)),
+        );
     };
 
-    const updateQuizOption = (qIndex: number, optIndex: number, value: string) => {
+    const updateQuizOption = (
+        qIndex: number,
+        optIndex: number,
+        value: string,
+    ) => {
         setQuizzes((prev) =>
             prev.map((q, i) =>
-                i === qIndex ? { ...q, options: q.options.map((o, oi) => (oi === optIndex ? value : o)) } : q,
+                i === qIndex
+                    ? {
+                          ...q,
+                          options: q.options.map((o, oi) =>
+                              oi === optIndex ? value : o,
+                          ),
+                      }
+                    : q,
             ),
         );
     };
 
     const updateQuizAnswerIndex = (qIndex: number, value: string) => {
-        setQuizzes((prev) => prev.map((q, i) => (i === qIndex ? { ...q, answerIndex: value } : q)));
+        setQuizzes((prev) =>
+            prev.map((q, i) =>
+                i === qIndex ? { ...q, answerIndex: value } : q,
+            ),
+        );
+    };
+
+    const updateQuizAiAnswerPlacement = (
+        qIndex: number,
+        value: QuizAiAnswerPlacement,
+    ) => {
+        setQuizzes((prev) =>
+            prev.map((q, i) =>
+                i === qIndex ? { ...q, aiAnswerPlacement: value } : q,
+            ),
+        );
     };
 
     const addQuizOption = (qIndex: number) => {
@@ -480,6 +654,71 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
         );
     };
 
+    const generateQuizOptions = async (qIndex: number) => {
+        const quiz = quizzes[qIndex];
+
+        if (!quiz) return;
+
+        if (quiz.question.trim() === '') {
+            setQuizOptionErrors((prev) => ({
+                ...prev,
+                [qIndex]: t.quizAiQuestionRequired,
+            }));
+            return;
+        }
+
+        setGeneratingQuizOptionIds((prev) =>
+            prev.includes(qIndex) ? prev : [...prev, qIndex],
+        );
+        setQuizOptionErrors((prev) => {
+            const next = { ...prev };
+            delete next[qIndex];
+            return next;
+        });
+
+        try {
+            const result = await requestQuizOptions({
+                question: quiz.question.trim(),
+                subject: selectedSubjectName,
+                languageCode: selectedLanguage,
+                existingOptions: quiz.options.slice(0, AI_QUIZ_OPTION_COUNT),
+                answerPlacementPreference: quiz.aiAnswerPlacement,
+            });
+
+            setQuizzes((prev) =>
+                prev.map((item, index) =>
+                    index === qIndex
+                        ? {
+                              ...item,
+                              options: applyGeneratedOptionsToQuiz(
+                                  item.options,
+                                  result.options,
+                              ),
+                              answerIndex: String(result.answerIndex),
+                          }
+                        : item,
+                ),
+            );
+        } catch (error) {
+            console.warn(
+                '[createPost] AI quiz option generation failed:',
+                error,
+            );
+            const errorMessage =
+                error instanceof Error && error.message.trim() !== ''
+                    ? error.message
+                    : t.quizAiOptionsError;
+            setQuizOptionErrors((prev) => ({
+                ...prev,
+                [qIndex]: errorMessage,
+            }));
+        } finally {
+            setGeneratingQuizOptionIds((prev) =>
+                prev.filter((index) => index !== qIndex),
+            );
+        }
+    };
+
     return {
         fileInputRef,
         contentTextareaRef,
@@ -495,8 +734,12 @@ export function useCreatePostForm({ subjects, t, trans }: UseCreatePostFormParam
         updateQuizQuestion,
         updateQuizOption,
         updateQuizAnswerIndex,
+        updateQuizAiAnswerPlacement,
         addQuizOption,
         removeQuizOption,
+        generateQuizOptions,
+        generatingQuizOptionIds,
+        quizOptionErrors,
         selectedPostType,
         setSelectedPostType,
         selectedSubject,

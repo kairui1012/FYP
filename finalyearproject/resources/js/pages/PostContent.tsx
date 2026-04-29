@@ -589,13 +589,18 @@ export default function PostContent({ post }: PostContentProps) {
                     />
 
                     <PostTranslateActions
+                        page={page}
                         title={post.title}
                         content={post.content ?? ''}
+                        postType={post.post_type}
                         onTranslate={setTranslated}
                     />
 
                     <div className="my-10 w-full border-t border-zinc-200" />
-                    <div id="comments" className="scroll-mt-20 pb-16 sm:scroll-mt-40 sm:pb-32">
+                    <div
+                        id="comments"
+                        className="scroll-mt-20 pb-16 sm:scroll-mt-40 sm:pb-32"
+                    >
                         <CommentSection
                             post={post}
                             onCommentsCountChange={setCommentsCount}

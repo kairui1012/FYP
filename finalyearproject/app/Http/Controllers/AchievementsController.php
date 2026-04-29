@@ -81,6 +81,7 @@ class AchievementsController extends Controller
             'user_progress' => $progress ? [
                 'total_questions_answered' => $progress->total_questions_answered,
                 'total_questions_posted'   => $progress->total_questions_posted,
+                'total_post_posted'        => $progress->total_post_posted,
                 'quizzes_completed'        => $progress->quizzes_completed,
                 'correct_answers_count'    => $progress->correct_answers_count,
                 'total_likes_received'     => $progress->total_likes_received,
@@ -147,6 +148,7 @@ class AchievementsController extends Controller
         return match ($metric) {
             'total_questions_answered' => $progress->total_questions_answered,
             'total_questions_posted'   => $progress->total_questions_posted,
+            'total_post_posted'        => $progress->total_post_posted,
             'correct_answers_count'    => $progress->correct_answers_count,
             'quizzes_completed'        => $progress->quizzes_completed,
             'accuracy_pct'             => $accuracyPct,

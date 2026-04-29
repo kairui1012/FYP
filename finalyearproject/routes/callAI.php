@@ -346,6 +346,260 @@ Route::post('/ai-explain', function (Request $request) {
 
 })->middleware(['web', 'throttle:20,1']);
 
+Route::post('/ai-quiz-options', function (Request $request) {
+    $request->validate([
+        'question'         => 'required|string|max:500',
+        'subject'          => 'nullable|string|max:120',
+        'language_code'    => 'nullable|string|in:en,zh,my,bm',
+        'existing_options' => 'nullable|array|max:8',
+        'existing_options.*' => 'nullable|string|max:255',
+        'answer_placement' => 'nullable|in:A,B,C,D,random',
+        'provider'         => 'required|in:deepseek,gemini',
+    ]);
+
+    $question = trim($request->input('question'));
+    $subject = trim((string) $request->input('subject', ''));
+    $languageCode = (string) ($request->input('language_code') ?: app()->getLocale());
+    $answerPlacement = (string) ($request->input('answer_placement') ?: 'random');
+    $provider = $request->input('provider');
+    $existingOptions = collect($request->input('existing_options', []))
+        ->filter(fn ($option) => is_string($option) && trim($option) !== '')
+        ->map(fn ($option) => trim($option))
+        ->values()
+        ->all();
+
+    $targetLanguage = match ($languageCode) {
+        'zh' => 'Chinese (Simplified)',
+        'my', 'bm' => 'Malay',
+        default => 'English',
+    };
+
+    $subjectLine = $subject !== '' ? "Subject: {$subject}\n" : '';
+    $existingOptionsBlock = count($existingOptions) > 0
+        ? "Existing draft options, if any. You may improve or replace them:\n"
+            . collect($existingOptions)->map(fn ($option, $index) => chr(65 + $index) . ". {$option}")->implode("\n")
+            . "\n\n"
+        : '';
+    $answerPlacementInstruction = match ($answerPlacement) {
+        'A', 'B', 'C', 'D' => "8. The correct answer must be placed at option {$answerPlacement}.\n",
+        default => "8. You may place the correct answer at any option position.\n",
+    };
+    $isMathLikeQuestion = str($subject)->lower()->contains('math')
+        || preg_match('/[=+\-*\/^()]/u', $question) === 1;
+    $mathInstruction = $isMathLikeQuestion
+        ? "9. For math or calculation questions, solve carefully first.\n"
+            . "10. Make all 4 options mathematically distinct.\n"
+            . "11. Keep math notation plain and concise, such as x = -9 or -9. Do not add extra explanation inside the options.\n"
+        : '';
+
+    $prompt = "You are an expert teacher creating multiple-choice quiz options for students. Respond entirely in {$targetLanguage}. Return ONLY valid JSON. No markdown, no code fences, no extra text.\n\n"
+        . "Task:\n"
+        . "1. Generate exactly 4 answer options for the quiz question.\n"
+        . "2. Exactly 1 option must be clearly correct.\n"
+        . "3. The other 3 options must be plausible distractors, not silly or obviously fake.\n"
+        . "4. Keep options concise and suitable for classroom learning.\n"
+        . "5. Do not include option letters like A, B, C, D inside the option text.\n"
+        . "6. Set answerIndex to the zero-based index of the correct option.\n"
+        . "7. If the question is ambiguous, choose the best answer and make distractors reflect common misunderstandings.\n\n"
+        . $answerPlacementInstruction
+        . $mathInstruction
+        . $subjectLine
+        . "Question: {$question}\n\n"
+        . $existingOptionsBlock
+        . "Return JSON in this exact shape:\n"
+        . '{"options":["string","string","string","string"],"answerIndex":0,"explanation":"string"}';
+
+    $decodeResult = function (string $text) {
+        $trimmed = trim($text);
+        $candidates = [$trimmed];
+
+        if (str_starts_with($trimmed, '```')) {
+            $candidates[] = trim(preg_replace('/^```(?:json)?\s*|\s*```$/', '', $trimmed));
+        }
+
+        $start = strpos($trimmed, '{');
+        $end = strrpos($trimmed, '}');
+        if ($start !== false && $end !== false && $end > $start) {
+            $candidates[] = trim(substr($trimmed, $start, $end - $start + 1));
+        }
+
+        foreach ($candidates as $candidate) {
+            $decoded = json_decode($candidate, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        throw new \Exception('AI returned invalid quiz options JSON');
+    };
+
+    try {
+        $raw = match ($provider) {
+            'deepseek' => (function () use ($prompt) {
+                $res = Http::withToken(config('services.deepseek.key'))
+                    ->timeout(25)
+                    ->post('https://api.deepseek.com/v1/chat/completions', [
+                        'model' => 'deepseek-chat',
+                        'messages' => [
+                            ['role' => 'system', 'content' => 'You are an expert quiz writer. Always respond with valid JSON only.'],
+                            ['role' => 'user', 'content' => $prompt],
+                        ],
+                        'temperature' => 0.45,
+                        'response_format' => ['type' => 'json_object'],
+                    ]);
+
+                if (! $res->successful()) {
+                    throw new \Exception('DeepSeek error: ' . $res->status());
+                }
+
+                $text = $res->json('choices.0.message.content');
+                if (! is_string($text) || trim($text) === '') {
+                    throw new \Exception('DeepSeek returned empty quiz options');
+                }
+
+                return $text;
+            })(),
+
+            'gemini' => (function () use ($prompt) {
+                $res = Http::withQueryParameters(['key' => config('services.gemini.key')])
+                    ->timeout(25)
+                    ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', [
+                        'contents' => [
+                            ['parts' => [['text' => $prompt]]],
+                        ],
+                        'generationConfig' => [
+                            'responseMimeType' => 'application/json',
+                            'temperature' => 0.45,
+                        ],
+                    ]);
+
+                if (! $res->successful()) {
+                    throw new \Exception('Gemini error: ' . $res->status());
+                }
+
+                $text = $res->json('candidates.0.content.parts.0.text');
+                if (! is_string($text) || trim($text) === '') {
+                    throw new \Exception('Gemini returned empty quiz options');
+                }
+
+                return $text;
+            })(),
+        };
+
+        $decoded = $decodeResult($raw);
+        $normalizeOption = function ($option) {
+            if (! is_string($option)) {
+                return '';
+            }
+
+            $normalized = trim($option);
+            $normalized = preg_replace('/^\s*[A-D]\s*[\.\):：-]\s*/u', '', $normalized) ?? $normalized;
+
+            return trim($normalized);
+        };
+        $extractOptions = function (array $decoded) use ($normalizeOption) {
+            $rawOptions = $decoded['options'] ?? null;
+
+            if (is_array($rawOptions)) {
+                if (array_is_list($rawOptions)) {
+                    return array_values(array_filter(array_map(
+                        $normalizeOption,
+                        $rawOptions,
+                    )));
+                }
+
+                $letterOptions = [];
+                foreach (['A', 'B', 'C', 'D'] as $letter) {
+                    $option = $rawOptions[$letter] ?? $rawOptions[strtolower($letter)] ?? null;
+                    $normalized = $normalizeOption($option);
+                    if ($normalized !== '') {
+                        $letterOptions[] = $normalized;
+                    }
+                }
+
+                return $letterOptions;
+            }
+
+            return [];
+        };
+        $parseAnswerIndex = function (array $decoded) {
+            $rawAnswerIndex = $decoded['answerIndex']
+                ?? $decoded['answer_index']
+                ?? $decoded['answer']
+                ?? $decoded['correctAnswer']
+                ?? $decoded['correct_answer']
+                ?? null;
+
+            if (is_int($rawAnswerIndex)) {
+                return $rawAnswerIndex;
+            }
+
+            if (is_string($rawAnswerIndex)) {
+                $normalized = strtoupper(trim($rawAnswerIndex));
+
+                if ($normalized !== '' && ctype_digit($normalized)) {
+                    return (int) $normalized;
+                }
+
+                return match ($normalized) {
+                    'A' => 0,
+                    'B' => 1,
+                    'C' => 2,
+                    'D' => 3,
+                    default => null,
+                };
+            }
+
+            return null;
+        };
+
+        $options = $extractOptions($decoded);
+        $answerIndex = $parseAnswerIndex($decoded);
+        $explanation = isset($decoded['explanation']) && is_string($decoded['explanation'])
+            ? trim($decoded['explanation'])
+            : '';
+
+        if (count($options) !== 4) {
+            throw new \Exception('AI must return exactly 4 quiz options');
+        }
+
+        if ($answerIndex === null || $answerIndex < 0 || $answerIndex > 3) {
+            throw new \Exception('AI returned invalid correct answer index');
+        }
+
+        $targetAnswerIndex = match ($answerPlacement) {
+            'A' => 0,
+            'B' => 1,
+            'C' => 2,
+            'D' => 3,
+            default => random_int(0, 3),
+        };
+
+        if ($answerIndex !== $targetAnswerIndex) {
+            $correctOption = $options[$answerIndex];
+            unset($options[$answerIndex]);
+            $options = array_values($options);
+            array_splice($options, $targetAnswerIndex, 0, [$correctOption]);
+            $answerIndex = $targetAnswerIndex;
+        }
+
+        return response()->json([
+            'quiz_options' => [
+                'options' => $options,
+                'answerIndex' => $answerIndex,
+                'explanation' => $explanation,
+            ],
+            'provider' => $provider,
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'provider' => $provider,
+        ], 502);
+    }
+})->middleware(['web', 'throttle:20,1']);
+
 Route::post('/ai-best-answer', function (Request $request) {
     $request->validate([
         'post_title'     => 'required|string|max:300',
@@ -481,3 +735,321 @@ Route::post('/ai-best-answer', function (Request $request) {
     }
 
 })->middleware(['web', 'throttle:20,1']);
+
+Route::post('/ai-answer-feedback', function (Request $request) {
+    $request->validate([
+        'post_title'     => 'required|string|max:300',
+        'post_content'   => 'nullable|string|max:2000',
+        'answer_content' => 'required|string|max:2000',
+        'provider'       => 'required|in:deepseek,gemini',
+    ]);
+
+    $postTitle     = $request->input('post_title');
+    $postContent   = $request->input('post_content', '');
+    $answerContent = $request->input('answer_content');
+    $provider      = $request->input('provider');
+
+    $currentLocale = app()->getLocale();
+    $lang = match ($currentLocale) {
+        'zh'    => 'Chinese (Simplified)',
+        'my'    => 'Malay',
+        default => 'English',
+    };
+
+    $contextBlock = trim($postContent) !== ''
+        ? "Question: {$postTitle}\n\nContext / Description:\n{$postContent}\n\nStudent Answer:\n{$answerContent}"
+        : "Question: {$postTitle}\n\nStudent Answer:\n{$answerContent}";
+
+    $prompt = "You are an expert tutor giving formative feedback. Respond entirely in {$lang}. Return ONLY valid JSON. No markdown, no code fences, no extra text.\n\n"
+        . "Your goal is to help the student improve learning, not just judge the answer.\n"
+        . "Evaluate the student's answer against the question.\n\n"
+        . "Use exactly one status:\n"
+        . "- good: the answer is mostly correct and useful.\n"
+        . "- incomplete: the answer has useful parts but misses important explanation, steps, evidence, or accuracy.\n"
+        . "- wrong: the answer is mostly incorrect, misleading, or does not answer the question.\n\n"
+        . "Give specific feedback, mention what is strong, explain what is missing or wrong, and give one concrete next step.\n"
+        . "If the question is ambiguous or lacks enough information, say so and mark the status incomplete unless the answer is clearly wrong.\n\n"
+        . $contextBlock . "\n\n"
+        . "Return JSON in this exact shape:\n"
+        . '{"status":"good|incomplete|wrong","feedback":"string","strengths":["string"],"improvements":["string"],"next_step":"string","confidence":"high|medium|low"}';
+
+    $decodeResult = function (string $text) {
+        $trimmed = trim($text);
+        $candidates = [$trimmed];
+
+        if (str_starts_with($trimmed, '```')) {
+            $candidates[] = trim(preg_replace('/^```(?:json)?\s*|\s*```$/', '', $trimmed));
+        }
+
+        $start = strpos($trimmed, '{');
+        $end = strrpos($trimmed, '}');
+        if ($start !== false && $end !== false && $end > $start) {
+            $candidates[] = trim(substr($trimmed, $start, $end - $start + 1));
+        }
+
+        foreach ($candidates as $candidate) {
+            $decoded = json_decode($candidate, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        throw new \Exception('AI returned invalid feedback JSON');
+    };
+
+    try {
+        $raw = match ($provider) {
+
+            'deepseek' => (function () use ($prompt) {
+                $res = Http::withToken(config('services.deepseek.key'))
+                    ->timeout(25)
+                    ->post('https://api.deepseek.com/v1/chat/completions', [
+                        'model'       => 'deepseek-chat',
+                        'messages'    => [
+                            ['role' => 'system', 'content' => 'You are an expert tutor. Always respond with valid JSON only.'],
+                            ['role' => 'user',   'content' => $prompt],
+                        ],
+                        'temperature' => 0.35,
+                    ]);
+
+                if (!$res->successful()) {
+                    throw new \Exception('DeepSeek error: ' . $res->status());
+                }
+
+                $text = $res->json('choices.0.message.content');
+                if (!is_string($text) || trim($text) === '') {
+                    throw new \Exception('DeepSeek returned empty feedback');
+                }
+
+                return $text;
+            })(),
+
+            'gemini' => (function () use ($prompt) {
+                $res = Http::withQueryParameters(['key' => config('services.gemini.key')])
+                    ->timeout(25)
+                    ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', [
+                        'contents'         => [['parts' => [['text' => $prompt]]]],
+                        'generationConfig' => ['temperature' => 0.35],
+                    ]);
+
+                if (!$res->successful()) {
+                    throw new \Exception('Gemini error: ' . $res->status());
+                }
+
+                $text = $res->json('candidates.0.content.parts.0.text');
+                if (!is_string($text) || trim($text) === '') {
+                    throw new \Exception('Gemini returned empty feedback');
+                }
+
+                return $text;
+            })(),
+        };
+
+        $decoded = $decodeResult($raw);
+
+        $status = isset($decoded['status']) && is_string($decoded['status'])
+            ? trim($decoded['status'])
+            : 'incomplete';
+        if (!in_array($status, ['good', 'incomplete', 'wrong'], true)) {
+            $status = 'incomplete';
+        }
+
+        $feedback = isset($decoded['feedback']) && is_string($decoded['feedback'])
+            ? trim($decoded['feedback'])
+            : '';
+        $nextStep = isset($decoded['next_step']) && is_string($decoded['next_step'])
+            ? trim($decoded['next_step'])
+            : '';
+        $confidence = isset($decoded['confidence']) && is_string($decoded['confidence'])
+            ? trim($decoded['confidence'])
+            : 'medium';
+        if (!in_array($confidence, ['high', 'medium', 'low'], true)) {
+            $confidence = 'medium';
+        }
+
+        $stringList = function ($value): array {
+            if (!is_array($value)) {
+                return [];
+            }
+
+            return array_values(array_filter(array_map(
+                fn ($item) => is_string($item) ? trim($item) : '',
+                $value,
+            )));
+        };
+
+        if ($feedback === '') {
+            throw new \Exception('AI returned missing feedback');
+        }
+
+        return response()->json([
+            'feedback' => [
+                'status'       => $status,
+                'feedback'     => $feedback,
+                'strengths'    => $stringList($decoded['strengths'] ?? []),
+                'improvements' => $stringList($decoded['improvements'] ?? []),
+                'next_step'    => $nextStep,
+                'confidence'   => $confidence,
+            ],
+            'provider' => $provider,
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'error'    => $e->getMessage(),
+            'provider' => $provider,
+        ], 502);
+    }
+
+})->middleware(['web', 'throttle:20,1']);
+
+Route::post('/ai-learning-objectives', function (Request $request) {
+    $request->validate([
+        'post_title'   => 'required|string|max:300',
+        'post_content' => 'nullable|string|max:3000',
+        'post_type'    => 'nullable|string|in:material,question,quiz,sharing',
+        'provider'     => 'required|in:deepseek,gemini',
+    ]);
+
+    $postTitle   = $request->input('post_title');
+    $postContent = $request->input('post_content', '');
+    $postType    = $request->input('post_type', 'sharing');
+    $provider    = $request->input('provider');
+
+    $currentLocale = app()->getLocale();
+    $lang = match ($currentLocale) {
+        'zh'    => 'Chinese (Simplified)',
+        'my'    => 'Malay',
+        default => 'English',
+    };
+
+    $typeLabel = match ($postType) {
+        'material' => 'a learning materials post',
+        'question' => 'a learning question',
+        'quiz'     => 'a quiz post',
+        default    => 'a learning sharing post',
+    };
+
+    $contentBlock = trim($postContent) !== ''
+        ? "Title: {$postTitle}\n\nContent:\n{$postContent}"
+        : "Title: {$postTitle}";
+
+    $prompt = "You are an expert educational designer. Respond entirely in {$lang}. Return ONLY valid JSON. No markdown, no code fences, no extra text.\n\n"
+        . "The following is {$typeLabel} on an educational platform. Your task:\n"
+        . "1. Write 3 to 5 clear learning objectives that describe what a student will understand or be able to do after reading this post.\n"
+        . "2. Each objective must start with an action verb (e.g. Understand, Explain, Apply, Identify, Solve, Compare).\n"
+        . "3. Keep each objective concise (one sentence).\n"
+        . "4. Estimate the difficulty level: beginner, intermediate, or advanced.\n"
+        . "5. Estimate the reading time as a short string (e.g. '3-5 minutes').\n\n"
+        . $contentBlock . "\n\n"
+        . "Return JSON in this exact shape:\n"
+        . '{"objectives":["string","string","string"],"difficulty":"beginner|intermediate|advanced","estimated_time":"string"}';
+
+    $decodeResult = function (string $text) {
+        $trimmed = trim($text);
+        $candidates = [$trimmed];
+
+        if (str_starts_with($trimmed, '```')) {
+            $candidates[] = trim(preg_replace('/^```(?:json)?\s*|\s*```$/', '', $trimmed));
+        }
+
+        $start = strpos($trimmed, '{');
+        $end   = strrpos($trimmed, '}');
+        if ($start !== false && $end !== false && $end > $start) {
+            $candidates[] = trim(substr($trimmed, $start, $end - $start + 1));
+        }
+
+        foreach ($candidates as $candidate) {
+            $decoded = json_decode($candidate, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        throw new \Exception('AI returned invalid JSON');
+    };
+
+    try {
+        $raw = match ($provider) {
+
+            'deepseek' => (function () use ($prompt) {
+                $res = Http::withToken(config('services.deepseek.key'))
+                    ->timeout(25)
+                    ->post('https://api.deepseek.com/v1/chat/completions', [
+                        'model'           => 'deepseek-chat',
+                        'messages'        => [
+                            ['role' => 'system', 'content' => 'You are an expert educational designer. Always respond with valid JSON only.'],
+                            ['role' => 'user',   'content' => $prompt],
+                        ],
+                        'temperature'     => 0.4,
+                        'response_format' => ['type' => 'json_object'],
+                    ]);
+
+                if (!$res->successful()) {
+                    throw new \Exception('DeepSeek error: ' . $res->status());
+                }
+
+                $text = $res->json('choices.0.message.content');
+                if (!is_string($text) || trim($text) === '') {
+                    throw new \Exception('DeepSeek returned empty response');
+                }
+
+                return $text;
+            })(),
+
+            'gemini' => (function () use ($prompt) {
+                $res = Http::withQueryParameters(['key' => config('services.gemini.key')])
+                    ->timeout(25)
+                    ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', [
+                        'contents'         => [['parts' => [['text' => $prompt]]]],
+                        'generationConfig' => [
+                            'responseMimeType' => 'application/json',
+                            'temperature'      => 0.4,
+                        ],
+                    ]);
+
+                if (!$res->successful()) {
+                    throw new \Exception('Gemini error: ' . $res->status());
+                }
+
+                $text = $res->json('candidates.0.content.parts.0.text');
+                if (!is_string($text) || trim($text) === '') {
+                    throw new \Exception('Gemini returned empty response');
+                }
+
+                return $text;
+            })(),
+        };
+
+        $decoded    = $decodeResult($raw);
+        $objectives = isset($decoded['objectives']) && is_array($decoded['objectives'])
+            ? array_values(array_filter(array_map(fn ($v) => is_string($v) ? trim($v) : '', $decoded['objectives'])))
+            : [];
+        $difficulty = isset($decoded['difficulty']) && in_array($decoded['difficulty'], ['beginner', 'intermediate', 'advanced'], true)
+            ? $decoded['difficulty']
+            : 'intermediate';
+        $estimatedTime = isset($decoded['estimated_time']) && is_string($decoded['estimated_time'])
+            ? trim($decoded['estimated_time'])
+            : '';
+
+        if (count($objectives) < 1) {
+            throw new \Exception('AI returned no learning objectives');
+        }
+
+        return response()->json([
+            'result' => [
+                'objectives'     => $objectives,
+                'difficulty'     => $difficulty,
+                'estimated_time' => $estimatedTime,
+            ],
+            'provider' => $provider,
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'error'    => $e->getMessage(),
+            'provider' => $provider,
+        ], 502);
+    }
+
+})->middleware(['web', 'throttle:15,1']);

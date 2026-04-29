@@ -298,6 +298,7 @@ export default function LearningTrendsPage() {
                         activeSort={activeSort}
                         onRangeChange={handleRangeChange}
                         onSortChange={handleSortChange}
+                        trans={trans}
                     />
 
                     {posts.length === 0 ? (

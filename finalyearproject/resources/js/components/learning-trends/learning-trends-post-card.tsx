@@ -4,7 +4,11 @@ import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnFollow } from '@/components/ui/btn-follow';
 import { formatFormulaText } from '@/lib/formula-display';
-import { formatTimeAgo, getLanguageLabel } from '@/lib/post-utils';
+import {
+    formatTimeAgo,
+    getLanguageLabel,
+    getSubjectLabel,
+} from '@/lib/post-utils';
 import type { PostItem } from '@/types';
 import {
     getLangBadgeProps,
@@ -67,6 +71,7 @@ export function LearningTrendsPostCard({
     const langCode = post.language?.code ?? 'en';
     const { bg: langBg, text: langText } = getLangBadgeProps(langCode);
     const subjectBadge = getSubjectBadgeProps();
+    const subjectLabel = getSubjectLabel(post.subject?.name, trans);
 
     return (
         <div>
@@ -173,11 +178,11 @@ export function LearningTrendsPostCard({
                                     {post.language?.name ??
                                         getLanguageLabel(langCode)}
                                 </span>
-                                {post.subject?.name ? (
+                                {subjectLabel ? (
                                     <span
                                         className={`rounded-full px-2 py-0.5 font-medium ${subjectBadge.bg} ${subjectBadge.text}`}
                                     >
-                                        {post.subject.name}
+                                        {subjectLabel}
                                     </span>
                                 ) : null}
                             </div>

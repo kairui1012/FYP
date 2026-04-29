@@ -80,8 +80,9 @@ class ProgressService
     {
         $progress = UserProgress::firstOrCreate(['user_id' => $user->id]);
 
-        // Recount so deletions don't cause drift (all post types count)
-        $progress->total_questions_posted = $user->posts()->count();
+        // Recount so deletions don't cause drift
+        $progress->total_post_posted      = $user->posts()->count();
+        $progress->total_questions_posted = $user->posts()->where('post_type', 'question')->count();
 
         $progress->save();
 

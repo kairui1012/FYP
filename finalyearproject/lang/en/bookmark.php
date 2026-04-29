@@ -3,6 +3,7 @@
 return [
     'description' => 'Organize saved posts into custom folders and keep track of the posts you want to revisit.',
     'saved_items' => 'Saved posts',
+    'saved_quizzes' => 'Saved quizzes',
     'total_saves' => 'Total saves',
     'no_bookmarks' => 'No saved posts in this folder yet.',
     'save_posts' => 'Save posts from the home feed or move them into a different folder here.',

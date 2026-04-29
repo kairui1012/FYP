@@ -13,6 +13,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, KeyboardEvent, ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
+import { AnswerFeedbackPanel } from '@/components/answer-feedback-panel';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -626,6 +627,9 @@ export function CommentSection({
                     <CommentCard
                         comment={comment}
                         isBestAnswer={isBestAnswerPreview}
+                        postTitle={post.title}
+                        postContent={post.content ?? ''}
+                        postType={post.post_type}
                         onReply={() => handleReplyClick(comment)}
                         onUpvote={() =>
                             void handleToggleCommentVote(comment.id, 'up')
@@ -854,6 +858,9 @@ export function CommentSection({
 function CommentCard({
     comment,
     isBestAnswer,
+    postTitle,
+    postContent,
+    postType,
     onReply,
     onUpvote,
     onDownvote,
@@ -881,6 +888,9 @@ function CommentCard({
 }: {
     comment: CommentItem;
     isBestAnswer: boolean;
+    postTitle: string;
+    postContent: string;
+    postType: string;
     onReply: () => void;
     onUpvote: () => void;
     onDownvote: () => void;
@@ -913,6 +923,11 @@ function CommentCard({
     const isOwnComment = comment.user?.id === currentUserId;
     const canReply = !isBestAnswer && !isOwnComment;
     const canReport = !isOwnComment;
+    const canRequestAiFeedback =
+        !isEditing &&
+        !isBestAnswer &&
+        (postType === 'question' || postType === 'quiz') &&
+        comment.content.trim() !== '';
     const isUpvoted = Boolean(comment.is_upvoted ?? comment.is_liked);
     const isDownvoted = Boolean(comment.is_downvoted);
     const isWrong = Boolean(comment.is_wrong);
@@ -1021,6 +1036,16 @@ function CommentCard({
                             </p>
                         )
                     )}
+
+                    {canRequestAiFeedback ? (
+                        <AnswerFeedbackPanel
+                            page={page}
+                            trans={trans}
+                            postTitle={postTitle}
+                            postContent={postContent}
+                            answerContent={comment.content}
+                        />
+                    ) : null}
 
                     {/* Action bar */}
                     <div className="mt-2.5 flex flex-wrap items-center gap-1.5">

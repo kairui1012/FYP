@@ -326,12 +326,13 @@ class LearningProgressService
 
         return match ($metric) {
             'total_questions_answered' => (int) $progress->total_questions_answered,
-            'total_questions_posted' => (int) $progress->total_questions_posted,
-            'correct_answers_count' => (int) $progress->correct_answers_count,
-            'accuracy_pct' => $accuracyPct,
-            'improvement_score' => max(0, (int) $progress->improvement_score),
-            'total_likes_received' => (int) $progress->total_likes_received,
-            default => 0,
+            'total_questions_posted'   => (int) $progress->total_questions_posted,
+            'total_post_posted'        => (int) $progress->total_post_posted,
+            'correct_answers_count'    => (int) $progress->correct_answers_count,
+            'accuracy_pct'             => $accuracyPct,
+            'improvement_score'        => max(0, (int) $progress->improvement_score),
+            'total_likes_received'     => (int) $progress->total_likes_received,
+            default                    => 0,
         };
     }
 }
