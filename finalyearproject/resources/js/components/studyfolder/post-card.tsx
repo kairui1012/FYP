@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { ExternalLink } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { BtnSave } from '@/components/ui/btn-save';
+import { MaterialLearningStateBadge } from '@/components/ui/material-learning-state-badge';
 import { QuizStatusBadge } from '@/components/ui/quiz-status-badge';
 import { formatFormulaText } from '@/lib/formula-display';
 import {
@@ -51,6 +52,8 @@ export function PostCard({
     const type =
         post.post_type === 'quiz'
             ? 'quiz'
+            : post.post_type === 'discussion'
+              ? 'discussion'
             : post.post_type === 'question'
               ? 'question'
               : 'material';
@@ -59,6 +62,8 @@ export function PostCard({
     const typeLabel =
         type === 'quiz'
             ? trans('createPost.create_quiz')
+            : type === 'discussion'
+              ? trans('createPost.create_discussion')
             : type === 'question'
               ? trans('createPost.ask_question')
               : trans('createPost.share_material');
@@ -191,6 +196,11 @@ export function PostCard({
 
                 {post.post_type === 'quiz' && showQuizPreview ? (
                     <QuizStatusBadge status={quizStatus} />
+                ) : null}
+                {post.post_type === 'material' ? (
+                    <MaterialLearningStateBadge
+                        state={post.material_learning_state}
+                    />
                 ) : null}
 
                 <Link

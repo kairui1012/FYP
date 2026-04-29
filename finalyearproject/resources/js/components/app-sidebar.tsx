@@ -12,7 +12,7 @@ import {
     Users,
 } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, useSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
@@ -73,6 +73,9 @@ function SidebarBoundaryToggle({
 
 export function AppSidebar({ className }: AppSidebarProps) {
     const { trans } = reactLang();
+    const currentUserRole =
+        (usePage().props as { auth?: { user?: { role?: string } } }).auth
+            ?.user?.role ?? 'student';
     const mainNavItems: NavItem[] = [
         {
             title: trans('navigation.home'),
@@ -118,6 +121,15 @@ export function AppSidebar({ className }: AppSidebarProps) {
             href: '/rules',
             icon: ScrollText,
         },
+        ...(['admin', 'teacher'].includes(currentUserRole)
+            ? [
+                  {
+                      title: trans('navigation.teacher_material_insights'),
+                      href: '/teacher/material-insights',
+                      icon: ScrollText,
+                  },
+              ]
+            : []),
     ];
     const { state, setOpen } = useSidebar();
     const [isPinnedOpen, setIsPinnedOpen] = useState<boolean>(() => {

@@ -25,11 +25,13 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
         'points',
         'total_points',
         'show_on_leaderboard',
         'show_leaderboard_badge',
         'locale',
+        'is_blocked',
     ];
 
     /**
@@ -54,12 +56,14 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => 'string',
             'two_factor_confirmed_at' => 'datetime',
             'points' => 'integer',
             'total_points' => 'integer',
             'show_on_leaderboard' => 'boolean',
             'show_leaderboard_badge' => 'boolean',
             'locale' => 'string',
+            'is_blocked' => 'boolean',
         ];
     }
 
@@ -138,5 +142,10 @@ class User extends Authenticatable
     public function pointsTransactions(): HasMany
     {
         return $this->hasMany(PointTransaction::class);
+    }
+
+    public function canPublishStudyMaterials(): bool
+    {
+        return in_array($this->role ?? 'student', ['admin', 'teacher'], true);
     }
 }

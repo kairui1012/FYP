@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\TeacherCertificationController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,4 +26,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+
+    Route::get('settings/teacher-certification', [TeacherCertificationController::class, 'show'])
+        ->name('teacher-certification.show');
+    Route::post('settings/teacher-certification', [TeacherCertificationController::class, 'store'])
+        ->name('teacher-certification.store');
 });

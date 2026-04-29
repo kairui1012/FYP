@@ -2,29 +2,36 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Brain,
     CheckCircle2,
+    Ellipsis,
     Flag,
-    Lightbulb,
     LoaderCircle,
     Pencil,
     Send,
+    ThumbsUp,
     Trash2,
     XCircle,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, KeyboardEvent, ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
-import { AnswerFeedbackPanel } from '@/components/answer-feedback-panel';
+import { BestAnswerAiPanel } from '@/components/best-answer-ai-panel';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { BestAnswerAiPanel } from '@/components/best-answer-ai-panel';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { formatFullDate, formatTimeAgo } from '@/lib/post-utils';
 import { cn } from '@/lib/utils';
 import type { CommentItem, PostItem, User } from '@/types';
 
-type CommentSectionProps = {
+export type SharedCommentSectionProps = {
     post: PostItem;
     onCommentsCountChange?: (count: number) => void;
+    variant?: 'qna' | 'quiz' | 'material';
 };
 
 type CommentStoreResponse = {
@@ -72,17 +79,32 @@ const REPLY_LIMIT = 3;
 export function CommentSection({
     post,
     onCommentsCountChange,
-}: CommentSectionProps) {
+    variant = 'qna',
+}: SharedCommentSectionProps) {
     const page = usePage<SharedPageProps>();
     const currentUser = page.props.auth.user;
+    const isQuizVariant = variant === 'quiz';
+    const isMaterialVariant = variant === 'material';
     const t = {
-        title: trans(page, 'comment.title'),
+        title: isQuizVariant
+            ? trans(page, 'comment.quiz_title')
+            : isMaterialVariant
+              ? trans(page, 'comment.title')
+              : trans(page, 'comment.qna_title'),
         single: trans(page, 'comment.single'),
         plural: trans(page, 'comment.plural'),
-        writePlaceholder: trans(page, 'comment.write_placeholder'),
+        writePlaceholder: isQuizVariant
+            ? trans(page, 'comment.quiz_write_placeholder')
+            : isMaterialVariant
+              ? trans(page, 'comment.write_placeholder')
+              : trans(page, 'comment.qna_write_placeholder'),
         postComment: trans(page, 'comment.post_comment'),
         posting: trans(page, 'comment.posting'),
-        noCommentsYet: trans(page, 'comment.no_comments_yet'),
+        noCommentsYet: isQuizVariant
+            ? trans(page, 'comment.quiz_no_comments_yet')
+            : isMaterialVariant
+              ? trans(page, 'comment.no_comments_yet')
+              : trans(page, 'comment.qna_no_comments_yet'),
         unknownUser: trans(page, 'comment.unknown_user'),
         writeRequired: trans(page, 'comment.write_required'),
         serverErrorPost: trans(page, 'comment.server_error_post'),
@@ -98,15 +120,23 @@ export function CommentSection({
         cancelEdit: trans(page, 'comment.cancel_edit'),
         delete: trans(page, 'comment.delete'),
         deleting: trans(page, 'comment.deleting'),
+        manage: trans(page, 'comment.manage'),
+        deleteConfirm: trans(page, 'comment.delete_confirm'),
         commentUpdated: trans(page, 'comment.comment_updated'),
         commentDeleted: trans(page, 'comment.comment_deleted'),
         failedUpdate: trans(page, 'comment.failed_update'),
         failedDelete: trans(page, 'comment.failed_delete'),
         layerLabel: trans(page, 'comment.layer_label'),
         floorLabel: trans(page, 'comment.floor_label'),
+        score: trans(page, 'comment.score'),
         bestAnswer: trans(page, 'comment.best_answer'),
         sortLatest: trans(page, 'comment.sort_latest'),
         sortTopLiked: trans(page, 'comment.sort_top_liked'),
+        showMore: trans(page, 'comment.show_more'),
+        showLess: trans(page, 'comment.show_less'),
+        hideReplies: trans(page, 'comment.hide_replies'),
+        showMoreReplies: (count: number) =>
+            trans(page, 'comment.show_more_replies', { count }),
         wrong: trans(page, 'comment.wrong'),
         report: trans(page, 'comment.report'),
         reportSent: trans(page, 'comment.report_sent'),
@@ -386,6 +416,10 @@ export function CommentSection({
             return;
         }
 
+        if (!window.confirm(t.deleteConfirm)) {
+            return;
+        }
+
         const csrfToken =
             document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
                 ?.content ?? '';
@@ -592,7 +626,8 @@ export function CommentSection({
         isRoot: boolean,
         isBestAnswerPreview = false,
     ): ReactNode => {
-        const isTheBestAnswer = bestAnswer?.id === comment.id;
+        const isTheBestAnswer =
+            variant === 'qna' && bestAnswer?.id === comment.id;
         const replies = comment.replies ?? [];
         const isExpanded = expandedReplies[comment.id] ?? false;
         const visibleReplies = isExpanded
@@ -604,19 +639,17 @@ export function CommentSection({
             <div key={comment.id}>
                 <div
                     className={cn(
-                        isBestAnswerPreview
-                            ? 'py-2'
-                            : isRoot
-                              ? cn(
-                                    'border-b border-zinc-200 py-4',
-                                    isTheBestAnswer && 'bg-emerald-50/30',
-                                )
-                              : 'ml-6 border-l-2 border-zinc-200 py-2 pl-4',
+                        'relative',
+                        !isRoot &&
+                            'before:absolute before:top-5 before:-left-5 before:h-px before:w-4 before:bg-zinc-200',
+                        isTheBestAnswer &&
+                            !isBestAnswerPreview &&
+                            'rounded-xl bg-emerald-100 px-3',
                     )}
                 >
                     {/* Inline best answer badge — shown in the comment list for the best answer comment */}
                     {!isBestAnswerPreview && isTheBestAnswer && (
-                        <div className="mb-2 flex items-center gap-1.5">
+                        <div className="mb-2 flex items-center gap-1.5 pt-3">
                             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
                             <span className="text-xs font-bold tracking-wide text-emerald-700 uppercase">
                                 {t.bestAnswer}
@@ -627,9 +660,7 @@ export function CommentSection({
                     <CommentCard
                         comment={comment}
                         isBestAnswer={isBestAnswerPreview}
-                        postTitle={post.title}
-                        postContent={post.content ?? ''}
-                        postType={post.post_type}
+                        isReply={!isRoot}
                         onReply={() => handleReplyClick(comment)}
                         onUpvote={() =>
                             void handleToggleCommentVote(comment.id, 'up')
@@ -678,35 +709,43 @@ export function CommentSection({
                 </div>
 
                 {/* Nested replies */}
-                {visibleReplies.map((reply) =>
-                    renderCommentBranch(reply, false),
-                )}
+                {!isBestAnswerPreview && replies.length > 0 ? (
+                    <div className="relative ml-4 pl-5 before:absolute before:top-0 before:bottom-4 before:left-0 before:w-px before:bg-zinc-200">
+                        {visibleReplies.map((reply) =>
+                            renderCommentBranch(reply, false),
+                        )}
 
-                {/* Show more / hide replies toggle */}
-                {!isBestAnswerPreview && replies.length > REPLY_LIMIT && (
-                    <div className="ml-6 py-1 pl-4">
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setExpandedReplies((prev) => ({
-                                    ...prev,
-                                    [comment.id]: !isExpanded,
-                                }))
-                            }
-                            className="text-xs text-zinc-500 transition-colors hover:text-[#e27193]"
-                        >
-                            {isExpanded
-                                ? 'Hide replies'
-                                : `Show more replies (${hiddenCount})`}
-                        </button>
+                        {/* Show more / hide replies toggle */}
+                        {replies.length > REPLY_LIMIT && (
+                            <div className="py-1">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setExpandedReplies((prev) => ({
+                                            ...prev,
+                                            [comment.id]: !isExpanded,
+                                        }))
+                                    }
+                                    className="inline-flex rounded-full px-2 py-1 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800"
+                                >
+                                    {isExpanded
+                                        ? t.hideReplies
+                                        : t.showMoreReplies(hiddenCount)}
+                                </button>
+                            </div>
+                        )}
                     </div>
-                )}
+                ) : null}
+
+                {isRoot ? (
+                    <div className="border-b border-zinc-200/80" />
+                ) : null}
             </div>
         );
     };
 
     // Keep full comment tree — best answer stays in original position
-    const visibleComments = sortCommentTreeByMode(comments, sortMode);
+    const visibleComments = sortCommentsForDisplay(comments, sortMode);
 
     const handleComposerKeyDown = (
         event: KeyboardEvent<HTMLTextAreaElement>,
@@ -729,7 +768,9 @@ export function CommentSection({
                 </p>
             </div>
 
-            {bestAnswer && post.post_type === 'question' ? (
+            {bestAnswer &&
+            post.post_type === 'question' &&
+            variant === 'qna' ? (
                 <div className="mb-6 overflow-hidden rounded-2xl border border-emerald-200 bg-linear-to-br from-emerald-50 to-teal-50/40 shadow-sm">
                     <div className="flex items-center gap-2 border-b border-emerald-200/70 bg-emerald-100/60 px-4 py-2.5">
                         <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
@@ -858,9 +899,7 @@ export function CommentSection({
 function CommentCard({
     comment,
     isBestAnswer,
-    postTitle,
-    postContent,
-    postType,
+    isReply,
     onReply,
     onUpvote,
     onDownvote,
@@ -888,9 +927,7 @@ function CommentCard({
 }: {
     comment: CommentItem;
     isBestAnswer: boolean;
-    postTitle: string;
-    postContent: string;
-    postType: string;
+    isReply: boolean;
     onReply: () => void;
     onUpvote: () => void;
     onDownvote: () => void;
@@ -921,25 +958,25 @@ function CommentCard({
     const userName = comment.user?.name ?? trans(page, 'comment.unknown_user');
     const canManage = comment.user?.id === currentUserId;
     const isOwnComment = comment.user?.id === currentUserId;
-    const canReply = !isBestAnswer && !isOwnComment;
+    const canReply = !isBestAnswer;
     const canReport = !isOwnComment;
-    const canRequestAiFeedback =
-        !isEditing &&
-        !isBestAnswer &&
-        (postType === 'question' || postType === 'quiz') &&
-        comment.content.trim() !== '';
     const isUpvoted = Boolean(comment.is_upvoted ?? comment.is_liked);
     const isDownvoted = Boolean(comment.is_downvoted);
     const isWrong = Boolean(comment.is_wrong);
     const helpfulCount = comment.upvotes_count ?? comment.likes_count ?? 0;
     const confusingCount = comment.downvotes_count ?? 0;
     const wrongCount = comment.wrong_votes_count ?? 0;
-
-    const btnBase =
-        'inline-flex items-center gap-2 rounded-full border-2 px-4 py-1.5 text-xs font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed select-none';
+    const score = getCommentScore(comment);
+    const scoreLabel = `${trans(page, 'comment.score')} ${formatScore(score)}`;
 
     return (
-        <article className={cn('py-3', className)}>
+        <article
+            className={cn(
+                'group/comment pb-4',
+                !isReply ? 'pt-4' : 'pt-3',
+                className,
+            )}
+        >
             <div className="flex items-start gap-3">
                 <Link
                     href={
@@ -952,33 +989,58 @@ function CommentCard({
                     <UserAvatar
                         name={userName}
                         avatar={comment.user?.avatar ?? null}
-                        className="mt-0.5 h-8 w-8 ring-2 ring-transparent transition-colors group-hover/avatar:ring-[#ef99b0]"
+                        className={cn(
+                            'mt-0.5 ring-2 ring-transparent transition-colors group-hover/avatar:ring-[#ef99b0]',
+                            isReply ? 'h-7 w-7' : 'h-8 w-8',
+                        )}
                     />
                 </Link>
 
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 pb-4">
                     {/* Header */}
-                    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                        <Link
-                            href={
-                                comment.user?.id
-                                    ? `/profilePage/${comment.user.id}`
-                                    : '/profilePage'
-                            }
-                            className="cursor-pointer text-sm font-semibold text-zinc-900 transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89]"
-                        >
-                            {userName}
-                        </Link>
-                        <LeaderboardTitleBadge
-                            title={comment.user?.leaderboard_title}
-                        />
-                        <span className="text-zinc-300">·</span>
-                        <time
-                            className="text-xs text-zinc-400"
-                            title={formatFullDate(comment.created_at)}
-                        >
-                            {formatTimeAgo(comment.created_at)}
-                        </time>
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                                <Link
+                                    href={
+                                        comment.user?.id
+                                            ? `/profilePage/${comment.user.id}`
+                                            : '/profilePage'
+                                    }
+                                    className="cursor-pointer text-sm font-semibold text-zinc-900 transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89]"
+                                >
+                                    {userName}
+                                </Link>
+                                <LeaderboardTitleBadge
+                                    title={comment.user?.leaderboard_title}
+                                />
+                                <span className="text-zinc-300">·</span>
+                                <time
+                                    className="text-xs text-zinc-400"
+                                    title={formatFullDate(comment.created_at)}
+                                >
+                                    {formatTimeAgo(comment.created_at)}
+                                </time>
+                                <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-500">
+                                    {scoreLabel}
+                                </span>
+                            </div>
+                        </div>
+
+                        {canManage && !isEditing && !replying ? (
+                            <CommentOwnerMenu
+                                manageLabel={trans(page, 'comment.manage')}
+                                editLabel={trans(page, 'comment.edit')}
+                                deleteLabel={
+                                    deleting
+                                        ? trans(page, 'comment.deleting')
+                                        : trans(page, 'comment.delete')
+                                }
+                                deleting={deleting}
+                                onEdit={onStartEdit}
+                                onDelete={onDelete}
+                            />
+                        ) : null}
                     </div>
 
                     {/* Reply-to reference */}
@@ -1031,159 +1093,69 @@ function CommentCard({
                         </div>
                     ) : (
                         comment.content.trim() !== '' && (
-                            <p className="mt-1.5 text-sm leading-6 whitespace-pre-wrap text-zinc-800">
-                                {renderCommentContent(comment.content)}
-                            </p>
+                            <CollapsibleCommentBody
+                                key={`${comment.id}:${comment.content}`}
+                                content={comment.content}
+                                isReply={isReply}
+                                showMoreLabel={trans(page, 'comment.show_more')}
+                                showLessLabel={trans(page, 'comment.show_less')}
+                            />
                         )
                     )}
 
-                    {canRequestAiFeedback ? (
-                        <AnswerFeedbackPanel
-                            page={page}
-                            trans={trans}
-                            postTitle={postTitle}
-                            postContent={postContent}
-                            answerContent={comment.content}
-                        />
-                    ) : null}
-
                     {/* Action bar */}
-                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                        {/* Reaction buttons — hidden on best answer preview */}
-                        {!isBestAnswer ? (
-                            <>
-                                {/* Useful */}
-                                <button
-                                    type="button"
-                                    onClick={onUpvote}
-                                    disabled={voting}
-                                    className={cn(
-                                        btnBase,
-                                        isUpvoted
-                                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                                            : 'border-emerald-400 bg-white text-emerald-700 hover:bg-emerald-50',
-                                    )}
-                                >
-                                    <Lightbulb
-                                        className={cn(
-                                            'h-3.5 w-3.5',
-                                            isUpvoted && 'fill-current',
-                                        )}
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex min-w-0 flex-wrap items-center gap-2">
+                            {!isBestAnswer ? (
+                                <>
+                                    <FeedbackActionButton
+                                        active={isUpvoted}
+                                        disabled={voting}
+                                        count={helpfulCount}
+                                        label={trans(page, 'comment.helpful')}
+                                        tone="positive"
+                                        icon={ThumbsUp}
+                                        onClick={onUpvote}
                                     />
-                                    {trans(page, 'comment.helpful')}
-                                    <span className="tabular-nums opacity-70">
-                                        {helpfulCount}
-                                    </span>
-                                </button>
-
-                                {/* Confuse */}
-                                <button
-                                    type="button"
-                                    onClick={onDownvote}
-                                    disabled={voting}
-                                    className={cn(
-                                        btnBase,
-                                        isDownvoted
-                                            ? 'border-amber-500 bg-amber-50 text-amber-700'
-                                            : 'border-amber-400 bg-white text-amber-700 hover:bg-amber-50',
-                                    )}
-                                >
-                                    <Brain className="h-3.5 w-3.5" />
-                                    {trans(page, 'comment.confusing')}
-                                    <span className="tabular-nums opacity-70">
-                                        {confusingCount}
-                                    </span>
-                                </button>
-
-                                {/* Wrong */}
-                                <button
-                                    type="button"
-                                    onClick={onWrong}
-                                    disabled={voting}
-                                    className={cn(
-                                        btnBase,
-                                        isWrong
-                                            ? 'border-rose-500 bg-rose-50 text-rose-700'
-                                            : 'border-rose-400 bg-white text-rose-700 hover:bg-rose-50',
-                                    )}
-                                >
-                                    <XCircle
-                                        className={cn(
-                                            'h-3.5 w-3.5',
-                                            isWrong && 'fill-current',
-                                        )}
+                                    <FeedbackActionButton
+                                        active={isDownvoted}
+                                        disabled={voting}
+                                        count={confusingCount}
+                                        label={trans(page, 'comment.confusing')}
+                                        tone="warning"
+                                        icon={Brain}
+                                        onClick={onDownvote}
                                     />
-                                    {trans(page, 'comment.wrong')}
-                                    <span className="tabular-nums opacity-70">
-                                        {wrongCount}
-                                    </span>
-                                </button>
-                            </>
-                        ) : null}
+                                    <FeedbackActionButton
+                                        active={isWrong}
+                                        disabled={voting}
+                                        count={wrongCount}
+                                        label={trans(page, 'comment.wrong')}
+                                        tone="danger"
+                                        icon={XCircle}
+                                        onClick={onWrong}
+                                    />
+                                </>
+                            ) : null}
+                        </div>
 
-                        {/* Reply */}
-                        {!isEditing && canReply ? (
-                            <button
-                                type="button"
-                                onClick={onReply}
-                                className={cn(
-                                    btnBase,
-                                    'border-pink-300 bg-white text-pink-600 hover:bg-pink-50',
-                                )}
-                            >
-                                {trans(page, 'comment.reply')}
-                            </button>
-                        ) : null}
+                        <div className="ml-auto flex flex-wrap items-center gap-1 sm:gap-2">
+                            {!isEditing && canReply ? (
+                                <SecondaryTextAction
+                                    label={trans(page, 'comment.reply')}
+                                    onClick={onReply}
+                                />
+                            ) : null}
 
-                        {/* Edit / Delete (owner only) */}
-                        {canManage && !isEditing && !replying ? (
-                            <>
-                                <button
-                                    type="button"
-                                    onClick={onStartEdit}
-                                    className={cn(
-                                        btnBase,
-                                        'border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50',
-                                    )}
-                                >
-                                    <Pencil className="h-3 w-3" />
-                                    {trans(page, 'comment.edit')}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={onDelete}
-                                    disabled={deleting}
-                                    className={cn(
-                                        btnBase,
-                                        'border-rose-300 bg-white text-rose-500 hover:bg-rose-50',
-                                    )}
-                                >
-                                    <Trash2 className="h-3 w-3" />
-                                    {deleting
-                                        ? trans(page, 'comment.deleting')
-                                        : trans(page, 'comment.delete')}
-                                </button>
-                            </>
-                        ) : null}
-
-                        {/* Report (non-owner, non-best-answer preview) */}
-                        {canReport && !isBestAnswer && !isEditing ? (
-                            <button
-                                type="button"
-                                onClick={onReport}
-                                disabled={reporting || reported}
-                                className={cn(
-                                    btnBase,
-                                    'border-zinc-300 bg-white',
-                                    reported
-                                        ? 'text-zinc-400'
-                                        : 'text-zinc-500 hover:bg-zinc-50',
-                                )}
-                            >
-                                <Flag className="h-3 w-3" />
-                                {trans(page, 'comment.report')}
-                            </button>
-                        ) : null}
+                            {canReport && !isBestAnswer && !isEditing ? (
+                                <SecondaryTextAction
+                                    label={trans(page, 'comment.report')}
+                                    icon={Flag}
+                                    disabled={reporting || reported}
+                                    onClick={onReport}
+                                />
+                            ) : null}
+                        </div>
                     </div>
 
                     {/* Reply composer */}
@@ -1233,6 +1205,128 @@ function CommentCard({
     );
 }
 
+function FeedbackActionButton({
+    active,
+    disabled = false,
+    count,
+    label,
+    tone,
+    icon: Icon,
+    onClick,
+}: {
+    active: boolean;
+    disabled?: boolean;
+    count: number;
+    label: string;
+    tone: 'positive' | 'warning' | 'danger';
+    icon: typeof ThumbsUp;
+    onClick: () => void;
+}) {
+    const stateClass = active
+        ? tone === 'positive'
+            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+            : tone === 'warning'
+              ? 'border-amber-200 bg-amber-50 text-amber-700'
+              : 'border-rose-200 bg-rose-50 text-rose-700'
+        : tone === 'positive'
+          ? 'border-zinc-200 bg-white text-zinc-500 hover:border-emerald-200 hover:text-emerald-700'
+          : tone === 'warning'
+            ? 'border-zinc-200 bg-white text-zinc-500 hover:border-amber-200 hover:text-amber-700'
+            : 'border-zinc-200 bg-white text-zinc-500 hover:border-rose-200 hover:text-rose-700';
+
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            aria-pressed={active}
+            aria-label={`${label} ${count}`}
+            title={label}
+            className={cn(
+                'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+                stateClass,
+            )}
+        >
+            <Icon
+                className={cn(
+                    'h-3.5 w-3.5',
+                    active && tone !== 'warning' && 'fill-current',
+                )}
+            />
+            <span className="tabular-nums">{count}</span>
+            <span className="sr-only">{label}</span>
+        </button>
+    );
+}
+
+function SecondaryTextAction({
+    label,
+    icon: Icon,
+    disabled = false,
+    onClick,
+}: {
+    label: string;
+    icon?: typeof Flag;
+    disabled?: boolean;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+            {Icon ? <Icon className="h-3 w-3" /> : null}
+            <span>{label}</span>
+        </button>
+    );
+}
+
+function CommentOwnerMenu({
+    manageLabel,
+    editLabel,
+    deleteLabel,
+    deleting,
+    onEdit,
+    onDelete,
+}: {
+    manageLabel: string;
+    editLabel: string;
+    deleteLabel: string;
+    deleting: boolean;
+    onEdit: () => void;
+    onDelete: () => void;
+}) {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <button
+                    type="button"
+                    aria-label={manageLabel}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-200 sm:opacity-0 sm:group-hover/comment:opacity-100 sm:focus-within:opacity-100"
+                >
+                    <Ellipsis className="h-4 w-4" />
+                </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-36">
+                <DropdownMenuItem onClick={onEdit}>
+                    <Pencil className="h-4 w-4" />
+                    {editLabel}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    variant="destructive"
+                    disabled={deleting}
+                    onClick={onDelete}
+                >
+                    <Trash2 className="h-4 w-4" />
+                    {deleteLabel}
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
+
 function UserAvatar({
     name,
     avatar,
@@ -1251,6 +1345,65 @@ function UserAvatar({
                 {initial}
             </AvatarFallback>
         </Avatar>
+    );
+}
+
+function CollapsibleCommentBody({
+    content,
+    isReply,
+    showMoreLabel,
+    showLessLabel,
+}: {
+    content: string;
+    isReply: boolean;
+    showMoreLabel: string;
+    showLessLabel: string;
+}) {
+    const [expanded, setExpanded] = useState(false);
+    const [hasOverflow, setHasOverflow] = useState(false);
+    const contentRef = useRef<HTMLParagraphElement>(null);
+
+    useEffect(() => {
+        if (!isReply) {
+            return;
+        }
+
+        const element = contentRef.current;
+        if (!element) {
+            return;
+        }
+
+        const frame = requestAnimationFrame(() => {
+            setHasOverflow(element.scrollHeight > element.clientHeight + 1);
+        });
+
+        return () => cancelAnimationFrame(frame);
+    }, [content, isReply]);
+
+    const canExpand = isReply && hasOverflow;
+
+    return (
+        <div className="mt-1.5">
+            <p
+                ref={contentRef}
+                className={cn(
+                    'text-sm leading-6 whitespace-pre-wrap text-zinc-800',
+                    isReply && !expanded && 'line-clamp-3',
+                )}
+            >
+                {renderCommentContent(content)}
+            </p>
+
+            {isReply && canExpand ? (
+                <button
+                    type="button"
+                    onClick={() => setExpanded((current) => !current)}
+                    className="mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800"
+                >
+                    {expanded ? showLessLabel : showMoreLabel}
+                </button>
+            ) : null}
+        </div>
     );
 }
 
@@ -1319,6 +1472,33 @@ function sortCommentTreeByMode(
         }));
 }
 
+function sortRepliesChronologically(items: CommentItem[]): CommentItem[] {
+    return [...items]
+        .sort(
+            (left, right) =>
+                new Date(left.created_at).getTime() -
+                new Date(right.created_at).getTime(),
+        )
+        .map((item) => ({
+            ...item,
+            replies: item.replies
+                ? sortRepliesChronologically(item.replies)
+                : item.replies,
+        }));
+}
+
+function sortCommentsForDisplay(
+    items: CommentItem[],
+    mode: 'latest' | 'top-liked',
+): CommentItem[] {
+    return sortCommentTreeByMode(items, mode).map((item) => ({
+        ...item,
+        replies: item.replies
+            ? sortRepliesChronologically(item.replies)
+            : item.replies,
+    }));
+}
+
 function selectBestAnswer(items: CommentItem[]): CommentItem | null {
     const flattened = flattenComments(items);
 
@@ -1355,4 +1535,8 @@ function renderCommentContent(content: string): ReactNode {
             {lineIndex < lines.length - 1 ? <br /> : null}
         </span>
     ));
+}
+
+function formatScore(score: number): string {
+    return score > 0 ? `+${score}` : String(score);
 }

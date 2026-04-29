@@ -91,6 +91,7 @@ export function buildHomeText(page: PageLike) {
             page,
         ),
         createQuiz: transFromPage('createPost.create_quiz', page),
+        createDiscussion: transFromPage('createPost.create_discussion', page),
         askQuestion: transFromPage('createPost.ask_question', page),
         shareMaterial: transFromPage('createPost.share_material', page),
         langEn: transFromPage('language_label.en', page),
@@ -111,6 +112,8 @@ export function getLangBadgeProps(code: string) {
 
 export function getPostTypeBadgeProps(type: string) {
     if (type === 'quiz') return { bg: 'bg-amber-100', text: 'text-amber-700' };
+    if (type === 'discussion')
+        return { bg: 'bg-blue-100', text: 'text-blue-700' };
     if (type === 'question')
         return { bg: 'bg-emerald-100', text: 'text-emerald-700' };
     return { bg: 'bg-violet-100', text: 'text-violet-700' };

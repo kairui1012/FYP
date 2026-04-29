@@ -14,20 +14,25 @@ class Post extends Model
         'is_anonymous',
         'title',
         'content',
+        'content_blocks',
         'post_type',
+        'parent_material_id',
         'quiz_data',
         'subject_id',
         'language_id',
         'image',
         'video_url',
+        'material_improved_from_feedback',
     ];
 
     protected function casts(): array
     {
         return [
             'image' => 'array',
+            'content_blocks' => 'array',
             'quiz_data' => 'array',
             'is_anonymous' => 'boolean',
+            'material_improved_from_feedback' => 'boolean',
         ];
     }
 
@@ -61,6 +66,43 @@ class Post extends Model
 
     public function language() {
         return $this->belongsTo(Language::class);
+    }
+
+    public function parentMaterial(): BelongsTo
+    {
+        return $this->belongsTo(Post::class, 'parent_material_id');
+    }
+
+    public function linkedPosts(): HasMany
+    {
+        return $this->hasMany(Post::class, 'parent_material_id');
+    }
+
+    public function linkedQuizzes(): HasMany
+    {
+        return $this->hasMany(Post::class, 'parent_material_id')
+            ->where('post_type', 'quiz');
+    }
+
+    public function materialFeedback(): HasMany
+    {
+        return $this->hasMany(StudyMaterialFeedback::class);
+    }
+
+    public function materialViews(): HasMany
+    {
+        return $this->hasMany(StudyMaterialView::class);
+    }
+
+    public function materialQuizAttempts(): HasMany
+    {
+        return $this->hasMany(MaterialQuizAttempt::class, 'material_id');
+    }
+
+    public function materialVersions(): HasMany
+    {
+        return $this->hasMany(StudyMaterialVersion::class)
+            ->orderBy('version_number');
     }
 
     public function subject()

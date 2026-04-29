@@ -9,6 +9,7 @@ export function getLangBadgeProps(code: string) {
 
 export function getPostTypeBadgeProps(type: string) {
     if (type === 'quiz') return { bg: 'bg-amber-100', text: 'text-amber-700' };
+    if (type === 'discussion') return { bg: 'bg-blue-100', text: 'text-blue-700' };
     if (type === 'question') {
         return { bg: 'bg-emerald-100', text: 'text-emerald-700' };
     }

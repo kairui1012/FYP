@@ -13,8 +13,8 @@ import {
     Palette,
     Scissors,
     TestTube,
-    type LucideIcon,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export const MAX_TITLE_LENGTH = 150;
 export const MAX_CONTENT_LENGTH = 2000;
@@ -30,9 +30,21 @@ export const LANGUAGE_OPTIONS = [
 ] as const;
 
 export const POST_TYPE_OPTIONS = [
-    { value: 'material', labelKey: 'shareMaterial' },
-    { value: 'question', labelKey: 'askQuestion' },
-    { value: 'quiz', labelKey: 'createQuiz' },
+    {
+        value: 'question',
+        labelKey: 'askQuestion',
+        descriptionKey: 'questionPurpose',
+    },
+    {
+        value: 'quiz',
+        labelKey: 'createQuiz',
+        descriptionKey: 'quizPurpose',
+    },
+    {
+        value: 'material',
+        labelKey: 'shareMaterial',
+        descriptionKey: 'materialPurpose',
+    },
 ] as const;
 
 export const pillChoiceBase =
@@ -63,12 +75,39 @@ export type QuizItem = {
     options: string[];
     answerIndex: string;
     aiAnswerPlacement: QuizAiAnswerPlacement;
+    explanation?: string;
 };
 
 export type LocalAttachment = {
     file: File;
     preview: string | null;
     type: 'image' | 'document';
+};
+
+export type MaterialBlockType = 'text' | 'image' | 'document' | 'video';
+
+export type MaterialContentBlock = {
+    id: string;
+    type: MaterialBlockType;
+    text: string;
+    url: string;
+    file: File | null;
+    preview: string | null;
+};
+
+export type LearningMaterialOption = {
+    id: number;
+    title: string;
+    content: string;
+    publisher: {
+        name: string;
+        role?: string;
+    };
+    subject?: {
+        id: number;
+        name: string;
+    } | null;
+    updated_at?: string | null;
 };
 
 export type CreatePostText = {
@@ -87,6 +126,26 @@ export type CreatePostText = {
     subjectRequired: string;
     shareMaterial: string;
     askQuestion: string;
+    createDiscussion: string;
+    questionPurpose: string;
+    discussionPurpose: string;
+    materialPurpose: string;
+    quizPurpose: string;
+    materialEditorTitle: string;
+    materialEditorHint: string;
+    materialAddBlock: string;
+    materialTextBlock: string;
+    materialImageBlock: string;
+    materialDocumentBlock: string;
+    materialVideoBlock: string;
+    materialTextPlaceholder: string;
+    materialVideoPlaceholder: string;
+    materialChooseImage: string;
+    materialChooseDocument: string;
+    materialRemoveBlock: string;
+    materialMoveUp: string;
+    materialMoveDown: string;
+    materialEmptyHint: string;
     createQuiz: string;
     languageLabel: string;
     languageRequired: string;
@@ -155,6 +214,49 @@ export type CreatePostText = {
     quizAiQuestionRequired: string;
     quizAiAnswerPlacementLabel: string;
     quizAiAnswerPlacementRandom: string;
+    materialAnonymousHint: string;
+    studentPostHint: string;
+    materialLinkTitle: string;
+    materialLinkHint: string;
+    materialLinkNone: string;
+    materialAttachQuizTitle: string;
+    materialQuizGenerating: string;
+    materialQuizGenerateAi: string;
+    materialSelectRequired: string;
+    materialQuizError: string;
+    materialQuizContentPrefix: string;
+    materialReliableBadge: string;
+    materialImprovedBadge: string;
+    materialPageLabel: string;
+    materialPublisherLabel: string;
+    materialLastUpdatedLabel: string;
+    materialNotAvailable: string;
+    materialQuizSection: string;
+    materialLinkedQuizzes: string;
+    materialQuizQuestions: string;
+    materialAttemptsRecorded: string;
+    materialAttemptQuiz: string;
+    materialNoLinkedQuizzes: string;
+    materialStudentFeedback: string;
+    materialAverageRating: string;
+    materialTotalVotes: string;
+    materialFeedbackCount: string;
+    materialUpvote: string;
+    materialDownvote: string;
+    materialFeedbackPlaceholder: string;
+    materialSubmitFeedback: string;
+    materialSubmittingFeedback: string;
+    materialFeedbackSubmitted: string;
+    materialFeedbackImprovement: string;
+    materialLearningAnalytics: string;
+    materialViews: string;
+    materialUniqueUsers: string;
+    materialAverageQuizScore: string;
+    materialAttemptImprovement: string;
+    materialLearningLoop: string;
+    materialContributedBy: string;
+    materialUnknownUser: string;
+    explanationLabel: string;
     anonymousLabel: string;
     anonymousHint: string;
     publishing: string;
@@ -179,6 +281,26 @@ export const buildCreatePostText = (
     subjectRequired: trans('createPost.subject_required'),
     shareMaterial: trans('createPost.share_material'),
     askQuestion: trans('createPost.ask_question'),
+    createDiscussion: trans('createPost.create_discussion'),
+    questionPurpose: trans('createPost.question_purpose'),
+    discussionPurpose: trans('createPost.discussion_purpose'),
+    materialPurpose: trans('createPost.material_purpose'),
+    quizPurpose: trans('createPost.quiz_purpose'),
+    materialEditorTitle: trans('createPost.material_editor_title'),
+    materialEditorHint: trans('createPost.material_editor_hint'),
+    materialAddBlock: trans('createPost.material_add_block'),
+    materialTextBlock: trans('createPost.material_text_block'),
+    materialImageBlock: trans('createPost.material_image_block'),
+    materialDocumentBlock: trans('createPost.material_document_block'),
+    materialVideoBlock: trans('createPost.material_video_block'),
+    materialTextPlaceholder: trans('createPost.material_text_placeholder'),
+    materialVideoPlaceholder: trans('createPost.material_video_placeholder'),
+    materialChooseImage: trans('createPost.material_choose_image'),
+    materialChooseDocument: trans('createPost.material_choose_document'),
+    materialRemoveBlock: trans('createPost.material_remove_block'),
+    materialMoveUp: trans('createPost.material_move_up'),
+    materialMoveDown: trans('createPost.material_move_down'),
+    materialEmptyHint: trans('createPost.material_empty_hint'),
     createQuiz: trans('createPost.create_quiz'),
     languageLabel: trans('createPost.language_label'),
     languageRequired: trans('createPost.language_required'),
@@ -251,6 +373,53 @@ export const buildCreatePostText = (
     quizAiAnswerPlacementRandom: trans(
         'createPost.quiz_ai_answer_placement_random',
     ),
+    materialAnonymousHint: trans('createPost.material_anonymous_hint'),
+    studentPostHint: trans('createPost.student_post_hint'),
+    materialLinkTitle: trans('createPost.material_link_title'),
+    materialLinkHint: trans('createPost.material_link_hint'),
+    materialLinkNone: trans('createPost.material_link_none'),
+    materialAttachQuizTitle: trans('createPost.material_attach_quiz_title'),
+    materialQuizGenerating: trans('createPost.material_quiz_generating'),
+    materialQuizGenerateAi: trans('createPost.material_quiz_generate_ai'),
+    materialSelectRequired: trans('createPost.material_select_required'),
+    materialQuizError: trans('createPost.material_quiz_error'),
+    materialQuizContentPrefix: trans('createPost.material_quiz_content_prefix'),
+    materialReliableBadge: trans('createPost.material_reliable_badge'),
+    materialImprovedBadge: trans('createPost.material_improved_badge'),
+    materialPageLabel: trans('createPost.material_page_label'),
+    materialPublisherLabel: trans('createPost.material_publisher_label'),
+    materialLastUpdatedLabel: trans('createPost.material_last_updated_label'),
+    materialNotAvailable: trans('createPost.material_not_available'),
+    materialQuizSection: trans('createPost.material_quiz_section'),
+    materialLinkedQuizzes: trans('createPost.material_linked_quizzes'),
+    materialQuizQuestions: trans('createPost.material_quiz_questions'),
+    materialAttemptsRecorded: trans('createPost.material_attempts_recorded'),
+    materialAttemptQuiz: trans('createPost.material_attempt_quiz'),
+    materialNoLinkedQuizzes: trans('createPost.material_no_linked_quizzes'),
+    materialStudentFeedback: trans('createPost.material_student_feedback'),
+    materialAverageRating: trans('createPost.material_average_rating'),
+    materialTotalVotes: trans('createPost.material_total_votes'),
+    materialFeedbackCount: trans('createPost.material_feedback_count'),
+    materialUpvote: trans('createPost.material_upvote'),
+    materialDownvote: trans('createPost.material_downvote'),
+    materialFeedbackPlaceholder: trans(
+        'createPost.material_feedback_placeholder',
+    ),
+    materialSubmitFeedback: trans('createPost.material_submit_feedback'),
+    materialSubmittingFeedback: trans('createPost.material_submitting_feedback'),
+    materialFeedbackSubmitted: trans('createPost.material_feedback_submitted'),
+    materialFeedbackImprovement: trans(
+        'createPost.material_feedback_improvement',
+    ),
+    materialLearningAnalytics: trans('createPost.material_learning_analytics'),
+    materialViews: trans('createPost.material_views'),
+    materialUniqueUsers: trans('createPost.material_unique_users'),
+    materialAverageQuizScore: trans('createPost.material_average_quiz_score'),
+    materialAttemptImprovement: trans('createPost.material_attempt_improvement'),
+    materialLearningLoop: trans('createPost.material_learning_loop'),
+    materialContributedBy: trans('createPost.material_contributed_by'),
+    materialUnknownUser: trans('createPost.material_unknown_user'),
+    explanationLabel: trans('createPost.explanation_label'),
     anonymousLabel: trans('createPost.anonymous_label'),
     anonymousHint: trans('createPost.anonymous_hint'),
     publishing: trans('createPost.publishing'),

@@ -9,6 +9,7 @@ import {
     MAX_CONTENT_LENGTH,
     MAX_TITLE_LENGTH,
     buildCreatePostText,
+    type LearningMaterialOption,
     pillActionButton,
     pillChoiceActive,
     pillChoiceBase,
@@ -17,8 +18,10 @@ import {
     pillSubmitButton,
 } from '@/components/create-post/create-post-config';
 import { LanguageSection } from '@/components/create-post/language-section';
+import { MaterialLinkSection } from '@/components/create-post/material-link-section';
 import { PostTypeSection } from '@/components/create-post/post-type-section';
 import { QuizSetupSection } from '@/components/create-post/quiz-setup-section';
+import { StudyMaterialBlockEditor } from '@/components/create-post/study-material-block-editor';
 import { SubjectSection } from '@/components/create-post/subject-section';
 import { useCreatePostForm } from '@/components/create-post/use-create-post-form';
 import { VideoLinkSection } from '@/components/create-post/video-link-section';
@@ -30,12 +33,18 @@ import type { PostSubject } from '@/types';
 
 type CreatePostPageProps = {
     subjects?: PostSubject[];
+    learningMaterials?: LearningMaterialOption[];
+    canPublishStudyMaterial?: boolean;
 };
 
 export default function CreatePostPage() {
     const { trans } = reactLang();
     const t = buildCreatePostText(trans);
-    const { subjects = [] } = usePage<CreatePostPageProps>().props;
+    const {
+        subjects = [],
+        learningMaterials = [],
+        canPublishStudyMaterial = false,
+    } = usePage<CreatePostPageProps>().props;
 
     const {
         fileInputRef,
@@ -44,6 +53,12 @@ export default function CreatePostPage() {
         setTitle,
         content,
         setContent,
+        materialBlocks,
+        addMaterialBlock,
+        updateMaterialBlock,
+        updateMaterialBlockFile,
+        removeMaterialBlock,
+        moveMaterialBlock,
         isAnonymous,
         setIsAnonymous,
         quizzes,
@@ -58,6 +73,11 @@ export default function CreatePostPage() {
         generateQuizOptions,
         generatingQuizOptionIds,
         quizOptionErrors,
+        selectedMaterialId,
+        setSelectedMaterialId,
+        generatingMaterialQuiz,
+        materialQuizError,
+        generateQuizFromMaterial,
         selectedPostType,
         setSelectedPostType,
         selectedSubject,
@@ -79,6 +99,7 @@ export default function CreatePostPage() {
         showSymbolPreview,
         previewContent,
         isQuizSelected,
+        isMaterialSelected,
         mathFormulaPresets,
         physicsSymbolPresets,
         chemistrySymbolPresets,
@@ -91,7 +112,13 @@ export default function CreatePostPage() {
         removeAttachment,
         insertMathSnippet,
         onSubmit,
-    } = useCreatePostForm({ subjects, t, trans });
+    } = useCreatePostForm({
+        subjects,
+        learningMaterials,
+        canPublishStudyMaterial,
+        t,
+        trans,
+    });
 
     return (
         <>
@@ -108,6 +135,55 @@ export default function CreatePostPage() {
                                 {t.subtitle}
                             </p>
                         </div>
+
+                        <PostTypeSection
+                            postTypeLabel={t.postTypeLabel}
+                            postTypeRequired={t.postTypeRequired}
+                            selectedPostType={selectedPostType}
+                            onSelectPostType={setSelectedPostType}
+                            options={postTypeOptions}
+                            pillChoiceBase={pillChoiceBase}
+                        />
+
+                        {selectedPostType === 'question' ? (
+                            <div className="flex items-start gap-4 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4">
+                                <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={isAnonymous}
+                                    onClick={() =>
+                                        setIsAnonymous((prev) => !prev)
+                                    }
+                                    className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:outline-none ${
+                                        isAnonymous
+                                            ? 'bg-emerald-700'
+                                            : 'bg-zinc-300'
+                                    }`}
+                                >
+                                    <span
+                                        className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm ring-0 transition-transform ${
+                                            isAnonymous
+                                                ? 'translate-x-5'
+                                                : 'translate-x-0'
+                                        }`}
+                                    />
+                                </button>
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-base font-medium text-zinc-800">
+                                        {t.anonymousLabel}
+                                    </p>
+                                    <p className="mt-0.5 text-sm text-zinc-600">
+                                        {t.anonymousHint}
+                                    </p>
+                                </div>
+                            </div>
+                        ) : null}
+
+                        {!canPublishStudyMaterial ? (
+                            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+                                {t.studentPostHint}
+                            </div>
+                        ) : null}
 
                         <div className="space-y-3">
                             <label
@@ -132,70 +208,57 @@ export default function CreatePostPage() {
                             </div>
                         </div>
 
-                        <ContentComposerSection
-                            isQuizSelected={false}
-                            content={content}
-                            onChangeContent={setContent}
-                            contentTextareaRef={contentTextareaRef}
-                            maxContentLength={MAX_CONTENT_LENGTH}
-                            contentLabel={t.contentLabel}
-                            quizQuestionLabel={t.quizQuestionLabel}
-                            contentPlaceholder={t.contentPlaceholder}
-                            quizQuestionPlaceholder={t.quizQuestionPlaceholder}
-                            isMathSubjectSelected={isMathSubjectSelected}
-                            isPhysicsSubjectSelected={isPhysicsSubjectSelected}
-                            isChemistrySubjectSelected={
-                                isChemistrySubjectSelected
-                            }
-                            mathFormulaPresets={mathFormulaPresets}
-                            physicsSymbolPresets={physicsSymbolPresets}
-                            chemistrySymbolPresets={chemistrySymbolPresets}
-                            onInsertSnippet={insertMathSnippet}
-                            showSymbolPreview={showSymbolPreview}
-                            symbolPreviewTitle={t.symbolPreviewTitle}
-                            symbolPreviewHint={t.symbolPreviewHint}
-                            previewContent={previewContent}
-                            helperText={t.helperText}
-                            remainingContentChars={remainingContentChars}
-                            charsLeft={t.charsLeft}
-                            mathToolTitle={t.mathToolTitle}
-                            mathToolHint={t.mathToolHint}
-                            physicsToolTitle={t.physicsToolTitle}
-                            physicsToolHint={t.physicsToolHint}
-                            chemistryToolTitle={t.chemistryToolTitle}
-                            chemistryToolHint={t.chemistryToolHint}
-                        />
-
-                        {/* Anonymous Toggle — between content and post type */}
-                        <div className="flex items-start gap-4 rounded-xl bg-zinc-50 px-5 py-4">
-                            <button
-                                type="button"
-                                role="switch"
-                                aria-checked={isAnonymous}
-                                onClick={() => setIsAnonymous((prev) => !prev)}
-                                className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:outline-none ${
-                                    isAnonymous ? 'bg-zinc-800' : 'bg-zinc-300'
-                                }`}
-                            >
-                                <span
-                                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm ring-0 transition-transform ${
-                                        isAnonymous
-                                            ? 'translate-x-5'
-                                            : 'translate-x-0'
-                                    }`}
-                                />
-                            </button>
-                            <div className="min-w-0 flex-1">
-                                <p className="text-base font-medium text-zinc-800">
-                                    {t.anonymousLabel}
-                                </p>
-                                {isAnonymous ? (
-                                    <p className="mt-0.5 text-sm text-zinc-500">
-                                        {t.anonymousHint}
-                                    </p>
-                                ) : null}
-                            </div>
-                        </div>
+                        {isMaterialSelected ? (
+                            <StudyMaterialBlockEditor
+                                blocks={materialBlocks}
+                                text={t}
+                                onAddBlock={addMaterialBlock}
+                                onUpdateBlock={updateMaterialBlock}
+                                onUpdateBlockFile={updateMaterialBlockFile}
+                                onRemoveBlock={removeMaterialBlock}
+                                onMoveBlock={moveMaterialBlock}
+                            />
+                        ) : (
+                            <ContentComposerSection
+                                isQuizSelected={false}
+                                content={content}
+                                onChangeContent={setContent}
+                                contentTextareaRef={contentTextareaRef}
+                                maxContentLength={MAX_CONTENT_LENGTH}
+                                contentLabel={t.contentLabel}
+                                quizQuestionLabel={t.quizQuestionLabel}
+                                contentPlaceholder={t.contentPlaceholder}
+                                quizQuestionPlaceholder={
+                                    t.quizQuestionPlaceholder
+                                }
+                                isMathSubjectSelected={isMathSubjectSelected}
+                                isPhysicsSubjectSelected={
+                                    isPhysicsSubjectSelected
+                                }
+                                isChemistrySubjectSelected={
+                                    isChemistrySubjectSelected
+                                }
+                                mathFormulaPresets={mathFormulaPresets}
+                                physicsSymbolPresets={physicsSymbolPresets}
+                                chemistrySymbolPresets={
+                                    chemistrySymbolPresets
+                                }
+                                onInsertSnippet={insertMathSnippet}
+                                showSymbolPreview={showSymbolPreview}
+                                symbolPreviewTitle={t.symbolPreviewTitle}
+                                symbolPreviewHint={t.symbolPreviewHint}
+                                previewContent={previewContent}
+                                helperText={t.helperText}
+                                remainingContentChars={remainingContentChars}
+                                charsLeft={t.charsLeft}
+                                mathToolTitle={t.mathToolTitle}
+                                mathToolHint={t.mathToolHint}
+                                physicsToolTitle={t.physicsToolTitle}
+                                physicsToolHint={t.physicsToolHint}
+                                chemistryToolTitle={t.chemistryToolTitle}
+                                chemistryToolHint={t.chemistryToolHint}
+                            />
+                        )}
 
                         {isQuizSelected ? (
                             <QuizSetupSection
@@ -244,13 +307,14 @@ export default function CreatePostPage() {
                             />
                         ) : null}
 
-                        <PostTypeSection
-                            postTypeLabel={t.postTypeLabel}
-                            postTypeRequired={t.postTypeRequired}
+                        <MaterialLinkSection
+                            materials={learningMaterials}
+                            selectedMaterialId={selectedMaterialId}
                             selectedPostType={selectedPostType}
-                            onSelectPostType={setSelectedPostType}
-                            options={postTypeOptions}
-                            pillChoiceBase={pillChoiceBase}
+                            onSelectMaterial={setSelectedMaterialId}
+                            onGenerateMaterialQuiz={generateQuizFromMaterial}
+                            generatingMaterialQuiz={generatingMaterialQuiz}
+                            materialQuizError={materialQuizError}
                         />
 
                         <SubjectSection
@@ -276,33 +340,37 @@ export default function CreatePostPage() {
                             pillChoiceBase={pillChoiceBase}
                         />
 
-                        <AttachmentsSection
-                            fileInputRef={fileInputRef}
-                            acceptedFileTypes={ACCEPTED_FILE_TYPES}
-                            attachments={attachments}
-                            fileError={fileError}
-                            isDragging={isDragging}
-                            onSelectFiles={onSelectFiles}
-                            onSetDragging={setIsDragging}
-                            onDropFiles={onDropFiles}
-                            onRemoveAttachment={removeAttachment}
-                            pillActionButton={pillActionButton}
-                            pillIconButton={pillIconButton}
-                            text={{
-                                mediaLabel: t.mediaLabel,
-                                addFiles: t.addFiles,
-                                dragDropTitle: t.dragDropTitle,
-                                dragDropSubtitle: t.dragDropSubtitle,
-                                supportedFormat: t.supportedFormat,
-                                previewAlt: t.previewAlt,
-                            }}
-                        />
+                        {!isMaterialSelected ? (
+                            <>
+                                <AttachmentsSection
+                                    fileInputRef={fileInputRef}
+                                    acceptedFileTypes={ACCEPTED_FILE_TYPES}
+                                    attachments={attachments}
+                                    fileError={fileError}
+                                    isDragging={isDragging}
+                                    onSelectFiles={onSelectFiles}
+                                    onSetDragging={setIsDragging}
+                                    onDropFiles={onDropFiles}
+                                    onRemoveAttachment={removeAttachment}
+                                    pillActionButton={pillActionButton}
+                                    pillIconButton={pillIconButton}
+                                    text={{
+                                        mediaLabel: t.mediaLabel,
+                                        addFiles: t.addFiles,
+                                        dragDropTitle: t.dragDropTitle,
+                                        dragDropSubtitle: t.dragDropSubtitle,
+                                        supportedFormat: t.supportedFormat,
+                                        previewAlt: t.previewAlt,
+                                    }}
+                                />
 
-                        <VideoLinkSection
-                            videoUrl={videoUrl}
-                            onChangeVideoUrl={setVideoUrl}
-                            pillIconButton={pillIconButton}
-                        />
+                                <VideoLinkSection
+                                    videoUrl={videoUrl}
+                                    onChangeVideoUrl={setVideoUrl}
+                                    pillIconButton={pillIconButton}
+                                />
+                            </>
+                        ) : null}
 
                         <div className="pt-4">
                             <Button

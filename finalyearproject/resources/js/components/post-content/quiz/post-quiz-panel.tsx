@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BtnAiAns } from '@/components/ui/btn-ai-ans';
-import type { PostContentTransFn, QuizData, QuizResultState } from './types';
+import type { PostContentTransFn, QuizData, QuizResultState } from '../types';
 
 type TranslatedQuestion = {
     question: string;
@@ -54,7 +54,8 @@ export function PostQuizPanel({
                 const selected = selectedAnswers[questionIndex] ?? '';
                 const result = resultStates[questionIndex] ?? null;
                 const translated = translatedQuestions[questionIndex];
-                const displayQuestion = translated?.question ?? question.question;
+                const displayQuestion =
+                    translated?.question ?? question.question;
                 const displayOptions = translated?.options ?? question.options;
 
                 return (
@@ -74,7 +75,11 @@ export function PostQuizPanel({
                         )}
                         {translated && (
                             <p className="mb-2 text-xs text-zinc-400 italic">
-                                {trans('createPost.quiz_ai_translated_label', page)}: {question.question}
+                                {trans(
+                                    'createPost.quiz_ai_translated_label',
+                                    page,
+                                )}
+                                : {question.question}
                             </p>
                         )}
                         <p className="text-sm font-semibold text-amber-800">
@@ -148,6 +153,18 @@ export function PostQuizPanel({
                                 .
                             </p>
                         )}
+                        {result && question.explanation ? (
+                            <p className="mt-2 rounded-lg bg-white px-3 py-2 text-sm text-zinc-700">
+                                <span className="font-semibold">
+                                    {trans(
+                                        'createPost.explanation_label',
+                                        page,
+                                    )}
+                                    :
+                                </span>{' '}
+                                {question.explanation}
+                            </p>
+                        ) : null}
                     </div>
                 );
             })}

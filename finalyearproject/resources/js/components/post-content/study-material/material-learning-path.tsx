@@ -1,0 +1,91 @@
+import { CheckCircle2, Circle, Clock3, Lock } from 'lucide-react';
+import { trans } from '@/components/post-content/post-content-config';
+import type { PostItem } from '@/types';
+
+type MaterialLearningPathProps = {
+    page: unknown;
+    path?: PostItem['material_learning_path'];
+};
+
+function stepLabel(stepKey: string, page: unknown): string {
+    if (stepKey === 'read_material') {
+        return trans('createPost.material_path_read_material', page);
+    }
+
+    if (stepKey === 'complete_quiz') {
+        return trans('createPost.material_path_complete_quiz', page);
+    }
+
+    if (stepKey === 'submit_feedback') {
+        return trans('createPost.material_path_submit_feedback', page);
+    }
+
+    return stepKey;
+}
+
+function statusLabel(status: string, page: unknown): string {
+    if (status === 'completed') {
+        return trans('createPost.material_path_status_completed', page);
+    }
+
+    if (status === 'in_progress') {
+        return trans('createPost.material_path_status_in_progress', page);
+    }
+
+    if (status === 'not_required') {
+        return trans('createPost.material_path_status_not_required', page);
+    }
+
+    return trans('createPost.material_path_status_pending', page);
+}
+
+function statusIcon(status: string) {
+    if (status === 'completed') {
+        return <CheckCircle2 className="h-4 w-4 text-emerald-600" />;
+    }
+
+    if (status === 'in_progress') {
+        return <Clock3 className="h-4 w-4 text-amber-600" />;
+    }
+
+    if (status === 'not_required') {
+        return <Lock className="h-4 w-4 text-zinc-400" />;
+    }
+
+    return <Circle className="h-4 w-4 text-zinc-400" />;
+}
+
+export function MaterialLearningPath({
+    page,
+    path,
+}: MaterialLearningPathProps) {
+    if (!path || path.length === 0) {
+        return null;
+    }
+
+    return (
+        <section className="mx-4 mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+            <h2 className="text-sm font-semibold text-zinc-900">
+                {trans('createPost.material_path_title', page)}
+            </h2>
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {path.map((step) => (
+                    <div
+                        key={step.key}
+                        className="rounded-lg border border-zinc-200 bg-white p-3"
+                    >
+                        <div className="flex items-center gap-2">
+                            {statusIcon(step.status)}
+                            <p className="text-sm font-semibold text-zinc-900">
+                                {stepLabel(step.key, page)}
+                            </p>
+                        </div>
+                        <p className="mt-1 text-xs text-zinc-600">
+                            {statusLabel(step.status, page)}
+                        </p>
+                    </div>
+                ))}
+            </div>
+        </section>
+    );
+}

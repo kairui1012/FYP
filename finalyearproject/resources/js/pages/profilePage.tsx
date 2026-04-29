@@ -216,6 +216,7 @@ export default function ProfilePage() {
         points: trans('profile.points'),
         badges: trans('profile.badges'),
         followers: trans('profile.followers'),
+        following: trans('profile.following'),
         noBadgesYet: trans('profile.no_badges_yet'),
     };
 
@@ -242,6 +243,9 @@ export default function ProfilePage() {
     );
     const [followersCount, setFollowersCount] = useState(
         profileUser.followers_count ?? 0,
+    );
+    const [followingCount, setFollowingCount] = useState(
+        profileUser.following_count ?? 0,
     );
     const [followLoading, setFollowLoading] = useState(false);
     const [showProfileEditor, setShowProfileEditor] = useState(false);
@@ -310,6 +314,9 @@ export default function ProfilePage() {
     useEffect(() => {
         if (!followLoading) setFollowersCount(profileUser.followers_count ?? 0);
     }, [profileUser.followers_count]);
+    useEffect(() => {
+        setFollowingCount(profileUser.following_count ?? 0);
+    }, [profileUser.following_count]);
 
     useEffect(() => {
         if (!profileAvatarFile) {
@@ -836,7 +843,7 @@ export default function ProfilePage() {
                 )}
 
                 {/* ── Stats row ────────────────────────────────────────────── */}
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
                     <StatCard label={t.posts} value={posts.length} />
                     <StatCard
                         label={t.points}
@@ -852,6 +859,11 @@ export default function ProfilePage() {
                         label={t.followers}
                         value={followersCount}
                         accent="text-sky-600"
+                    />
+                    <StatCard
+                        label={t.following}
+                        value={followingCount}
+                        accent="text-purple-600"
                     />
                 </div>
 

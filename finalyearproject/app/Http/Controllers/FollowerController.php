@@ -64,6 +64,7 @@ class FollowerController extends Controller
 
         $posts = Post::query()
             ->whereIn('user_id', $followingIds)
+            ->whereHas('user', fn ($q) => $q->where('is_blocked', false))
             ->with([
                 'user:id,name',
                 'user.socialAccounts:id,user_id,avatar',

@@ -31,6 +31,7 @@ return [
     'share_link_copy_failed' => 'Failed to copy link.',
     'categories' => 'Subject Categories',
     'rules' => 'Rules',
+    'teacher_material_insights' => 'Teacher Material Insights',
     'achievements' => 'Learning Milestones',
     'bookmarks' => 'My Study Folder',
 ];

@@ -1,20 +1,27 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
-import { CommentSection } from '@/components/comment-section';
 import { PostActionFooter } from '@/components/post-content/post-action-footer';
 import { PostAttachmentsSection } from '@/components/post-content/post-attachments-section';
 import { PostBackAuthorHeader } from '@/components/post-content/post-back-author-header';
+import { PostContentCommentsPanel } from '@/components/post-content/post-content-comments-panel';
 import { trans } from '@/components/post-content/post-content-config';
+import { PostContentMainSection } from '@/components/post-content/post-content-main-section';
 import { PostDeleteModal } from '@/components/post-content/post-delete-modal';
-import { PostEditableBody } from '@/components/post-content/post-editable-body';
-import { PostQuizPanel } from '@/components/post-content/post-quiz-panel';
 import { PostTranslateActions } from '@/components/post-content/post-translate-actions';
-import { PostVideoEmbed } from '@/components/post-content/post-video-embed';
+import { buildQuizData } from '@/components/post-content/quiz/quiz-data';
+import type {
+    EditableMaterialBlock,
+    EditableMaterialBlockType,
+} from '@/components/post-content/study-material/material-editable-body';
+import {
+    createEditableMaterialBlock,
+    normalizeEditableMaterialBlocks,
+    revokeMaterialBlockPreviews,
+} from '@/components/post-content/study-material/material-editing-utils';
+import { useMaterialEditActions } from '@/components/post-content/study-material/use-material-edit-actions';
 import type {
     PostContentProps,
-    QuizData,
-    QuizQuestion,
     QuizResultState,
 } from '@/components/post-content/types';
 import AppLayout from '@/layouts/app-layout';
@@ -81,9 +88,22 @@ export default function PostContent({ post }: PostContentProps) {
     const page = usePage();
     const currentUserId = (page.props as { auth?: { user?: { id?: number } } })
         .auth?.user?.id;
+    const currentUserRole =
+        (page.props as { auth?: { user?: { role?: string } } }).auth?.user
+            ?.role ?? 'student';
     const isOwner = Boolean(currentUserId && post.user?.id === currentUserId);
     const isAnonymousPost = Boolean(post.is_anonymous);
-    const canManagePost = isOwner && !isAnonymousPost;
+    const canPublishStudyMaterial = ['admin', 'teacher'].includes(
+        currentUserRole,
+    );
+    const isAdmin = currentUserRole === 'admin';
+    const canManageMaterial =
+        post.post_type === 'material' &&
+        canPublishStudyMaterial &&
+        (isOwner || currentUserRole === 'admin');
+    const canManagePost =
+        !isAnonymousPost &&
+        (post.post_type === 'material' ? canManageMaterial : isOwner);
     const displayName = isAnonymousPost
         ? 'Anonymous User'
         : (post.user?.name ?? 'Unknown User');
@@ -95,6 +115,9 @@ export default function PostContent({ post }: PostContentProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(post.title);
     const [editContent, setEditContent] = useState(post.content ?? '');
+    const [materialEditBlocks, setMaterialEditBlocks] = useState<
+        EditableMaterialBlock[]
+    >([]);
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [editLoading, setEditLoading] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -118,79 +141,55 @@ export default function PostContent({ post }: PostContentProps) {
     const [resultStates, setResultStates] = useState<
         Record<number, QuizResultState>
     >({});
+    const materialEditBlocksRef = useRef<EditableMaterialBlock[]>([]);
+    const {
+        updateMaterialEditBlock,
+        updateMaterialEditBlockFile,
+        removeMaterialEditBlock,
+        moveMaterialEditBlock,
+        handleMaterialEditSave,
+    } = useMaterialEditActions({
+        canManageMaterial,
+        postId: post.id,
+        editTitle,
+        materialEditBlocks,
+        materialEditBlocksRef,
+        setMaterialEditBlocks,
+        setEditLoading,
+        setEditErrors,
+        setIsEditing,
+    });
 
     const displayedContent = formatFormulaText(
         translated?.content ?? post.content ?? '',
     );
-    const quizData = useMemo((): QuizData | null => {
-        const raw = post.quiz_data as
-            | Record<string, unknown>
-            | null
-            | undefined;
-        if (!raw) return null;
-
-        if (Array.isArray(raw.questions) && raw.questions.length > 0) {
-            const questions: QuizQuestion[] = [];
-            for (const question of raw.questions as Record<string, unknown>[]) {
-                const options = Array.isArray(question.options)
-                    ? (question.options as unknown[]).filter(
-                          (value): value is string => typeof value === 'string',
-                      )
-                    : [];
-                const answerIndex = Number(question.answer_index);
-                if (
-                    options.length < 2 ||
-                    Number.isNaN(answerIndex) ||
-                    answerIndex < 0 ||
-                    answerIndex >= options.length
-                ) {
-                    continue;
-                }
-                questions.push({
-                    question:
-                        typeof question.question === 'string'
-                            ? question.question
-                            : null,
-                    options,
-                    answerIndex,
-                    creatorAnswer: options[answerIndex] ?? '',
-                });
-            }
-            return questions.length > 0 ? { questions } : null;
-        }
-
-        const options = Array.isArray(raw.options)
-            ? (raw.options as unknown[]).filter(
-                  (value): value is string => typeof value === 'string',
-              )
-            : [];
-        const answerIndex = Number(raw.answer_index);
-        if (
-            options.length < 2 ||
-            Number.isNaN(answerIndex) ||
-            answerIndex < 0 ||
-            answerIndex >= options.length
-        ) {
-            return null;
-        }
-
-        return {
-            questions: [
-                {
-                    question: null,
-                    options,
-                    answerIndex,
-                    creatorAnswer: options[answerIndex] ?? '',
-                },
-            ],
-        };
-    }, [post.quiz_data]);
+    const quizData = useMemo(
+        () =>
+            buildQuizData(
+                post.quiz_data as Record<string, unknown> | null | undefined,
+            ),
+        [post.quiz_data],
+    );
 
     useEffect(() => {
         document.documentElement.classList.remove('nprogress-busy');
         document.body.classList.remove('nprogress-busy');
         document.documentElement.style.cursor = '';
         document.body.style.cursor = '';
+    }, []);
+
+    useEffect(() => {
+        materialEditBlocksRef.current = materialEditBlocks;
+    }, [materialEditBlocks]);
+
+    useEffect(() => {
+        return () => {
+            materialEditBlocksRef.current.forEach((block) => {
+                if (block.preview) {
+                    URL.revokeObjectURL(block.preview);
+                }
+            });
+        };
     }, []);
 
     useEffect(() => {
@@ -420,6 +419,15 @@ export default function PostContent({ post }: PostContentProps) {
 
         setEditTitle(post.title);
         setEditContent(post.content ?? '');
+        if (post.post_type === 'material') {
+            revokeMaterialBlockPreviews(materialEditBlocksRef.current);
+            setMaterialEditBlocks(
+                normalizeEditableMaterialBlocks(
+                    post.content_blocks,
+                    post.content ?? '',
+                ),
+            );
+        }
         setEditErrors({});
         setIsEditing(true);
     };
@@ -427,6 +435,8 @@ export default function PostContent({ post }: PostContentProps) {
     const handleEditCancel = () => {
         setIsEditing(false);
         setEditErrors({});
+        revokeMaterialBlockPreviews(materialEditBlocksRef.current);
+        setMaterialEditBlocks([]);
     };
 
     const handleEditSave = () => {
@@ -449,6 +459,13 @@ export default function PostContent({ post }: PostContentProps) {
                 },
             },
         );
+    };
+
+    const addMaterialEditBlock = (type: EditableMaterialBlockType) => {
+        setMaterialEditBlocks((prev) => [
+            ...prev,
+            createEditableMaterialBlock(type),
+        ]);
     };
 
     const handleDeleteConfirm = () => {
@@ -514,6 +531,9 @@ export default function PostContent({ post }: PostContentProps) {
         }
     };
 
+    const linkedQuizzes = post.linked_quizzes ?? [];
+    const analytics = post.learning_analytics;
+
     return (
         <>
             <Head title={translated?.title ?? post.title} />
@@ -533,39 +553,39 @@ export default function PostContent({ post }: PostContentProps) {
                         onFollowAuthor={handleFollowAuthor}
                     />
 
-                    <PostEditableBody
+                    <PostContentMainSection
                         page={page}
+                        post={post}
+                        translatedTitle={translated?.title ?? post.title}
+                        displayedContent={displayedContent}
+                        isAdmin={isAdmin}
                         isEditing={isEditing}
-                        title={translated?.title ?? post.title}
-                        content={displayedContent}
+                        linkedQuizzes={linkedQuizzes}
+                        analytics={analytics}
+                        quizData={quizData}
+                        selectedAnswers={selectedAnswers}
+                        resultStates={resultStates}
                         editTitle={editTitle}
                         editContent={editContent}
+                        materialEditBlocks={materialEditBlocks}
                         editErrors={editErrors}
                         editLoading={editLoading}
                         trans={trans}
                         onEditTitleChange={setEditTitle}
                         onEditContentChange={setEditContent}
-                        onSave={handleEditSave}
-                        onCancel={handleEditCancel}
+                        onSaveEdit={handleEditSave}
+                        onCancelEdit={handleEditCancel}
+                        onAddMaterialBlock={addMaterialEditBlock}
+                        onUpdateMaterialBlock={updateMaterialEditBlock}
+                        onUpdateMaterialBlockFile={updateMaterialEditBlockFile}
+                        onRemoveMaterialBlock={removeMaterialEditBlock}
+                        onMoveMaterialBlock={moveMaterialEditBlock}
+                        onSaveMaterialEdit={handleMaterialEditSave}
+                        onAnswerSelect={handleAnswerSelect}
+                        onCheckAnswer={(questionIndex) => {
+                            void handleCheckAnswer(questionIndex);
+                        }}
                     />
-
-                    <PostVideoEmbed videoUrl={post.video_url} />
-
-                    {post.post_type === 'quiz' ? (
-                        <PostQuizPanel
-                            postId={post.id}
-                            postTitle={post.title}
-                            page={page}
-                            quizData={quizData}
-                            selectedAnswers={selectedAnswers}
-                            resultStates={resultStates}
-                            trans={trans}
-                            onAnswerSelect={handleAnswerSelect}
-                            onCheckAnswer={(questionIndex) => {
-                                void handleCheckAnswer(questionIndex);
-                            }}
-                        />
-                    ) : null}
 
                     <PostAttachmentsSection files={post.image} />
 
@@ -597,15 +617,11 @@ export default function PostContent({ post }: PostContentProps) {
                     />
 
                     <div className="my-10 w-full border-t border-zinc-200" />
-                    <div
-                        id="comments"
-                        className="scroll-mt-20 pb-16 sm:scroll-mt-40 sm:pb-32"
-                    >
-                        <CommentSection
-                            post={post}
-                            onCommentsCountChange={setCommentsCount}
-                        />
-                    </div>
+                    <PostContentCommentsPanel
+                        page={page}
+                        post={post}
+                        onCommentsCountChange={setCommentsCount}
+                    />
                 </div>
             </div>
 

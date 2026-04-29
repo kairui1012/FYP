@@ -2,6 +2,7 @@ export type User = {
     id: number;
     name: string;
     email: string;
+    role?: 'admin' | 'teacher' | 'student' | string;
     avatar?: string;
     leaderboard_title?: string | null;
     show_leaderboard_badge?: boolean;

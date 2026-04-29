@@ -9,3 +9,13 @@ Post, answer quizzes, and engage with the community to earn badges. 这个一样
 create post里面某些符号显示有问题
 
 这个加一个权限 只有teacher和admin的user role才可以使用 创建quiz这个功能
+Learning Insights (System Evaluation)
+
+• This material has a low rating (1.0 / 5), indicating poor content clarity.
+• Quiz performance is moderate (75%), but no improvement is observed.
+• User feedback suggests unclear explanation.
+
+Suggested Action:
+→ Improve explanation clarity
+→ Add examples
+→ Adjust quiz difficulty

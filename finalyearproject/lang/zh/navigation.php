@@ -31,6 +31,7 @@ return [
     'share_link_copy_failed' => '复制链接失败。',
     'categories' => '学科分类',
     'rules' => '规则',
+    'teacher_material_insights' => '教师资料分析',
     'achievements' => '学习成就',
     'bookmarks' => '我的学习夹',
 ];

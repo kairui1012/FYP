@@ -16,7 +16,7 @@ export function PostTranslateActions({
     postType,
     onTranslate,
 }: PostTranslateActionsProps) {
-    const shouldShowLearningObjectives = postType === 'material';
+    const shouldShowLearningObjectives = false;
 
     return (
         <div className="my-3 px-4">

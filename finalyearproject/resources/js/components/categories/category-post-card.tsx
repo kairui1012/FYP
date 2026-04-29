@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnComment } from '@/components/ui/btn-comment';
 import { BtnFollow } from '@/components/ui/btn-follow';
 import { BtnLike } from '@/components/ui/btn-like';
+import { MaterialLearningStateBadge } from '@/components/ui/material-learning-state-badge';
 import { BtnSave } from '@/components/ui/btn-save';
 import { BtnShare } from '@/components/ui/btn-share';
 import { formatFormulaText } from '@/lib/formula-display';
@@ -56,6 +57,8 @@ export function CategoryPostCard({
     const typeLabel =
         post.post_type === 'quiz'
             ? trans('createPost.create_quiz')
+            : post.post_type === 'discussion'
+              ? trans('createPost.create_discussion')
             : post.post_type === 'question'
               ? trans('createPost.ask_question')
               : trans('createPost.share_material');
@@ -172,6 +175,11 @@ export function CategoryPostCard({
                                         {subjectLabel}
                                     </span>
                                 )}
+                                {post.post_type === 'material' ? (
+                                    <MaterialLearningStateBadge
+                                        state={post.material_learning_state}
+                                    />
+                                ) : null}
                             </div>
                         </div>
                     </div>

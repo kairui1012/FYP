@@ -26,7 +26,7 @@ class PostPopularController extends Controller
             'sort'          => ['nullable', 'string', Rule::in(['newest', 'hottest'])],
             'language_code' => ['nullable', 'string', Rule::exists('languages', 'code')],
             'subject_id'    => ['nullable', 'integer', Rule::exists('subjects', 'id')],
-            'post_type'     => ['nullable', 'string', Rule::in(['material', 'question', 'quiz'])],
+            'post_type'     => ['nullable', 'string', Rule::in(['material', 'question', 'discussion', 'quiz'])],
         ]);
 
         $languageCode = $validated['language_code'] ?? '';
@@ -45,6 +45,7 @@ class PostPopularController extends Controller
             ->all() ?? [];
 
         $popularPostsQuery = Post::query()
+            ->whereHas('user', fn ($q) => $q->where('is_blocked', false))
             ->with([
                 'user:id,name',
                 'user.socialAccounts:id,user_id,avatar',

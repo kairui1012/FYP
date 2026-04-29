@@ -1,8 +1,15 @@
-import { Link } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
-import { ArrowRight, Search, UsersRound } from 'lucide-react';
-import { PostAttachments } from '@/components/post-attachments';
+import { Link } from '@inertiajs/react';
+import {
+    ArrowRight,
+    FileText,
+    PlayCircle,
+    Search,
+    Star,
+    UsersRound,
+} from 'lucide-react';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
+import { PostAttachments } from '@/components/post-attachments';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnComment } from '@/components/ui/btn-comment';
 import { BtnFollow } from '@/components/ui/btn-follow';
@@ -28,6 +35,7 @@ type FeedText = {
     followingEmptyAction: string;
     followingEmptySecondaryAction: string;
     createQuiz: string;
+    createDiscussion: string;
     askQuestion: string;
     shareMaterial: string;
     unknownUser: string;
@@ -106,6 +114,109 @@ function PostFooter({
             <BtnShare className="mb-2" />
         </div>
     );
+}
+
+function materialAssetUrl(path: string) {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+    }
+
+    return `/storage/${path}`;
+}
+
+function MaterialRecommendationBadge({ post }: { post: PostItem }) {
+    const averageRating = post.material_feedback_summary?.average_rating ?? 0;
+    const recommendationRate =
+        post.material_feedback_summary?.recommendation_rate ?? 0;
+    const ratingCount = post.material_feedback_summary?.rating_count ?? 0;
+
+    return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+            <Star className="h-3.5 w-3.5 fill-current" />
+            {ratingCount > 0
+                ? `${averageRating.toFixed(1)} · ${recommendationRate}%`
+                : 'No ratings yet'}
+        </span>
+    );
+}
+
+function MaterialPreview({ post }: { post: PostItem }) {
+    const firstBlock = post.content_blocks?.[0];
+
+    if (!firstBlock) {
+        const fallbackSegments = (post.content ?? '')
+            .split(/\n\s*\n/)
+            .map((segment) => segment.trim())
+            .filter(Boolean);
+        const firstSegment =
+            fallbackSegments[0] === post.title
+                ? (fallbackSegments[1] ?? fallbackSegments[0] ?? '')
+                : (fallbackSegments[0] ?? '');
+
+        return (
+            <p className="mb-2 text-base leading-6 font-medium whitespace-pre-wrap text-zinc-700">
+                {formatFormulaText(firstSegment)}
+            </p>
+        );
+    }
+
+    if (firstBlock.type === 'text') {
+        return (
+            <p className="mb-2 text-base leading-6 font-medium whitespace-pre-wrap text-zinc-700">
+                {formatFormulaText(firstBlock.text)}
+            </p>
+        );
+    }
+
+    if (firstBlock.type === 'image') {
+        return (
+            <div className="mb-2 overflow-hidden rounded-2xl border-2 border-zinc-200 bg-zinc-50">
+                <img
+                    src={materialAssetUrl(firstBlock.path)}
+                    alt={firstBlock.name ?? post.title}
+                    className="max-h-80 w-full object-contain"
+                />
+            </div>
+        );
+    }
+
+    if (firstBlock.type === 'document') {
+        return (
+            <div className="mb-2 flex items-center gap-3 rounded-2xl border-2 border-zinc-200 bg-zinc-50 p-4">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 text-rose-700">
+                    <FileText className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                    <p className="truncate font-semibold text-zinc-900">
+                        {firstBlock.name ?? 'Document'}
+                    </p>
+                    <p className="text-sm text-zinc-500">
+                        {firstBlock.mime ?? 'Study material file'}
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    if (firstBlock.type === 'video') {
+        return (
+            <div className="mb-2 flex items-center gap-3 rounded-2xl border-2 border-zinc-200 bg-zinc-50 p-4">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-sky-700">
+                    <PlayCircle className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                    <p className="font-semibold text-zinc-900">
+                        Video resource
+                    </p>
+                    <p className="truncate text-sm text-zinc-500">
+                        {firstBlock.url}
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    return null;
 }
 
 export function HomeFeedSection({
@@ -302,17 +413,22 @@ export function HomeFeedSection({
                                                 post.post_type === 'quiz'
                                                     ? 'quiz'
                                                     : post.post_type ===
-                                                        'question'
-                                                      ? 'question'
-                                                      : 'material';
+                                                        'discussion'
+                                                      ? 'discussion'
+                                                      : post.post_type ===
+                                                          'question'
+                                                        ? 'question'
+                                                        : 'material';
                                             const { bg, text: typeTextClass } =
                                                 getPostTypeBadgeProps(type);
                                             const label =
                                                 type === 'quiz'
                                                     ? text.createQuiz
-                                                    : type === 'question'
-                                                      ? text.askQuestion
-                                                      : text.shareMaterial;
+                                                    : type === 'discussion'
+                                                      ? text.createDiscussion
+                                                      : type === 'question'
+                                                        ? text.askQuestion
+                                                        : text.shareMaterial;
 
                                             return (
                                                 <span
@@ -358,6 +474,11 @@ export function HomeFeedSection({
                                                   );
                                               })()
                                             : null}
+                                        {post.post_type === 'material' ? (
+                                            <MaterialRecommendationBadge
+                                                post={post}
+                                            />
+                                        ) : null}
                                     </div>
                                 </div>
                             </div>
@@ -366,11 +487,16 @@ export function HomeFeedSection({
                         <h2 className="mb-2 text-lg font-bold text-zinc-900">
                             {post.title}
                         </h2>
-                        <p className="mb-2 text-base leading-6 font-medium whitespace-pre-wrap text-zinc-700">
-                            {formatFormulaText(post.content ?? '')}
-                        </p>
-
-                        <PostAttachments files={post.image} compact />
+                        {post.post_type === 'material' ? (
+                            <MaterialPreview post={post} />
+                        ) : (
+                            <>
+                                <p className="mb-2 text-base leading-6 font-medium whitespace-pre-wrap text-zinc-700">
+                                    {formatFormulaText(post.content ?? '')}
+                                </p>
+                                <PostAttachments files={post.image} compact />
+                            </>
+                        )}
                     </article>
 
                     {(() => {

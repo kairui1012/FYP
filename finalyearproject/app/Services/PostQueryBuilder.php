@@ -21,7 +21,7 @@ class PostQueryBuilder
     public function withStandardRelations(): self
     {
         $this->query->with([
-            'user:id,name',
+            'user:id,name,role',
             'user.socialAccounts:id,user_id,avatar',
             'subject:id,name',
             'lesson:id,title,sequence',
@@ -52,6 +52,16 @@ class PostQueryBuilder
             'likes as is_liked' => fn ($query) => $query->where('user_id', $userId),
             'bookmarkItems as is_saved' => fn ($query) => $query->where('user_id', $userId),
         ]);
+
+        return $this;
+    }
+
+    /**
+     * Exclude posts from blocked users
+     */
+    public function excludeBlockedUsers(): self
+    {
+        $this->query->whereHas('user', fn ($q) => $q->where('is_blocked', false));
 
         return $this;
     }

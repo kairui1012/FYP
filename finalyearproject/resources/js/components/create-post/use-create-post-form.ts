@@ -1,33 +1,38 @@
 import { router } from '@inertiajs/react';
 import {
-    ChangeEvent,
-    DragEvent,
-    FormEvent,
     useEffect,
     useMemo,
     useRef,
     useState,
 } from 'react';
+import type { ChangeEvent, DragEvent, FormEvent } from 'react';
+import { requestMaterialQuiz } from '@/lib/ai-material-quiz';
 import { requestQuizOptions } from '@/lib/ai-quiz-options';
 import { formatFormulaText } from '@/lib/formula-display';
 import type { PostSubject } from '@/types';
 import {
-    ACCEPTED_FILE_TYPES,
     LANGUAGE_OPTIONS,
     MAX_CONTENT_LENGTH,
     MAX_FILE_SIZE,
     MAX_TITLE_LENGTH,
     MAX_TOTAL_SIZE,
     POST_TYPE_OPTIONS,
-    type CreatePostText,
-    type LocalAttachment,
-    type QuizAiAnswerPlacement,
-    type QuizItem,
     getSubjectIcon,
+} from './create-post-config';
+import type {
+    CreatePostText,
+    LearningMaterialOption,
+    LocalAttachment,
+    MaterialBlockType,
+    MaterialContentBlock,
+    QuizAiAnswerPlacement,
+    QuizItem,
 } from './create-post-config';
 
 type UseCreatePostFormParams = {
     subjects: PostSubject[];
+    learningMaterials: LearningMaterialOption[];
+    canPublishStudyMaterial: boolean;
     t: CreatePostText;
     trans: (key: string) => string;
 };
@@ -42,6 +47,16 @@ const createEmptyQuiz = (): QuizItem => ({
     options: createEmptyQuizOptions(),
     answerIndex: '',
     aiAnswerPlacement: 'random',
+    explanation: '',
+});
+
+const createMaterialBlock = (type: MaterialBlockType): MaterialContentBlock => ({
+    id: `${type}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    type,
+    text: '',
+    url: '',
+    file: null,
+    preview: null,
 });
 
 const applyGeneratedOptionsToQuiz = (
@@ -61,6 +76,8 @@ const applyGeneratedOptionsToQuiz = (
 
 export function useCreatePostForm({
     subjects,
+    learningMaterials,
+    canPublishStudyMaterial,
     t,
     trans,
 }: UseCreatePostFormParams) {
@@ -70,8 +87,12 @@ export function useCreatePostForm({
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
+    const [materialBlocks, setMaterialBlocks] = useState<
+        MaterialContentBlock[]
+    >([createMaterialBlock('text')]);
     const [quizzes, setQuizzes] = useState<QuizItem[]>([createEmptyQuiz()]);
     const [selectedPostType, setSelectedPostType] = useState<string>('');
+    const [selectedMaterialId, setSelectedMaterialId] = useState<string>('');
     const [selectedSubject, setSelectedSubject] = useState<string>('');
     const [selectedLanguage, setSelectedLanguage] = useState<string>('');
     const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
@@ -86,6 +107,10 @@ export function useCreatePostForm({
     const [quizOptionErrors, setQuizOptionErrors] = useState<
         Record<number, string>
     >({});
+    const [generatingMaterialQuiz, setGeneratingMaterialQuiz] = useState(false);
+    const [materialQuizError, setMaterialQuizError] = useState<string | null>(
+        null,
+    );
 
     useEffect(() => {
         attachmentsRef.current = attachments;
@@ -136,6 +161,14 @@ export function useCreatePostForm({
         isChemistrySubjectSelected;
     const previewContent = useMemo(() => formatFormulaText(content), [content]);
     const isQuizSelected = selectedPostType === 'quiz';
+    const isMaterialSelected = selectedPostType === 'material';
+    const hasValidMaterialBlocks =
+        materialBlocks.length > 0 &&
+        materialBlocks.some((block) => {
+            if (block.type === 'text') return block.text.trim().length > 0;
+            if (block.type === 'video') return block.url.trim().length > 0;
+            return Boolean(block.file);
+        });
     const hasValidQuiz =
         quizzes.length >= 1 &&
         quizzes.every(
@@ -296,9 +329,13 @@ export function useCreatePostForm({
 
     const postTypeOptions = useMemo(
         () =>
-            POST_TYPE_OPTIONS.map((postType) => ({
+            POST_TYPE_OPTIONS.filter(
+                (postType) =>
+                    postType.value !== 'material' || canPublishStudyMaterial,
+            ).map((postType) => ({
                 value: postType.value,
                 label: t[postType.labelKey],
+                description: t[postType.descriptionKey],
                 activeClass:
                     postType.value === 'question'
                         ? 'border-emerald-600 bg-linear-to-r from-emerald-400 to-emerald-600 text-white shadow-[0_8px_20px_rgba(5,150,105,0.25)]'
@@ -312,7 +349,7 @@ export function useCreatePostForm({
                           ? 'border-zinc-200 bg-white text-zinc-700 shadow-[0_1px_0_rgba(255,255,255,0.8)] hover:-translate-y-[1px] hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700'
                           : 'border-zinc-200 bg-white text-zinc-700 shadow-[0_1px_0_rgba(255,255,255,0.8)] hover:-translate-y-[1px] hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700',
             })),
-        [t],
+        [canPublishStudyMaterial, t],
     );
 
     const subjectOptions = useMemo(
@@ -357,12 +394,28 @@ export function useCreatePostForm({
 
     const canSubmit =
         title.trim().length > 0 &&
-        content.trim().length > 0 &&
+        (isMaterialSelected || content.trim().length > 0) &&
         selectedPostType.trim().length > 0 &&
         selectedSubject.trim().length > 0 &&
         selectedLanguage.trim().length > 0 &&
         (!isQuizSelected || hasValidQuiz) &&
+        (!isMaterialSelected || hasValidMaterialBlocks) &&
         !isSubmitting;
+
+    const setPostType = (value: string) => {
+        if (value === 'material' && !canPublishStudyMaterial) {
+            return;
+        }
+
+        setSelectedPostType(value);
+
+        if (value === 'material') {
+            setSelectedMaterialId('');
+            setIsAnonymous(false);
+        } else if (value === 'discussion') {
+            setIsAnonymous(false);
+        }
+    };
 
     const isSupportedDocument = (file: File) => {
         const extension = file.name.toLowerCase().split('.').pop() ?? '';
@@ -521,11 +574,21 @@ export function useCreatePostForm({
 
         const formData = new FormData();
         formData.append('title', title.trim());
-        formData.append('content', content.trim());
+        formData.append(
+            'content',
+            isMaterialSelected ? '' : content.trim(),
+        );
         formData.append('post_type', selectedPostType);
         formData.append('subject_id', selectedSubject);
-        formData.append('is_anonymous', isAnonymous ? '1' : '0');
+        formData.append(
+            'is_anonymous',
+            selectedPostType === 'question' && isAnonymous ? '1' : '0',
+        );
         formData.append('language_code', selectedLanguage);
+
+        if (selectedMaterialId && selectedPostType !== 'material') {
+            formData.append('parent_material_id', selectedMaterialId);
+        }
 
         if (isQuizSelected) {
             quizzes.forEach((quiz, qi) => {
@@ -543,6 +606,35 @@ export function useCreatePostForm({
                     `quiz_questions[${qi}][answer_index]`,
                     quiz.answerIndex,
                 );
+                if (quiz.explanation?.trim()) {
+                    formData.append(
+                        `quiz_questions[${qi}][explanation]`,
+                        quiz.explanation.trim(),
+                    );
+                }
+            });
+        }
+
+        if (isMaterialSelected) {
+            materialBlocks.forEach((block, index) => {
+                formData.append(`material_blocks[${index}][type]`, block.type);
+
+                if (block.type === 'text') {
+                    formData.append(
+                        `material_blocks[${index}][text]`,
+                        block.text.trim(),
+                    );
+                } else if (block.type === 'video') {
+                    formData.append(
+                        `material_blocks[${index}][url]`,
+                        block.url.trim(),
+                    );
+                } else if (block.file) {
+                    formData.append(
+                        `material_blocks[${index}][file]`,
+                        block.file,
+                    );
+                }
             });
         }
 
@@ -565,7 +657,9 @@ export function useCreatePostForm({
                 setTitle('');
                 setContent('');
                 setQuizzes([createEmptyQuiz()]);
+                setMaterialBlocks([createMaterialBlock('text')]);
                 setSelectedPostType('');
+                setSelectedMaterialId('');
                 setSelectedSubject('');
                 setSelectedLanguage('');
                 setAttachments([]);
@@ -719,6 +813,129 @@ export function useCreatePostForm({
         }
     };
 
+    const generateQuizFromMaterial = async () => {
+        const material = learningMaterials.find(
+            (item) => String(item.id) === selectedMaterialId,
+        );
+
+        if (!material) {
+            setMaterialQuizError(t.materialSelectRequired);
+            return;
+        }
+
+        setGeneratingMaterialQuiz(true);
+        setMaterialQuizError(null);
+
+        try {
+            const result = await requestMaterialQuiz({
+                materialTitle: material.title,
+                materialContent: material.content,
+                subject: material.subject?.name ?? selectedSubjectName,
+                languageCode: selectedLanguage,
+                questionCount: 1,
+            });
+
+            const firstQuestion = result.questions[0];
+
+            if (!firstQuestion) {
+                throw new Error(t.materialQuizError);
+            }
+
+            setQuizzes([
+                {
+                    question: firstQuestion.question,
+                    options: firstQuestion.options,
+                    answerIndex: String(firstQuestion.answerIndex),
+                    aiAnswerPlacement: 'random',
+                    explanation: firstQuestion.explanation,
+                },
+            ]);
+
+            if (!title.trim()) {
+                setTitle(`${material.title} Quiz`.slice(0, MAX_TITLE_LENGTH));
+            }
+
+            if (!content.trim()) {
+                setContent(
+                    `${t.materialQuizContentPrefix}: ${material.title}`.slice(
+                        0,
+                        MAX_CONTENT_LENGTH,
+                    ),
+                );
+            }
+        } catch (error) {
+            console.warn('[createPost] AI material quiz failed:', error);
+            setMaterialQuizError(
+                error instanceof Error && error.message.trim() !== ''
+                    ? error.message
+                    : t.materialQuizError,
+            );
+        } finally {
+            setGeneratingMaterialQuiz(false);
+        }
+    };
+    const addMaterialBlock = (type: MaterialBlockType) => {
+        setMaterialBlocks((prev) => [...prev, createMaterialBlock(type)]);
+    };
+
+    const updateMaterialBlock = (
+        blockId: string,
+        updates: Partial<MaterialContentBlock>,
+    ) => {
+        setMaterialBlocks((prev) =>
+            prev.map((block) =>
+                block.id === blockId ? { ...block, ...updates } : block,
+            ),
+        );
+    };
+
+    const updateMaterialBlockFile = (blockId: string, file: File | null) => {
+        setMaterialBlocks((prev) =>
+            prev.map((block) => {
+                if (block.id !== blockId) return block;
+
+                if (block.preview) {
+                    URL.revokeObjectURL(block.preview);
+                }
+
+                return {
+                    ...block,
+                    file,
+                    preview:
+                        file && file.type.startsWith('image/')
+                            ? URL.createObjectURL(file)
+                            : null,
+                };
+            }),
+        );
+    };
+
+    const removeMaterialBlock = (blockId: string) => {
+        setMaterialBlocks((prev) => {
+            const target = prev.find((block) => block.id === blockId);
+            if (target?.preview) {
+                URL.revokeObjectURL(target.preview);
+            }
+            const next = prev.filter((block) => block.id !== blockId);
+            return next.length > 0 ? next : [createMaterialBlock('text')];
+        });
+    };
+
+    const moveMaterialBlock = (blockId: string, direction: -1 | 1) => {
+        setMaterialBlocks((prev) => {
+            const index = prev.findIndex((block) => block.id === blockId);
+            const nextIndex = index + direction;
+            if (index < 0 || nextIndex < 0 || nextIndex >= prev.length) {
+                return prev;
+            }
+
+            const next = [...prev];
+            const [block] = next.splice(index, 1);
+            next.splice(nextIndex, 0, block);
+            return next;
+        });
+    };
+
     return {
         fileInputRef,
         contentTextareaRef,
@@ -726,6 +943,12 @@ export function useCreatePostForm({
         setTitle,
         content,
         setContent,
+        materialBlocks,
+        addMaterialBlock,
+        updateMaterialBlock,
+        updateMaterialBlockFile,
+        removeMaterialBlock,
+        moveMaterialBlock,
         isAnonymous,
         setIsAnonymous,
         quizzes,
@@ -740,8 +963,13 @@ export function useCreatePostForm({
         generateQuizOptions,
         generatingQuizOptionIds,
         quizOptionErrors,
+        selectedMaterialId,
+        setSelectedMaterialId,
+        generatingMaterialQuiz,
+        materialQuizError,
+        generateQuizFromMaterial,
         selectedPostType,
-        setSelectedPostType,
+        setSelectedPostType: setPostType,
         selectedSubject,
         setSelectedSubject,
         selectedLanguage,
@@ -761,6 +989,7 @@ export function useCreatePostForm({
         showSymbolPreview,
         previewContent,
         isQuizSelected,
+        isMaterialSelected,
         mathFormulaPresets,
         physicsSymbolPresets,
         chemistrySymbolPresets,

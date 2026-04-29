@@ -11,6 +11,7 @@ export type QuizQuestion = {
     options: string[];
     answerIndex: number;
     creatorAnswer: string;
+    explanation?: string | null;
 };
 
 export type QuizData = {

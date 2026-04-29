@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AchievementsController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\BookmarkFolderController;
 use App\Http\Controllers\UserFeaturedBadgeController;
@@ -60,6 +61,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::post('/posts/{post}/complete', [PostController::class, 'completeLesson'])->name('posts.complete');
     Route::post('/posts/{post}/complete-quiz', [PostController::class, 'completeQuiz'])->name('posts.completeQuiz');
+    Route::post('/posts/{post}/material-feedback', [PostController::class, 'materialFeedback'])->name('posts.materialFeedback');
+    Route::delete('/posts/{post}/material-feedback', [PostController::class, 'destroyMaterialFeedback'])->name('posts.materialFeedback.destroy');
     Route::post('/posts/{posts}/like', [LikeController::class, 'toggle'])->name('like.toggle');
     Route::post('/posts/{post}/save', [PostSaveController::class, 'toggle'])->name('posts.save.toggle');
     Route::post('/users/{user}/follow', [FollowerController::class, 'toggle'])->name('users.follow.toggle');
@@ -73,6 +76,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/achievements', [AchievementsController::class, 'index'])->name('achievements');
     Route::get('/categories', [PostController::class, 'categories'])->name('categories');
     Route::get('/rules', fn () => Inertia::render('RulesPage'))->name('rules');
+    Route::get('/teacher/material-insights', [PostController::class, 'teacherMaterialInsights'])->name('teacher.material-insights');
     Route::get('/bookmarks', [PostBookmarkController::class, 'index'])->name('bookmarks');
     Route::get('/search', [SearchController::class, 'search'])->name('search');
 });
@@ -82,6 +86,30 @@ Route::get('/login/google', [GoogleAuthController::class, 'redirectToProvider'])
 Route::get('/login/google/callback', [GoogleAuthController::class, 'handleProviderCallback']);
 
 Route::post('/change-language-setting', [LocaleController::class, 'switchMethod'])->name('language.switch');
+
+// Admin routes
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', fn () => redirect()->route('admin.users'))->name('index');
+    Route::get('/users', [AdminController::class, 'users'])->name('users');
+    Route::patch('/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('users.role');
+    Route::patch('/users/{user}/toggle-block', [AdminController::class, 'toggleBlock'])->name('users.toggle-block');
+    Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
+    Route::delete('/reports/{report}', [AdminController::class, 'deleteReport'])->name('reports.delete');
+    Route::get('/teacher-applications', [AdminController::class, 'teacherApplications'])->name('teacher-applications');
+    Route::patch('/teacher-applications/{application}/approve', [AdminController::class, 'approveApplication'])->name('teacher-applications.approve');
+    Route::patch('/teacher-applications/{application}/reject', [AdminController::class, 'rejectApplication'])->name('teacher-applications.reject');
+});
+
+// Teacher application (any auth user can submit)
+Route::middleware(['auth', 'verified'])->post('/teacher-applications', function (\Illuminate\Http\Request $request) {
+    $request->validate(['qualification' => 'required|string|max:255', 'bio' => 'nullable|string|max:2000']);
+    \App\Models\TeacherApplication::create([
+        'user_id'       => $request->user()->id,
+        'qualification' => $request->qualification,
+        'bio'           => $request->bio,
+    ]);
+    return back()->with('success', 'Application submitted.');
+})->name('teacher-applications.store');
 
 require __DIR__.'/callAI.php';
 

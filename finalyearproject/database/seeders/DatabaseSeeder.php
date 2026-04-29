@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             LanguagesSeeder::class,
             BadgesSeeder::class,
             AchievementsSeeder::class,
+            DemoPresentationSeeder::class,
         ]);
 
         // User::factory(10)->create();
