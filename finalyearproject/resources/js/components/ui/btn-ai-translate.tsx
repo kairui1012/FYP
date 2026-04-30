@@ -8,8 +8,10 @@ import { cn } from '@/lib/utils';
 type Props = {
     title: string;
     content: string;
+    texts?: string[];
     className?: string;
     onTranslate?: (result: { title: string; content: string }) => void;
+    onTranslateTexts?: (translations: Record<string, string>) => void;
 };
 const MAX_TEXTS_PER_REQUEST = 180;
 
@@ -101,7 +103,14 @@ async function translateInBatches(
     return mergedTranslations;
 }
 
-export function BtnAiTranslate({ title, content, className, onTranslate }: Props) {
+export function BtnAiTranslate({
+    title,
+    content,
+    texts,
+    className,
+    onTranslate,
+    onTranslateTexts,
+}: Props) {
     const { trans } = reactLang();
     const [loading, setLoading] = useState(false);
     const [translated, setTranslated] = useState(false);
@@ -116,19 +125,29 @@ export function BtnAiTranslate({ title, content, className, onTranslate }: Props
         setError(null);
         setLoading(true);
         try {
-            const texts = [title, content];
+            const textsToTranslate =
+                Array.isArray(texts) && texts.length > 0
+                    ? texts
+                    : [title, content];
             let translations: Record<string, string>;
             let provider: 'deepseek' | 'gemini';
             try {
-                translations = await translateInBatches(texts, 'deepseek');
+                translations = await translateInBatches(
+                    textsToTranslate,
+                    'deepseek',
+                );
                 provider = 'deepseek';
             } catch (deepseekErr) {
                 console.warn('[BtnAiTranslate] DeepSeek failed, falling back to Gemini:', deepseekErr);
-                translations = await translateInBatches(texts, 'gemini');
+                translations = await translateInBatches(
+                    textsToTranslate,
+                    'gemini',
+                );
                 provider = 'gemini';
             }
             setUsedProvider(provider);
             setTranslated(true);
+            onTranslateTexts?.(translations);
             if (onTranslate) {
                 onTranslate({
                     title: translations[title] ?? title,

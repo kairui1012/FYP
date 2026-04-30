@@ -192,6 +192,8 @@ return [
     'teacher_insights_range_30d' => '30 hari lepas',
     'teacher_insights_range_90d' => '90 hari lepas',
     'teacher_insights_range_all' => 'Semua masa',
+    'teacher_insights_period_label' => 'Tempoh',
+    'teacher_insights_sort_label' => 'Isih mengikut',
     'teacher_insights_sort_low_rating' => 'Penilaian terendah dahulu',
     'teacher_insights_sort_high_rating' => 'Penilaian tertinggi dahulu',
     'teacher_insights_sort_most_wrong' => 'Paling banyak salah dahulu',

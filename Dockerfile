@@ -39,9 +39,10 @@ RUN apk add --no-cache \
 COPY --from=vendor /app/vendor ./vendor
 COPY finalyearproject/ ./
 COPY --from=frontend /app/public/build ./public/build
-RUN rm -f bootstrap/cache/*.php
+RUN rm -f bootstrap/cache/*.php \
+	&& mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs
 
 RUN chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 8080
-CMD ["sh", "-c", "php artisan config:cache && php artisan route:cache && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
+CMD ["sh", "-c", "php artisan config:cache && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]

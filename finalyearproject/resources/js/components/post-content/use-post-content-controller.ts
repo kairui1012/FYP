@@ -18,7 +18,7 @@ import type {
 import { csrfHeaders, scrollCommentsInAppContent } from '@/components/post-content/post-content-utils';
 import { formatFormulaText } from '@/lib/formula-display';
 import like from '@/routes/like';
-import type { PostItem } from '@/types';
+import type { MaterialContentBlock, PostItem } from '@/types';
 
 type UsePostContentControllerParams = {
     post: PostContentProps['post'];
@@ -56,6 +56,9 @@ export function usePostContentController({
         title: string;
         content: string;
     } | null>(null);
+    const [translatedMaterialBlocks, setTranslatedMaterialBlocks] = useState<
+        MaterialContentBlock[] | null
+    >(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(post.title);
     const [editContent, setEditContent] = useState(post.content ?? '');
@@ -108,6 +111,13 @@ export function usePostContentController({
     const displayedContent = formatFormulaText(
         translated?.content ?? post.content ?? '',
     );
+    const displayedMaterialBlocks = useMemo(() => {
+        if (post.post_type !== 'material') {
+            return post.content_blocks ?? null;
+        }
+
+        return translatedMaterialBlocks ?? post.content_blocks ?? null;
+    }, [post.content_blocks, post.post_type, translatedMaterialBlocks]);
     const quizData = useMemo(
         () =>
             buildQuizData(
@@ -144,6 +154,7 @@ export function usePostContentController({
         setIsSaved(Boolean(post.is_saved));
         setSavesCount(post.saves_count ?? 0);
         setIsFollowingAuthor(Boolean(post.user?.is_following));
+        setTranslatedMaterialBlocks(null);
     }, [
         post.comments?.length,
         post.comments_count,
@@ -152,7 +163,42 @@ export function usePostContentController({
         post.is_saved,
         post.saves_count,
         post.user?.is_following,
+        post.id,
     ]);
+
+    const materialTranslationTexts = useMemo(
+        () =>
+            (post.content_blocks ?? [])
+                .filter(
+                    (
+                        block,
+                    ): block is Extract<MaterialContentBlock, { type: 'text' }> =>
+                        block.type === 'text',
+                )
+                .map((block) => block.text),
+        [post.content_blocks],
+    );
+
+    const handleMaterialTextBlocksTranslate = (
+        translations: Record<string, string>,
+    ) => {
+        if (post.post_type !== 'material') {
+            return;
+        }
+
+        setTranslatedMaterialBlocks(
+            (post.content_blocks ?? []).map((block) => {
+                if (block.type !== 'text') {
+                    return block;
+                }
+
+                return {
+                    ...block,
+                    text: translations[block.text] ?? block.text,
+                };
+            }),
+        );
+    };
 
     useEffect(() => {
         const attempts = Array.isArray(post.quiz_attempts)
@@ -503,10 +549,13 @@ export function usePostContentController({
         selectedAnswers,
         resultStates,
         displayedContent,
+        displayedMaterialBlocks,
+        materialTranslationTexts,
         quizData,
         linkedQuizzes: post.linked_quizzes ?? [],
         analytics: post.learning_analytics,
         setTranslated,
+        handleMaterialTextBlocksTranslate,
         setShowDeleteModal,
         setEditTitle,
         setEditContent,

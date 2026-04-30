@@ -21,33 +21,109 @@ RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY finalyearproject/ ./
 RUN VITE_WAYFINDER=false npm run build
 
-FROM php:8.2-cli-alpine
+# ── Runtime ───────────────────────────────────────────────────────────────────
+FROM php:8.2-fpm-alpine
 
 WORKDIR /var/www/html
 
+# System deps + PHP extensions
 RUN apk add --no-cache \
     bash \
     curl \
     icu-dev \
     libzip-dev \
+    nginx \
     oniguruma-dev \
+    supervisor \
     unzip \
     zip \
     && docker-php-ext-install -j"$(nproc)" \
-    bcmath \
-    intl \
-    mbstring \
-    pdo_mysql \
-    zip
+        bcmath \
+        intl \
+        mbstring \
+        pdo_mysql \
+        zip \
+    && rm -rf /var/cache/apk/*
 
+# nginx: listen on 8080, proxy PHP to fpm on 9000
+RUN printf 'server {\n\
+    listen 8080;\n\
+    root /var/www/html/public;\n\
+    index index.php;\n\
+\n\
+    location / {\n\
+        try_files $uri $uri/ /index.php?$query_string;\n\
+    }\n\
+\n\
+    location ~ \\.php$ {\n\
+        fastcgi_pass 127.0.0.1:9000;\n\
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;\n\
+        include fastcgi_params;\n\
+        fastcgi_read_timeout 60;\n\
+    }\n\
+\n\
+    location ~* \\.(js|css|png|jpg|svg|ico|woff2?)$ {\n\
+        expires max;\n\
+        add_header Cache-Control "public, immutable";\n\
+        try_files $uri =404;\n\
+    }\n\
+}\n' > /etc/nginx/http.d/default.conf
+
+# supervisord: manages both nginx and php-fpm, logs to stdout/stderr
+RUN printf '[supervisord]\n\
+nodaemon=true\n\
+logfile=/dev/null\n\
+logfile_maxbytes=0\n\
+pidfile=/tmp/supervisord.pid\n\
+\n\
+[program:php-fpm]\n\
+command=php-fpm -F\n\
+autostart=true\n\
+autorestart=true\n\
+stdout_logfile=/dev/stdout\n\
+stdout_logfile_maxbytes=0\n\
+stderr_logfile=/dev/stderr\n\
+stderr_logfile_maxbytes=0\n\
+\n\
+[program:nginx]\n\
+command=nginx -g "daemon off;"\n\
+autostart=true\n\
+autorestart=true\n\
+stdout_logfile=/dev/stdout\n\
+stdout_logfile_maxbytes=0\n\
+stderr_logfile=/dev/stderr\n\
+stderr_logfile_maxbytes=0\n' > /etc/supervisor/conf.d/supervisord.conf
+
+# App files
 COPY finalyearproject/ ./
 COPY --from=vendor /app/vendor ./vendor
 COPY --from=frontend /app/public/build ./public/build
 
+# Permissions
 RUN rm -f bootstrap/cache/*.php \
-    && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs \
-    && chown -R www-data:www-data storage bootstrap/cache
+    && mkdir -p storage/framework/cache/data \
+                storage/framework/sessions \
+                storage/framework/views \
+                storage/logs \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+# Entrypoint: cache config+routes with real Cloud Run env vars, then start servers
+COPY <<'EOF' /entrypoint.sh
+#!/bin/sh
+set -e
+# Ensure writable at runtime (Cloud Run may alter ownership)
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Cache with the actual runtime env vars (not build-time values)
+php /var/www/html/artisan config:cache
+php /var/www/html/artisan route:cache
+php /var/www/html/artisan view:cache
+exec "$@"
+EOF
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "php artisan config:cache && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

@@ -34,7 +34,10 @@ export function LowRatedMaterialsSection({
                     {
                         key: 'subject',
                         header: trans('createPost.teacher_col_subject'),
-                        render: (item) => item.subject_name ?? '-',
+                        render: (item) =>
+                            item.subject_name
+                                ? (trans('subjects.' + item.subject_name) || item.subject_name)
+                                : '-',
                     },
                     {
                         key: 'avg_rating',

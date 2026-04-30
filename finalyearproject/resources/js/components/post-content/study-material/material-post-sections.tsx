@@ -2,13 +2,14 @@ import { trans } from '@/components/post-content/post-content-config';
 import { MaterialLearningPath } from '@/components/post-content/study-material/material-learning-path';
 import { StudyMaterialBlocks } from '@/components/post-content/study-material/study-material-blocks';
 import { MaterialLearningStateBadge } from '@/components/ui/material-learning-state-badge';
-import type { PostItem } from '@/types';
+import type { MaterialContentBlock, PostItem } from '@/types';
 
 type MaterialPostSectionsProps = {
     page: unknown;
     post: PostItem;
     translatedTitle: string;
     displayedContent: string;
+    displayedMaterialBlocks: MaterialContentBlock[] | null;
     isAdmin: boolean;
     isEditing: boolean;
     linkedQuizzes: PostItem[];
@@ -32,6 +33,7 @@ export function MaterialPostSections({
     post,
     translatedTitle,
     displayedContent,
+    displayedMaterialBlocks,
     isAdmin,
     isEditing,
     linkedQuizzes,
@@ -129,7 +131,7 @@ export function MaterialPostSections({
             {!isEditing ? (
                 <section className="mx-4 mt-1 rounded-xl bg-white p-5">
                     <StudyMaterialBlocks
-                        blocks={post.content_blocks}
+                        blocks={displayedMaterialBlocks}
                         fallbackContent={displayedContent}
                     />
                     <p className="mt-4 rounded-md bg-zinc-50 px-3 py-2 text-xs text-zinc-500">

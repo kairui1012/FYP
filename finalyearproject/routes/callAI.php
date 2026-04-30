@@ -347,6 +347,14 @@ Route::post('/ai-explain', function (Request $request) {
 })->middleware(['web', 'throttle:20,1']);
 
 Route::post('/ai-quiz-options', function (Request $request) {
+    $user = $request->user();
+    $role = strtolower((string) ($user?->role ?? ''));
+    if (!in_array($role, ['teacher', 'admin'], true)) {
+        return response()->json([
+            'error' => 'Only teachers and admins can use AI quiz options.',
+        ], 403);
+    }
+
     $request->validate([
         'question'         => 'required|string|max:500',
         'subject'          => 'nullable|string|max:120',
@@ -601,6 +609,14 @@ Route::post('/ai-quiz-options', function (Request $request) {
 })->middleware(['web', 'throttle:20,1']);
 
 Route::post('/ai-material-quiz', function (Request $request) {
+    $user = $request->user();
+    $role = strtolower((string) ($user?->role ?? ''));
+    if (!in_array($role, ['teacher', 'admin'], true)) {
+        return response()->json([
+            'error' => 'Only teachers and admins can generate quizzes with AI from Study Materials.',
+        ], 403);
+    }
+
     $request->validate([
         'material_title' => 'required|string|max:300',
         'material_content' => 'required|string|max:4000',
@@ -746,7 +762,7 @@ Route::post('/ai-material-quiz', function (Request $request) {
             ->values()
             ->all();
 
-        if (count($questions) < 3) {
+        if (count($questions) < 1) {
             throw new \Exception('AI returned too few valid material quiz questions');
         }
 

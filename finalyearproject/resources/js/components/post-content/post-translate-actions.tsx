@@ -5,16 +5,20 @@ type PostTranslateActionsProps = {
     page: unknown;
     title: string;
     content: string;
+    texts?: string[];
     postType?: string;
     onTranslate: (result: { title: string; content: string }) => void;
+    onTranslateTexts?: (translations: Record<string, string>) => void;
 };
 
 export function PostTranslateActions({
     page,
     title,
     content,
+    texts,
     postType,
     onTranslate,
+    onTranslateTexts,
 }: PostTranslateActionsProps) {
     const shouldShowLearningObjectives = false;
 
@@ -25,7 +29,9 @@ export function PostTranslateActions({
                     className="my-0"
                     title={title}
                     content={content}
+                    texts={texts}
                     onTranslate={onTranslate}
+                    onTranslateTexts={onTranslateTexts}
                 />
                 {shouldShowLearningObjectives ? (
                     <PostLearningObjectives

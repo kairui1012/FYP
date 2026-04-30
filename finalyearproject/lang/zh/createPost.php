@@ -192,6 +192,8 @@ return [
     'teacher_insights_range_30d' => '最近 30 天',
     'teacher_insights_range_90d' => '最近 90 天',
     'teacher_insights_range_all' => '全部时间',
+    'teacher_insights_period_label' => '时间段',
+    'teacher_insights_sort_label' => '排序方式',
     'teacher_insights_sort_low_rating' => '按低评分优先',
     'teacher_insights_sort_high_rating' => '按高评分优先',
     'teacher_insights_sort_most_wrong' => '按错误次数优先',

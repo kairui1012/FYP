@@ -6,6 +6,7 @@ const MIN_OPTIONS = 2;
 
 type QuizSetupSectionProps = {
     quizzes: QuizItem[];
+    canUseAiQuizTools: boolean;
     onAddQuiz: () => void;
     onRemoveQuiz: (qIndex: number) => void;
     onUpdateQuestion: (qIndex: number, value: string) => void;
@@ -44,6 +45,7 @@ type QuizSetupSectionProps = {
 
 export function QuizSetupSection({
     quizzes,
+    canUseAiQuizTools,
     onAddQuiz,
     onRemoveQuiz,
     onUpdateQuestion,
@@ -93,23 +95,25 @@ export function QuizSetupSection({
                                     {text.quizNumberLabel} {qIndex + 1}
                                 </span>
                                 <div className="flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            onGenerateQuizOptions(qIndex)
-                                        }
-                                        disabled={isGeneratingOptions}
-                                        className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:border-amber-500 hover:bg-amber-100 disabled:pointer-events-none disabled:opacity-60 dark:border-amber-700 dark:bg-zinc-900 dark:text-amber-300 dark:hover:bg-amber-950/40"
-                                    >
-                                        {isGeneratingOptions ? (
-                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                        ) : (
-                                            <Sparkles className="h-3.5 w-3.5" />
-                                        )}
-                                        {isGeneratingOptions
-                                            ? text.quizAiAddingOptions
-                                            : text.quizAiAddOptions}
-                                    </button>
+                                    {canUseAiQuizTools ? (
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                onGenerateQuizOptions(qIndex)
+                                            }
+                                            disabled={isGeneratingOptions}
+                                            className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:border-amber-500 hover:bg-amber-100 disabled:pointer-events-none disabled:opacity-60 dark:border-amber-700 dark:bg-zinc-900 dark:text-amber-300 dark:hover:bg-amber-950/40"
+                                        >
+                                            {isGeneratingOptions ? (
+                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                            ) : (
+                                                <Sparkles className="h-3.5 w-3.5" />
+                                            )}
+                                            {isGeneratingOptions
+                                                ? text.quizAiAddingOptions
+                                                : text.quizAiAddOptions}
+                                        </button>
+                                    ) : null}
                                     {quizzes.length > 1 && (
                                         <button
                                             type="button"
@@ -139,42 +143,44 @@ export function QuizSetupSection({
                                 />
                             </div>
 
-                            <div className="mb-4 space-y-2">
-                                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                                    {text.quizAiAnswerPlacementLabel}
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                    {answerPlacementOptions.map((placement) => {
-                                        const isSelected =
-                                            quiz.aiAnswerPlacement ===
-                                            placement;
-                                        const label =
-                                            placement === 'random'
-                                                ? text.quizAiAnswerPlacementRandom
-                                                : placement;
+                            {canUseAiQuizTools ? (
+                                <div className="mb-4 space-y-2">
+                                    <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                        {text.quizAiAnswerPlacementLabel}
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {answerPlacementOptions.map((placement) => {
+                                            const isSelected =
+                                                quiz.aiAnswerPlacement ===
+                                                placement;
+                                            const label =
+                                                placement === 'random'
+                                                    ? text.quizAiAnswerPlacementRandom
+                                                    : placement;
 
-                                        return (
-                                            <button
-                                                key={placement}
-                                                type="button"
-                                                onClick={() =>
-                                                    onUpdateAiAnswerPlacement(
-                                                        qIndex,
-                                                        placement,
-                                                    )
-                                                }
-                                                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                                                    isSelected
-                                                        ? 'border-amber-600 bg-amber-500 text-white shadow-sm'
-                                                        : 'border-amber-300 bg-white text-amber-700 hover:border-amber-500 hover:bg-amber-100 dark:border-amber-700 dark:bg-zinc-900 dark:text-amber-300 dark:hover:bg-amber-950/40'
-                                                }`}
-                                            >
-                                                {label}
-                                            </button>
-                                        );
-                                    })}
+                                            return (
+                                                <button
+                                                    key={placement}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        onUpdateAiAnswerPlacement(
+                                                            qIndex,
+                                                            placement,
+                                                        )
+                                                    }
+                                                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                                                        isSelected
+                                                            ? 'border-amber-600 bg-amber-500 text-white shadow-sm'
+                                                            : 'border-amber-300 bg-white text-amber-700 hover:border-amber-500 hover:bg-amber-100 dark:border-amber-700 dark:bg-zinc-900 dark:text-amber-300 dark:hover:bg-amber-950/40'
+                                                    }`}
+                                                >
+                                                    {label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
-                            </div>
+                            ) : null}
 
                             {/* Options grid */}
                             <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">

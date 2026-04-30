@@ -1,3 +1,4 @@
+import { SlidersHorizontal } from 'lucide-react';
 import type {
     SelectOption,
     TeacherMaterialInsightsFilters,
@@ -16,8 +17,24 @@ type InsightsFilterPanelProps = {
     ) => void;
 };
 
+type FilterGroupProps = {
+    label: string;
+    children: React.ReactNode;
+};
+
+function FilterGroup({ label, children }: FilterGroupProps) {
+    return (
+        <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
+                {label}
+            </label>
+            {children}
+        </div>
+    );
+}
+
 const selectClassName =
-    'h-11 rounded-xl border-2 border-zinc-200 bg-white px-3 text-sm text-zinc-700 outline-none transition focus:border-[#e27193] focus:ring-4 focus:ring-[#f7c7d6]/50';
+    'h-9 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-800 shadow-none outline-none transition-colors hover:border-zinc-300 focus:border-zinc-400 focus:ring-0 cursor-pointer';
 
 export function InsightsFilterPanel({
     filters,
@@ -28,113 +45,111 @@ export function InsightsFilterPanel({
     onFilterChange,
 }: InsightsFilterPanelProps) {
     return (
-        <section className="rounded-2xl border-2 border-zinc-200 bg-white p-5 shadow-sm">
-            <div className="flex items-start justify-between gap-3">
-                <div>
-                    <h2 className="text-base font-semibold text-zinc-900">
-                        {trans('createPost.teacher_insights_filters')}
-                    </h2>
-                    <p className="mt-1 text-sm text-zinc-500">
-                        {trans('createPost.teacher_insights_subtitle')}
-                    </p>
-                </div>
+        <section className="rounded-xl border border-zinc-200 bg-white px-5 py-4 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+                <SlidersHorizontal className="size-3.5 text-zinc-400" />
+                <span className="text-sm font-medium text-zinc-600">
+                    {trans('createPost.teacher_insights_filters')}
+                </span>
             </div>
 
-            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
-                <select
-                    value={filters.material_id ?? ''}
-                    onChange={(event) =>
-                        onFilterChange('material_id', event.target.value)
-                    }
-                    className={selectClassName}
-                >
-                    <option value="">
-                        {trans('createPost.teacher_insights_all_materials')}
-                    </option>
-                    {materials.map((material) => (
-                        <option key={material.id} value={material.id}>
-                            {material.title}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+                <FilterGroup label={trans('createPost.teacher_col_material')}>
+                    <select
+                        value={filters.material_id ?? ''}
+                        onChange={(e) =>
+                            onFilterChange('material_id', e.target.value)
+                        }
+                        className={selectClassName}
+                    >
+                        <option value="">
+                            {trans('createPost.teacher_insights_all_materials')}
                         </option>
-                    ))}
-                </select>
+                        {materials.map((m) => (
+                            <option key={m.id} value={m.id}>
+                                {m.title}
+                            </option>
+                        ))}
+                    </select>
+                </FilterGroup>
 
-                <select
-                    value={filters.subject_id ?? ''}
-                    onChange={(event) =>
-                        onFilterChange('subject_id', event.target.value)
-                    }
-                    className={selectClassName}
-                >
-                    <option value="">
-                        {trans('createPost.teacher_insights_all_subjects')}
-                    </option>
-                    {subjects.map((subject) => (
-                        <option key={subject.id} value={subject.id}>
-                            {subject.name}
+                <FilterGroup label={trans('createPost.teacher_col_subject')}>
+                    <select
+                        value={filters.subject_id ?? ''}
+                        onChange={(e) =>
+                            onFilterChange('subject_id', e.target.value)
+                        }
+                        className={selectClassName}
+                    >
+                        <option value="">
+                            {trans('createPost.teacher_insights_all_subjects')}
                         </option>
-                    ))}
-                </select>
+                        {subjects.map((s) => (
+                            <option key={s.id} value={s.id}>
+                                {trans('subjects.' + s.name) || s.name}
+                            </option>
+                        ))}
+                    </select>
+                </FilterGroup>
 
-                <select
-                    value={filters.quiz_id ?? ''}
-                    onChange={(event) =>
-                        onFilterChange('quiz_id', event.target.value)
-                    }
-                    className={selectClassName}
-                >
-                    <option value="">
-                        {trans('createPost.teacher_insights_all_quizzes')}
-                    </option>
-                    {quizzes.map((quiz) => (
-                        <option key={quiz.id} value={quiz.id}>
-                            {quiz.title}
+                <FilterGroup label={trans('createPost.teacher_insights_all_quizzes')}>
+                    <select
+                        value={filters.quiz_id ?? ''}
+                        onChange={(e) =>
+                            onFilterChange('quiz_id', e.target.value)
+                        }
+                        className={selectClassName}
+                    >
+                        <option value="">
+                            {trans('createPost.teacher_insights_all_quizzes')}
                         </option>
-                    ))}
-                </select>
+                        {quizzes.map((q) => (
+                            <option key={q.id} value={q.id}>
+                                {q.title}
+                            </option>
+                        ))}
+                    </select>
+                </FilterGroup>
 
-                <select
-                    value={filters.time_range}
-                    onChange={(event) =>
-                        onFilterChange('time_range', event.target.value)
-                    }
-                    className={selectClassName}
-                >
-                    <option value="7d">
-                        {trans('createPost.teacher_insights_range_7d')}
-                    </option>
-                    <option value="30d">
-                        {trans('createPost.teacher_insights_range_30d')}
-                    </option>
-                    <option value="90d">
-                        {trans('createPost.teacher_insights_range_90d')}
-                    </option>
-                    <option value="all">
-                        {trans('createPost.teacher_insights_range_all')}
-                    </option>
-                </select>
+                <FilterGroup label={trans('createPost.teacher_insights_period_label')}>
+                    <select
+                        value={filters.time_range}
+                        onChange={(e) =>
+                            onFilterChange('time_range', e.target.value)
+                        }
+                        className={selectClassName}
+                    >
+                        <option value="7d">
+                            {trans('createPost.teacher_insights_range_7d')}
+                        </option>
+                        <option value="30d">
+                            {trans('createPost.teacher_insights_range_30d')}
+                        </option>
+                        <option value="90d">
+                            {trans('createPost.teacher_insights_range_90d')}
+                        </option>
+                        <option value="all">
+                            {trans('createPost.teacher_insights_range_all')}
+                        </option>
+                    </select>
+                </FilterGroup>
 
-                <select
-                    value={filters.sort}
-                    onChange={(event) =>
-                        onFilterChange('sort', event.target.value)
-                    }
-                    className={selectClassName}
-                >
-                    <option value="low_rating">
-                        {trans('createPost.teacher_insights_sort_low_rating')}
-                    </option>
-                    <option value="high_rating">
-                        {trans('createPost.teacher_insights_sort_high_rating')}
-                    </option>
-                    <option value="most_wrong">
-                        {trans('createPost.teacher_insights_sort_most_wrong')}
-                    </option>
-                    <option value="most_repeated">
-                        {trans(
-                            'createPost.teacher_insights_sort_most_repeated',
-                        )}
-                    </option>
-                </select>
+                <FilterGroup label={trans('createPost.teacher_insights_sort_label')}>
+                    <select
+                        value={filters.sort}
+                        onChange={(e) =>
+                            onFilterChange('sort', e.target.value)
+                        }
+                        className={selectClassName}
+                    >
+                        <option value="low_rating">
+                            {trans('createPost.teacher_insights_sort_low_rating')}
+                        </option>
+                        <option value="high_rating">
+                            {trans('createPost.teacher_insights_sort_high_rating')}
+                        </option>
+                    </select>
+                </FilterGroup>
             </div>
         </section>
     );

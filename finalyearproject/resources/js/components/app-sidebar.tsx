@@ -1,5 +1,6 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import {
+    BarChart2,
     Bookmark,
     ChevronLeft,
     ChevronRight,
@@ -127,7 +128,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                   {
                       title: trans('navigation.teacher_material_insights'),
                       href: '/teacher/material-insights',
-                      icon: ScrollText,
+                      icon: BarChart2,
                   },
               ]
             : []),

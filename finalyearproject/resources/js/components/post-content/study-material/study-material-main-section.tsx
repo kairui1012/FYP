@@ -5,13 +5,14 @@ import type {
 } from '@/components/post-content/study-material/material-editable-body';
 import { MaterialPostSections } from '@/components/post-content/study-material/material-post-sections';
 import type { PostContentTransFn } from '@/components/post-content/types';
-import type { PostItem } from '@/types';
+import type { MaterialContentBlock, PostItem } from '@/types';
 
 type StudyMaterialMainSectionProps = {
     page: unknown;
     post: PostItem;
     translatedTitle: string;
     displayedContent: string;
+    displayedMaterialBlocks: MaterialContentBlock[] | null;
     isAdmin: boolean;
     isEditing: boolean;
     linkedQuizzes: PostItem[];
@@ -39,6 +40,7 @@ export function StudyMaterialMainSection({
     post,
     translatedTitle,
     displayedContent,
+    displayedMaterialBlocks,
     isAdmin,
     isEditing,
     linkedQuizzes,
@@ -64,6 +66,7 @@ export function StudyMaterialMainSection({
                 post={post}
                 translatedTitle={translatedTitle}
                 displayedContent={displayedContent}
+                displayedMaterialBlocks={displayedMaterialBlocks}
                 isAdmin={isAdmin}
                 isEditing={isEditing}
                 linkedQuizzes={linkedQuizzes}

@@ -1,25 +1,25 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, router } from '@inertiajs/react';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 import { InsightsFilterPanel } from '@/components/teacher-material-insights/insights-filter-panel';
 import { InsightsPageHeader } from '@/components/teacher-material-insights/insights-page-header';
 import { LowRatedMaterialsSection } from '@/components/teacher-material-insights/low-rated-materials-section';
 import { MaterialVersionHistorySection } from '@/components/teacher-material-insights/material-version-history-section';
+import { WrongQuestionsSection } from '@/components/teacher-material-insights/wrong-questions-section';
 import type {
     SelectOption,
     TeacherMaterialInsightsData,
     TeacherMaterialInsightsFilters,
 } from '@/components/teacher-material-insights/types';
-import { WrongQuestionsSection } from '@/components/teacher-material-insights/wrong-questions-section';
-import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem } from '@/types';
 
-type TeacherMaterialInsightsProps = {
+type TeacherMaterialInsightsPageProps = {
     filters: TeacherMaterialInsightsFilters;
     materials: SelectOption[];
     subjects: SelectOption[];
     quizzes: SelectOption[];
-    generated_at?: string;
     insights: TeacherMaterialInsightsData;
+    generated_at: string;
 };
 
 export default function TeacherMaterialInsightsPage({
@@ -27,9 +27,9 @@ export default function TeacherMaterialInsightsPage({
     materials,
     subjects,
     quizzes,
-    generated_at: generatedAt,
     insights,
-}: TeacherMaterialInsightsProps) {
+    generated_at,
+}: TeacherMaterialInsightsPageProps) {
     const { trans } = reactLang();
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -42,50 +42,64 @@ export default function TeacherMaterialInsightsPage({
         },
     ];
 
-    const onFilterChange = (
-        key: keyof TeacherMaterialInsightsProps['filters'],
+    function handleFilterChange(
+        key: keyof TeacherMaterialInsightsFilters,
         value: string,
-    ) => {
-        const next = {
-            ...filters,
-            [key]: value === '' ? null : value,
+    ) {
+        const next: Record<string, string | null> = {
+            material_id: filters.material_id != null ? String(filters.material_id) : '',
+            subject_id: filters.subject_id != null ? String(filters.subject_id) : '',
+            quiz_id: filters.quiz_id != null ? String(filters.quiz_id) : '',
+            time_range: filters.time_range,
+            sort: filters.sort,
+            [key]: value,
         };
 
-        router.get('/teacher/material-insights', next, {
-            preserveState: true,
+        const params: Record<string, string> = {};
+        for (const [k, v] of Object.entries(next)) {
+            if (v !== '' && v !== null) params[k] = v;
+        }
+
+        router.get('/teacher/material-insights', params, {
             preserveScroll: true,
+            replace: true,
         });
-    };
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={trans('createPost.teacher_insights_title')} />
-            <div className="mx-auto w-full max-w-6xl space-y-5 px-4 py-5 sm:px-6 lg:px-8">
-                <InsightsPageHeader trans={trans} generatedAt={generatedAt} />
-
-                <InsightsFilterPanel
-                    filters={filters}
-                    materials={materials}
-                    subjects={subjects}
-                    quizzes={quizzes}
+            <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 lg:px-8">
+                <InsightsPageHeader
                     trans={trans}
-                    onFilterChange={onFilterChange}
+                    generatedAt={generated_at}
                 />
 
-                <LowRatedMaterialsSection
-                    items={insights.low_rated_materials}
-                    trans={trans}
-                />
+                <div className="mt-4 space-y-6">
+                    <InsightsFilterPanel
+                        filters={filters}
+                        materials={materials}
+                        subjects={subjects}
+                        quizzes={quizzes}
+                        trans={trans}
+                        onFilterChange={handleFilterChange}
+                    />
 
-                <WrongQuestionsSection
-                    items={insights.frequently_wrong_questions}
-                    trans={trans}
-                />
+                    <LowRatedMaterialsSection
+                        items={insights.low_rated_materials}
+                        trans={trans}
+                    />
 
-                <MaterialVersionHistorySection
-                    items={insights.material_versions}
-                    trans={trans}
-                />
+                    <WrongQuestionsSection
+                        items={insights.frequently_wrong_questions}
+                        trans={trans}
+                    />
+
+                    <MaterialVersionHistorySection
+                        items={insights.material_versions}
+                        trans={trans}
+                    />
+                </div>
             </div>
         </AppLayout>
     );

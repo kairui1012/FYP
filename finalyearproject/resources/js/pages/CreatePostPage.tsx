@@ -46,7 +46,13 @@ export default function CreatePostPage() {
         subjects = [],
         learningMaterials = [],
         canPublishStudyMaterial = false,
-    } = usePage<CreatePostPageProps>().props;
+        auth,
+    } = usePage<CreatePostPageProps & {
+        auth?: { user?: { role?: string } };
+    }>().props;
+    const normalizedRole = (auth?.user?.role ?? '').toString().trim().toLowerCase();
+    const canUseAiQuizTools =
+        normalizedRole === 'teacher' || normalizedRole === 'admin';
 
     const {
         fileInputRef,
@@ -223,6 +229,7 @@ export default function CreatePostPage() {
                         {isQuizSelected ? (
                             <QuizSetupSection
                                 quizzes={quizzes}
+                                canUseAiQuizTools={canUseAiQuizTools}
                                 onAddQuiz={addQuiz}
                                 onRemoveQuiz={removeQuiz}
                                 onUpdateQuestion={updateQuizQuestion}
@@ -271,6 +278,7 @@ export default function CreatePostPage() {
                             materials={learningMaterials}
                             selectedMaterialId={selectedMaterialId}
                             selectedPostType={selectedPostType}
+                            canUseAiQuizTools={canUseAiQuizTools}
                             onSelectMaterial={setSelectedMaterialId}
                             onGenerateMaterialQuiz={generateQuizFromMaterial}
                             generatingMaterialQuiz={generatingMaterialQuiz}

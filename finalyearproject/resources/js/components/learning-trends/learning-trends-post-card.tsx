@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { Star } from 'lucide-react';
 import { PostAttachments } from '@/components/post-attachments';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -38,6 +39,49 @@ type LearningTrendsPostCardProps = {
     onOpenPost: (postId: number) => void;
 };
 
+function MaterialRecommendationBadge({ post }: { post: PostItem }) {
+    const averageRating = post.material_feedback_summary?.average_rating ?? 0;
+    const recommendationRate =
+        post.material_feedback_summary?.recommendation_rate ?? 0;
+    const ratingCount = post.material_feedback_summary?.rating_count ?? 0;
+
+    return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+            <Star className="h-3.5 w-3.5 fill-current" />
+            {ratingCount > 0
+                ? `${averageRating.toFixed(1)} · ${recommendationRate}%`
+                : 'No ratings yet'}
+        </span>
+    );
+}
+
+function getMaterialFirstPreview(post: PostItem): string {
+    const firstBlock = post.content_blocks?.[0];
+
+    if (firstBlock?.type === 'text') {
+        return firstBlock.text;
+    }
+
+    if (firstBlock?.type === 'image') {
+        return firstBlock.name ?? 'Image';
+    }
+
+    if (firstBlock?.type === 'document') {
+        return firstBlock.name ?? 'Document';
+    }
+
+    if (firstBlock?.type === 'video') {
+        return firstBlock.url ?? 'Video resource';
+    }
+
+    const firstSegment = (post.content ?? '')
+        .split(/\n\s*\n/)
+        .map((segment) => segment.trim())
+        .filter(Boolean)[0];
+
+    return firstSegment ?? '';
+}
+
 export function LearningTrendsPostCard({
     post,
     currentUserId,
@@ -73,6 +117,10 @@ export function LearningTrendsPostCard({
     const { bg: langBg, text: langText } = getLangBadgeProps(langCode);
     const subjectBadge = getSubjectBadgeProps();
     const subjectLabel = getSubjectLabel(post.subject?.name, trans);
+    const contentPreview =
+        post.post_type === 'material'
+            ? getMaterialFirstPreview(post)
+            : (post.content ?? '');
 
     return (
         <div>
@@ -191,6 +239,9 @@ export function LearningTrendsPostCard({
                                         state={post.material_learning_state}
                                     />
                                 ) : null}
+                                {post.post_type === 'material' ? (
+                                    <MaterialRecommendationBadge post={post} />
+                                ) : null}
                             </div>
                         </div>
                     </div>
@@ -200,7 +251,7 @@ export function LearningTrendsPostCard({
                     {post.title}
                 </h2>
                 <p className="mb-2 text-base leading-6 font-medium whitespace-pre-wrap text-zinc-700">
-                    {formatFormulaText(post.content ?? '')}
+                    {formatFormulaText(contentPreview)}
                 </p>
 
                 <PostAttachments files={post.image} compact />

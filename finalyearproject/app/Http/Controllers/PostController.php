@@ -469,7 +469,10 @@ class PostController extends Controller
             $isCorrect        = $selectedIndex === $correctIndex;
             $isFirstCompletion = false;
 
-            if ($isCorrect && $qIndex === 0) {
+            $totalQuestions = count($quizData['questions']);
+            $isLastQuestion = $qIndex === $totalQuestions - 1;
+
+            if ($isLastQuestion) {
                 $completion = QuizCompletion::query()->firstOrCreate(
                     ['user_id' => $request->user()->id, 'post_id' => $post->id],
                     ['subject_id' => $post->subject_id, 'completed_at' => now()],
@@ -587,6 +590,8 @@ class PostController extends Controller
             ],
         );
 
+        $this->syncLatestVersionRating($post->id);
+
         return response()->json([
             'status' => 'saved',
             'summary' => $this->buildMaterialFeedbackSummary($post, $request->user()->id),
@@ -615,6 +620,8 @@ class PostController extends Controller
                 ->delete();
         }
 
+        $this->syncLatestVersionRating($post->id);
+
         return response()->json([
             'status' => 'deleted',
             'summary' => $this->buildMaterialFeedbackSummary($post, $request->user()->id),
@@ -637,14 +644,14 @@ class PostController extends Controller
             'subject_id' => ['nullable', 'integer', Rule::exists('subjects', 'id')],
             'quiz_id' => ['nullable', 'integer', Rule::exists('posts', 'id')->where(fn ($query) => $query->where('post_type', 'quiz'))],
             'time_range' => ['nullable', 'string', Rule::in(['7d', '30d', '90d', 'all'])],
-            'sort' => ['nullable', 'string', Rule::in(['low_rating', 'high_rating', 'most_wrong', 'most_repeated'])],
+            'sort' => ['nullable', 'string', Rule::in(['low_rating', 'high_rating'])],
         ]);
 
         $materialId = isset($validated['material_id']) ? (int) $validated['material_id'] : null;
         $subjectId = isset($validated['subject_id']) ? (int) $validated['subject_id'] : null;
         $quizId = isset($validated['quiz_id']) ? (int) $validated['quiz_id'] : null;
         $timeRange = $validated['time_range'] ?? '30d';
-        $sort = $validated['sort'] ?? 'low_rating';
+        $sort = in_array($validated['sort'] ?? '', ['low_rating', 'high_rating']) ? $validated['sort'] : 'low_rating';
         $since = match ($timeRange) {
             '7d' => now()->subDays(7),
             '30d' => now()->subDays(30),
@@ -696,7 +703,7 @@ class PostController extends Controller
             'subjects' => Subject::query()->orderBy('name')->get(['id', 'name'])->values()->all(),
             'quizzes' => $quizzes,
             'insights' => [
-                'low_rated_materials' => $this->buildLowRatedMaterialsInsights($materialId, $subjectId, $quizId, $since, $sort),
+                'low_rated_materials' => $this->buildLowRatedMaterialsInsights($materialId, $subjectId, $quizId, $since, $sort, $user->id),
                 'frequently_wrong_questions' => $this->buildFrequentlyWrongQuestionsInsights($materialId, $subjectId, $quizId, $since, $sort),
                 'material_versions' => $this->buildMaterialVersionHistoryInsights($materialId, $subjectId, $quizId, $since),
                 'repeated_feedback' => $this->buildRepeatedFeedbackInsights($materialId, $subjectId, $quizId, $since, $sort),
@@ -1219,10 +1226,37 @@ class PostController extends Controller
         ];
     }
 
+    private function syncLatestVersionRating(int $postId): void
+    {
+        if (! Schema::hasTable('study_material_versions') || ! Schema::hasTable('study_material_feedback')) {
+            return;
+        }
+
+        $latestVersion = StudyMaterialVersion::query()
+            ->where('post_id', $postId)
+            ->orderByDesc('version_number')
+            ->first();
+
+        if (! $latestVersion) {
+            return;
+        }
+
+        $agg = StudyMaterialFeedback::query()
+            ->where('post_id', $postId)
+            ->whereNotNull('rating')
+            ->selectRaw('ROUND(AVG(rating), 2) as avg_rating, COUNT(*) as cnt')
+            ->first();
+
+        $latestVersion->update([
+            'average_rating' => $agg ? (float) $agg->avg_rating : 0.0,
+            'rating_count' => $agg ? (int) $agg->cnt : 0,
+        ]);
+    }
+
     /**
      * @return array<int, array<string, mixed>>
      */
-    private function buildLowRatedMaterialsInsights(?int $materialId, ?int $subjectId, ?int $quizId, ?CarbonInterface $since, string $sort): array
+    private function buildLowRatedMaterialsInsights(?int $materialId, ?int $subjectId, ?int $quizId, ?CarbonInterface $since, string $sort, int $teacherId): array
     {
         if (! Schema::hasTable('study_material_feedback')) {
             return [];
@@ -1232,6 +1266,7 @@ class PostController extends Controller
             ->join('posts as materials', 'materials.id', '=', 'study_material_feedback.post_id')
             ->leftJoin('subjects', 'subjects.id', '=', 'materials.subject_id')
             ->where('materials.post_type', 'material')
+            ->where('materials.user_id', $teacherId)
             ->whereNotNull('study_material_feedback.rating')
             ->when($materialId, fn ($builder) => $builder->where('study_material_feedback.post_id', $materialId))
             ->when($subjectId, fn ($builder) => $builder->where('materials.subject_id', $subjectId))

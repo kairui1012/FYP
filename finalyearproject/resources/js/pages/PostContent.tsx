@@ -20,6 +20,10 @@ export default function PostContent({ post }: PostContentProps) {
         post,
         pageProps: page.props as Record<string, unknown>,
     });
+    const materialTranslationTexts =
+        post.post_type === 'material'
+            ? controller.materialTranslationTexts
+            : undefined;
 
     return (
         <>
@@ -45,6 +49,9 @@ export default function PostContent({ post }: PostContentProps) {
                         post={post}
                         translatedTitle={controller.translated?.title ?? post.title}
                         displayedContent={controller.displayedContent}
+                        displayedMaterialBlocks={
+                            controller.displayedMaterialBlocks
+                        }
                         isAdmin={controller.isAdmin}
                         isEditing={controller.isEditing}
                         linkedQuizzes={controller.linkedQuizzes}
@@ -101,8 +108,14 @@ export default function PostContent({ post }: PostContentProps) {
                         page={page}
                         title={post.title}
                         content={post.content ?? ''}
+                        texts={materialTranslationTexts}
                         postType={post.post_type}
                         onTranslate={controller.setTranslated}
+                        onTranslateTexts={
+                            post.post_type === 'material'
+                                ? controller.handleMaterialTextBlocksTranslate
+                                : undefined
+                        }
                     />
 
                     <div className="my-10 w-full border-t border-zinc-200" />

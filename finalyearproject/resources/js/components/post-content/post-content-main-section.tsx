@@ -12,12 +12,14 @@ import type {
     QuizResultState,
 } from '@/components/post-content/types';
 import type { PostItem } from '@/types';
+import type { MaterialContentBlock } from '@/types';
 
 type PostContentMainSectionProps = {
     page: unknown;
     post: PostItem;
     translatedTitle: string;
     displayedContent: string;
+    displayedMaterialBlocks: MaterialContentBlock[] | null;
     isAdmin: boolean;
     isEditing: boolean;
     linkedQuizzes: PostItem[];
@@ -53,6 +55,7 @@ export function PostContentMainSection({
     post,
     translatedTitle,
     displayedContent,
+    displayedMaterialBlocks,
     isAdmin,
     isEditing,
     linkedQuizzes,
@@ -87,6 +90,7 @@ export function PostContentMainSection({
                     post={post}
                     translatedTitle={translatedTitle}
                     displayedContent={displayedContent}
+                    displayedMaterialBlocks={displayedMaterialBlocks}
                     isAdmin={isAdmin}
                     isEditing={isEditing}
                     linkedQuizzes={linkedQuizzes}

@@ -192,6 +192,8 @@ return [
     'teacher_insights_range_30d' => 'Last 30 days',
     'teacher_insights_range_90d' => 'Last 90 days',
     'teacher_insights_range_all' => 'All time',
+    'teacher_insights_period_label' => 'Period',
+    'teacher_insights_sort_label' => 'Sort by',
     'teacher_insights_sort_low_rating' => 'Lowest rating first',
     'teacher_insights_sort_high_rating' => 'Highest rating first',
     'teacher_insights_sort_most_wrong' => 'Most wrong answers first',

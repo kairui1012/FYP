@@ -11,7 +11,7 @@ export type TeacherMaterialInsightsFilters = {
     subject_id: number | null;
     quiz_id: number | null;
     time_range: '7d' | '30d' | '90d' | 'all';
-    sort: 'low_rating' | 'high_rating' | 'most_wrong' | 'most_repeated';
+    sort: 'low_rating' | 'high_rating';
 };
 
 export type LowRatedMaterialInsight = {
