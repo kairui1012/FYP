@@ -83,7 +83,7 @@ class ProfilePageController extends Controller
                 ] : null,
             ]);
 
-        return Inertia::render('profilePage', [
+        return Inertia::render('ProfilePage', [
             'profileUser' => [
                 'id'               => $profileUser->id,
                 'name'             => $profileUser->name,

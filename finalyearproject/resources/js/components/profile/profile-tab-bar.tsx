@@ -1,0 +1,44 @@
+import { cn } from '@/lib/utils';
+
+export function ProfileTabBar({
+    activeTab,
+    postsCount,
+    badgesCount,
+    labels,
+    onTabChange,
+}: {
+    activeTab: 'posts' | 'badges';
+    postsCount: number;
+    badgesCount: number;
+    labels: { posts: string; badges: string };
+    onTabChange: (tab: 'posts' | 'badges') => void;
+}) {
+    const activeClass = 'border-[#e27193] bg-[#fff0f5] text-[#b93c61]';
+    const inactiveClass =
+        'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400';
+    const activeBadge = 'bg-[#ffd9e4] text-[#b93c61]';
+    const inactiveBadge = 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800';
+
+    const Tab = ({ id, label, count }: { id: 'posts' | 'badges'; label: string; count: number }) => (
+        <button
+            type="button"
+            onClick={() => onTabChange(id)}
+            className={cn(
+                'inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition',
+                activeTab === id ? activeClass : inactiveClass,
+            )}
+        >
+            {label}
+            <span className={cn('rounded-full px-1.5 py-0.5 text-xs', activeTab === id ? activeBadge : inactiveBadge)}>
+                {count}
+            </span>
+        </button>
+    );
+
+    return (
+        <div className="flex gap-2">
+            <Tab id="posts" label={labels.posts} count={postsCount} />
+            <Tab id="badges" label={labels.badges} count={badgesCount} />
+        </div>
+    );
+}

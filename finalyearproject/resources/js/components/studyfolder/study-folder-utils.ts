@@ -1,6 +1,19 @@
 import type { PostItem } from '@/types';
 import type { QuizFolderMode } from './types';
 
+export function withCsrfHeaders() {
+    const csrfToken =
+        document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+            ?.content ?? '';
+
+    return {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest',
+    };
+}
+
 export const pinkFolderButtonClass =
     'inline-flex items-center gap-2 rounded-md border-2 border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 transition-all duration-200';
 

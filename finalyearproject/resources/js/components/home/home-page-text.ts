@@ -119,3 +119,52 @@ export function getPostTypeBadgeProps(type: string) {
 export function getSubjectBadgeProps() {
     return { bg: 'bg-slate-100', text: 'text-slate-700' };
 }
+
+// Returns the text props for HomeFeedSection with hardcoded fallbacks when i18n keys are missing.
+export function buildFeedSectionText(homeText: ReturnType<typeof buildHomeText>) {
+    const fallback = (value: string, key: string, def: string) =>
+        value === key ? def : value;
+
+    return {
+        emptyFeed: fallback(homeText.emptyFeed, 'home.empty_feed', 'No posts yet.'),
+        emptyFeedTitle: fallback(homeText.emptyFeedTitle, 'home.empty_feed_title', 'No posts yet'),
+        emptyFeedSubtitle: fallback(
+            homeText.emptyFeedSubtitle,
+            'home.empty_feed_subtitle',
+            'Fresh posts from the community will appear here.',
+        ),
+        emptyFeedAction: fallback(
+            homeText.emptyFeedAction,
+            'home.empty_feed_action',
+            'Browse categories',
+        ),
+        followingEmptyTitle: fallback(
+            homeText.followingEmptyTitle,
+            'home.following_empty_title',
+            'No following updates yet',
+        ),
+        followingEmptySubtitle: fallback(
+            homeText.followingEmptySubtitle,
+            'home.following_empty_subtitle',
+            'Follow classmates from community posts, then their newest posts will appear here.',
+        ),
+        followingEmptyAction: fallback(
+            homeText.followingEmptyAction,
+            'home.following_empty_action',
+            'Explore posts',
+        ),
+        followingEmptySecondaryAction: fallback(
+            homeText.followingEmptySecondaryAction,
+            'home.following_empty_secondary_action',
+            'View trends',
+        ),
+        createQuiz: homeText.createQuiz,
+        askQuestion: homeText.askQuestion,
+        shareMaterial: homeText.shareMaterial,
+        unknownUser: fallback(homeText.unknownUser, 'home.unknown_user', 'Unknown User'),
+        userAvatarAlt: fallback(homeText.userAvatarAlt, 'home.user_avatar_alt', 'User avatar'),
+        langEn: fallback(homeText.langEn, 'language_label.en', 'English'),
+        langZh: fallback(homeText.langZh, 'language_label.zh', '中文'),
+        langBm: fallback(homeText.langBm, 'language_label.bm', 'Bahasa Malaysia'),
+    };
+}

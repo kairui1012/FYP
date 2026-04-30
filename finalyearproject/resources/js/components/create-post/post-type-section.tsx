@@ -31,12 +31,14 @@ export function PostTypeSection({
         material: BookOpenCheck,
     } as const;
 
+    const gridColsClass = options.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3';
+
     return (
         <div className="space-y-3">
             <p className="text-base font-medium text-zinc-700">
                 {postTypeLabel}
             </p>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className={`grid grid-cols-1 gap-3 ${gridColsClass}`}>
                 {options.map((postType) => {
                     const isSelected = selectedPostType === postType.value;
                     const Icon =
