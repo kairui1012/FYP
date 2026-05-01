@@ -40,6 +40,7 @@ class SetLocale
         syncLangFiles('achievement');
         syncLangFiles('bookmark');
         syncLangFiles('popular');
+        syncLangFiles('admin');
 
         return $next($request);
     }

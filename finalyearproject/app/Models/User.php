@@ -32,6 +32,7 @@ class User extends Authenticatable
         'show_leaderboard_badge',
         'locale',
         'is_blocked',
+        'is_verified',
     ];
 
     /**
@@ -64,6 +65,7 @@ class User extends Authenticatable
             'show_leaderboard_badge' => 'boolean',
             'locale' => 'string',
             'is_blocked' => 'boolean',
+            'is_verified' => 'boolean',
         ];
     }
 

@@ -1,7 +1,7 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
-import type { ComponentProps } from 'react';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
+import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnFollow } from '@/components/ui/btn-follow';
 import { formatTimeAgo, getSubjectLabelFromPage } from '@/lib/post-utils';
@@ -16,7 +16,7 @@ import type { PostContentTransFn } from './types';
 type PostBackAuthorHeaderProps = {
     post: PostItem;
     page: unknown;
-    backHref: ComponentProps<typeof Link>['href'];
+    backHref: string;
     currentUserId?: number;
     displayName: string;
     isAnonymousPost: boolean;
@@ -96,12 +96,20 @@ export function PostBackAuthorHeader({
     return (
         <div className="flex items-start justify-between px-4 pt-6 pb-4">
             <div className="flex items-start gap-3 sm:gap-6">
-                <Link
-                    href={backHref}
+                <button
+                    onClick={() => {
+                        if (backHref.includes('?tab=')) {
+                            router.visit(backHref);
+                        } else if (window.history.length > 1) {
+                            window.history.back();
+                        } else {
+                            router.visit(backHref);
+                        }
+                    }}
                     className="mt-0.5 flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-sidebar-border bg-background from-[#ef99b0] to-[#e27193] text-foreground hover:border-2 hover:border-[#e27193] hover:bg-linear-to-r hover:text-white sm:h-10 sm:w-10"
                 >
                     <ArrowLeft className="h-4 w-4" />
-                </Link>
+                </button>
 
                 {isAnonymousPost ? (
                     <div className="flex items-center gap-3">
@@ -162,10 +170,13 @@ export function PostBackAuthorHeader({
                                                 ? `/profilePage/${post.user.id}`
                                                 : '/profilePage'
                                         }
-                                        className="cursor-pointer font-semibold text-zinc-900 transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89]"
+                                        className={`cursor-pointer font-semibold transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89] ${post.user?.is_verified ? 'text-blue-600' : 'text-zinc-900'}`}
                                     >
                                         {displayName}
                                     </Link>
+                                    {post.user?.is_verified && (
+                                        <VerifiedTeacherBadge className="ml-0.5" />
+                                    )}
                                     <LeaderboardTitleBadge
                                         title={post.user?.leaderboard_title}
                                     />

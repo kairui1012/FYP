@@ -110,6 +110,21 @@ export type LearningMaterialOption = {
     updated_at?: string | null;
 };
 
+export type LinkedQuizOption = {
+    id: number;
+    title: string;
+    questionCount: number;
+    subject?: {
+        id: number;
+        name: string;
+    } | null;
+    publisher: {
+        id: number;
+        name: string;
+        role?: string;
+    };
+};
+
 export type CreatePostText = {
     pageTitle: string;
     heading: string;
@@ -218,6 +233,8 @@ export type CreatePostText = {
     materialLinkHint: string;
     materialLinkNone: string;
     materialAttachQuizTitle: string;
+    materialAttachExistingQuizHint: string;
+    materialNoAttachableQuizzes: string;
     materialQuizGenerating: string;
     materialQuizGenerateAi: string;
     materialSelectRequired: string;
@@ -375,6 +392,12 @@ export const buildCreatePostText = (
     materialLinkHint: trans('createPost.material_link_hint'),
     materialLinkNone: trans('createPost.material_link_none'),
     materialAttachQuizTitle: trans('createPost.material_attach_quiz_title'),
+    materialAttachExistingQuizHint: trans(
+        'createPost.material_attach_existing_quiz_hint',
+    ),
+    materialNoAttachableQuizzes: trans(
+        'createPost.material_no_attachable_quizzes',
+    ),
     materialQuizGenerating: trans('createPost.material_quiz_generating'),
     materialQuizGenerateAi: trans('createPost.material_quiz_generate_ai'),
     materialSelectRequired: trans('createPost.material_select_required'),

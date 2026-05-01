@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CommentReport;
 use App\Models\TeacherApplication;
+use App\Models\TeacherVerificationDocument;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -17,13 +18,14 @@ class AdminController extends Controller
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn ($u) => [
-                'id'         => $u->id,
-                'name'       => $u->name,
-                'email'      => $u->email,
-                'role'       => $u->role ?? 'student',
-                'points'     => $u->points ?? 0,
-                'is_blocked' => (bool) $u->is_blocked,
-                'created_at' => $u->created_at?->toDateString(),
+                'id'          => $u->id,
+                'name'        => $u->name,
+                'email'       => $u->email,
+                'role'        => $u->role ?? 'student',
+                'points'      => $u->points ?? 0,
+                'is_blocked'  => (bool) $u->is_blocked,
+                'is_verified' => (bool) $u->is_verified,
+                'created_at'  => $u->created_at?->toDateString(),
             ]);
 
         return Inertia::render('admin/AdminUsers', compact('users'));
@@ -57,7 +59,7 @@ class AdminController extends Controller
 
     public function teacherApplications()
     {
-        $applications = TeacherApplication::with('user:id,name,email,role')
+        $applications = TeacherApplication::with(['user:id,name,email,role,is_verified', 'documents'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn ($a) => [
@@ -66,10 +68,18 @@ class AdminController extends Controller
                 'user_name'     => $a->user?->name,
                 'user_email'    => $a->user?->email,
                 'user_role'     => $a->user?->role ?? 'student',
+                'user_verified' => (bool) ($a->user?->is_verified ?? false),
                 'status'        => $a->status,
                 'admin_note'    => $a->admin_note,
+                // Legacy single document (kept for backwards compatibility)
                 'original_name' => $a->document_original_name,
                 'document_url'  => $a->document_path ? Storage::url($a->document_path) : null,
+                // New multi-document support (admin downloads via secure route)
+                'documents'     => $a->documents->map(fn ($doc) => [
+                    'id'            => $doc->id,
+                    'original_name' => $doc->original_name,
+                    'download_url'  => route('admin.verification-document.download', $doc->id),
+                ])->values()->all(),
                 'created_at'    => $a->created_at?->toDateString(),
             ]);
 
@@ -94,9 +104,36 @@ class AdminController extends Controller
         return back();
     }
 
+    public function toggleVerification(TeacherApplication $application)
+    {
+        $user = $application->user;
+
+        if (! $user || $user->role !== 'teacher') {
+            return back()->with('error', 'User must be an approved teacher to toggle verification.');
+        }
+
+        $user->update(['is_verified' => ! $user->is_verified]);
+
+        return back();
+    }
+
+    public function downloadVerificationDocument(TeacherVerificationDocument $document)
+    {
+        if (! Storage::disk('local')->exists($document->path)) {
+            abort(404);
+        }
+
+        $mimeType = Storage::disk('local')->mimeType($document->path);
+        $fullPath = Storage::disk('local')->path($document->path);
+
+        return response()->file($fullPath, [
+            'Content-Type'        => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $document->original_name . '"',
+        ]);
+    }
+
     public function toggleBlock(User $user)
     {
-        // Prevent blocking admin accounts
         if ($user->role === 'admin') {
             return back()->with('error', 'Cannot block an admin account.');
         }

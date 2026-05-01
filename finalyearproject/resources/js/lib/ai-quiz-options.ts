@@ -139,6 +139,30 @@ async function requestQuizOptionsWithProvider(
     };
 }
 
+const formatQuizOptionsError = (error: unknown): Error => {
+    const rawMessage =
+        error instanceof Error && error.message.trim() !== ''
+            ? error.message
+            : 'AI options generation failed.';
+
+    if (
+        rawMessage.includes('Gemini error: 403') ||
+        rawMessage.includes('DeepSeek error: 403')
+    ) {
+        return new Error(
+            'AI provider authorization failed (403). Please fill options manually for now.',
+        );
+    }
+
+    if (rawMessage.includes('failed: 502')) {
+        return new Error(
+            'AI options service is temporarily unavailable. Please try again later.',
+        );
+    }
+
+    return new Error(rawMessage);
+};
+
 export async function requestQuizOptions(
     params: QuizOptionsParams,
 ): Promise<QuizOptionsResult> {
@@ -149,6 +173,18 @@ export async function requestQuizOptions(
             '[aiQuizOptions] DeepSeek failed, falling back to Gemini:',
             deepseekErr,
         );
-        return await requestQuizOptionsWithProvider(params, 'gemini');
+        try {
+            return await requestQuizOptionsWithProvider(params, 'gemini');
+        } catch (geminiErr) {
+            const formattedGeminiError = formatQuizOptionsError(geminiErr);
+            const deepseekMessage =
+                deepseekErr instanceof Error && deepseekErr.message.trim() !== ''
+                    ? deepseekErr.message
+                    : 'deepseek failed';
+
+            throw new Error(
+                `${formattedGeminiError.message} (DeepSeek: ${deepseekMessage})`,
+            );
+        }
     }
 }

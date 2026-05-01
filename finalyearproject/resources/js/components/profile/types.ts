@@ -12,6 +12,8 @@ export type ProfileUser = {
     id: number;
     name: string;
     email?: string | null;
+    role?: string;
+    is_verified?: boolean;
     avatar?: string | null;
     about?: string | null;
     leaderboard_title?: string | null;

@@ -125,6 +125,30 @@ async function requestMaterialQuizWithProvider(
     };
 }
 
+const formatMaterialQuizError = (error: unknown): Error => {
+    const rawMessage =
+        error instanceof Error && error.message.trim() !== ''
+            ? error.message
+            : 'AI quiz generation failed.';
+
+    if (
+        rawMessage.includes('Gemini error: 403') ||
+        rawMessage.includes('DeepSeek error: 403')
+    ) {
+        return new Error(
+            'AI provider authorization failed (403). You can still create or attach the quiz manually in Create Post.',
+        );
+    }
+
+    if (rawMessage.includes('failed: 502')) {
+        return new Error(
+            'AI quiz service is temporarily unavailable. Please try again later or attach a quiz manually.',
+        );
+    }
+
+    return new Error(rawMessage);
+};
+
 export async function requestMaterialQuiz(
     params: MaterialQuizParams,
 ): Promise<MaterialQuizResult> {
@@ -135,6 +159,18 @@ export async function requestMaterialQuiz(
             '[aiMaterialQuiz] DeepSeek failed, falling back to Gemini:',
             deepseekErr,
         );
-        return await requestMaterialQuizWithProvider(params, 'gemini');
+        try {
+            return await requestMaterialQuizWithProvider(params, 'gemini');
+        } catch (geminiErr) {
+            const formattedGeminiError = formatMaterialQuizError(geminiErr);
+            const deepseekMessage =
+                deepseekErr instanceof Error && deepseekErr.message.trim() !== ''
+                    ? deepseekErr.message
+                    : 'deepseek failed';
+
+            throw new Error(
+                `${formattedGeminiError.message} (DeepSeek: ${deepseekMessage})`,
+            );
+        }
     }
 }

@@ -20,6 +20,8 @@ export type CommentUser = {
     name: string;
     avatar?: string | null;
     leaderboard_title?: string | null;
+    role?: string;
+    is_verified?: boolean;
 } | null;
 
 export type CommentReplyUser = {
@@ -63,6 +65,7 @@ export type PostUser = {
     id: number;
     name: string;
     role?: 'admin' | 'teacher' | 'student' | string;
+    is_verified?: boolean;
     avatar?: string | null;
     leaderboard_title?: string | null;
     is_following?: boolean;
@@ -157,6 +160,8 @@ export type PostItem = {
             | 'not_required'
             | string;
         required: boolean;
+        progress_current?: number;
+        progress_target?: number;
     }>;
     likes_count?: number;
     comments_count?: number;

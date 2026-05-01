@@ -1,6 +1,6 @@
+import type { PostItem } from '@/types';
 import { LearningTrendsPostCard } from './learning-trends-post-card';
 import type { TransFn } from './types';
-import type { PostItem } from '@/types';
 
 type LearningTrendsPostListProps = {
     posts: PostItem[];

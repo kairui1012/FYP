@@ -1,4 +1,5 @@
 import { reactLang } from '@erag/lang-sync-inertia';
+import { router, usePage } from '@inertiajs/react';
 import {
     BarChart2,
     Bookmark,
@@ -13,7 +14,6 @@ import {
     Users,
 } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { router, usePage } from '@inertiajs/react';
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, useSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';

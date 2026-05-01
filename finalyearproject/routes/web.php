@@ -98,6 +98,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/teacher-applications', [AdminController::class, 'teacherApplications'])->name('teacher-applications');
     Route::patch('/teacher-applications/{application}/approve', [AdminController::class, 'approveApplication'])->name('teacher-applications.approve');
     Route::patch('/teacher-applications/{application}/reject', [AdminController::class, 'rejectApplication'])->name('teacher-applications.reject');
+    Route::patch('/teacher-applications/{application}/toggle-verification', [AdminController::class, 'toggleVerification'])->name('teacher-applications.toggle-verification');
+    Route::get('/verification-documents/{document}/download', [AdminController::class, 'downloadVerificationDocument'])->name('verification-document.download');
 });
 
 // Teacher application (any auth user can submit)

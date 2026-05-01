@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TeacherApplication extends Model
 {
@@ -11,5 +12,10 @@ class TeacherApplication extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(TeacherVerificationDocument::class);
     }
 }

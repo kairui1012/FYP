@@ -16,6 +16,7 @@ import type { ChangeEvent, KeyboardEvent, ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
 import { BestAnswerAiPanel } from '@/components/best-answer-ai-panel';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
+import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -1012,10 +1013,13 @@ function CommentCard({
                                             ? `/profilePage/${comment.user.id}`
                                             : '/profilePage'
                                     }
-                                    className="cursor-pointer text-sm font-semibold text-zinc-900 transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89]"
+                                    className={`cursor-pointer text-sm font-semibold transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89] ${comment.user?.is_verified ? 'text-blue-600' : 'text-zinc-900'}`}
                                 >
                                     {userName}
                                 </Link>
+                                {comment.user?.is_verified && (
+                                    <VerifiedTeacherBadge className="ml-0.5" />
+                                )}
                                 <LeaderboardTitleBadge
                                     title={comment.user?.leaderboard_title}
                                 />

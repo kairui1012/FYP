@@ -1,6 +1,7 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Link, router, usePage } from '@inertiajs/react';
+import { House, LogOut, ShieldCheck } from 'lucide-react';
 import { lazy, Suspense } from 'react';
-import { LogOut, Settings, ShieldCheck } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,6 @@ import {
 import { UserInfo } from '@/components/user-info';
 import { useInitials } from '@/hooks/use-initials';
 import { logout } from '@/routes';
-import { edit } from '@/routes/profile';
 
 const BtnChangeLang = lazy(() =>
     import('@/components/ui/btn-change-lang').then((module) => ({
@@ -28,6 +28,7 @@ export function AppHeaderAdmin() {
     const page = usePage();
     const { auth } = page.props as typeof page.props & { locale?: string };
     const getInitials = useInitials();
+    const { trans } = reactLang();
 
     const handleLogout = () => {
         router.flushAll();
@@ -43,7 +44,7 @@ export function AppHeaderAdmin() {
                 {/* Admin badge */}
                 <div className="ml-4 hidden items-center gap-1.5 rounded-full bg-[#e36a8b]/10 px-3 py-1 md:flex">
                     <ShieldCheck className="h-3.5 w-3.5 text-[#e36a8b]" />
-                    <span className="text-xs font-semibold text-[#e36a8b]">Admin Panel</span>
+                    <span className="text-xs font-semibold text-[#e36a8b]">{trans('admin.admin_panel')}</span>
                 </div>
 
                 <div className="ml-auto flex items-center gap-3">
@@ -78,11 +79,11 @@ export function AppHeaderAdmin() {
                                 <DropdownMenuItem asChild>
                                     <Link
                                         className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 outline-none transition-colors focus:bg-neutral-100"
-                                        href={edit()}
+                                        href="/homePage"
                                         prefetch
                                     >
-                                        <Settings className="mr-2 h-4 w-4" />
-                                        Settings
+                                        <House className="mr-2 h-4 w-4" />
+                                        {trans('admin.enter_website')}
                                     </Link>
                                 </DropdownMenuItem>
                             </DropdownMenuGroup>
@@ -95,7 +96,7 @@ export function AppHeaderAdmin() {
                                     onClick={handleLogout}
                                 >
                                     <LogOut className="mr-2 h-4 w-4" />
-                                    Log Out
+                                    {trans('admin.log_out')}
                                 </Link>
                             </DropdownMenuItem>
                         </DropdownMenuContent>

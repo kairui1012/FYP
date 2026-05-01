@@ -49,4 +49,5 @@ return [
     'save'                    => 'Simpan',
     'earn_badges_hint'        => 'Siar, jawab kuiz, dan berinteraksi dengan komuniti untuk mendapat lencana.',
     'featured'                => 'Pilihan',
+    'verified_teacher'        => 'Guru Disahkan',
 ];

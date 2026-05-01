@@ -57,6 +57,7 @@ class HandleInertiaRequests extends Middleware
             syncLangFiles('popular'),
             syncLangFiles('errors'),
             syncLangFiles('rules'),
+            syncLangFiles('admin'),
         );
 
         return [

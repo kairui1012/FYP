@@ -49,4 +49,5 @@ return [
     'save'                    => '保存',
     'earn_badges_hint'        => '发帖、答题、与社区互动即可获得徽章。',
     'featured'                => '已展示',
+    'verified_teacher'        => '认证教师',
 ];

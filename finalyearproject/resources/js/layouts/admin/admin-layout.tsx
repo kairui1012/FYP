@@ -1,21 +1,23 @@
 import { usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
+import { reactLang } from '@erag/lang-sync-inertia';
 import { LayoutDashboard, ShieldAlert, UserCheck, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { AppHeaderAdmin } from '@/components/app-header-admin';
 import { AppShell } from '@/components/app-shell';
 import { cn } from '@/lib/utils';
-import { Link } from '@inertiajs/react';
-
-const navItems = [
-    { title: 'All Users', href: '/admin/users', icon: Users },
-    { title: 'Report Records', href: '/admin/reports', icon: ShieldAlert },
-    { title: 'Teacher Applications', href: '/admin/teacher-applications', icon: UserCheck },
-];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
     const page = usePage();
     const { url } = page;
     const locale = (page.props as { locale?: string }).locale ?? 'en';
+    const { trans } = reactLang();
+
+    const navItems = [
+        { title: trans('admin.nav_all_users'), href: '/admin/users', icon: Users },
+        { title: trans('admin.nav_report_records'), href: '/admin/reports', icon: ShieldAlert },
+        { title: trans('admin.nav_teacher_applications'), href: '/admin/teacher-applications', icon: UserCheck },
+    ];
 
     return (
         <AppShell variant="header">
@@ -29,7 +31,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         <div className="sticky top-16 p-3">
                             <div className="mb-4 flex items-center gap-2 px-2 py-3">
                                 <LayoutDashboard className="h-5 w-5 text-[#e27193]" />
-                                <span className="text-sm font-semibold text-foreground">Admin Panel</span>
+                                <span className="text-sm font-semibold text-foreground">{trans('admin.admin_panel')}</span>
                             </div>
                             <nav className="flex flex-col gap-1">
                                 {navItems.map((item) => {

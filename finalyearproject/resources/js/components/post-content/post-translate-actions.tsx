@@ -1,5 +1,5 @@
-import { BtnAiTranslate } from '@/components/ui/btn-ai-translate';
 import { PostLearningObjectives } from '@/components/post-learning-objectives';
+import { BtnAiTranslate } from '@/components/ui/btn-ai-translate';
 
 type PostTranslateActionsProps = {
     page: unknown;

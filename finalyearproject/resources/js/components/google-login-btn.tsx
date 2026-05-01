@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button';
 import { reactLang } from '@erag/lang-sync-inertia';
+import { Button } from '@/components/ui/button';
 
 export default function GoogleLoginBtn() {
     const { trans } = reactLang();

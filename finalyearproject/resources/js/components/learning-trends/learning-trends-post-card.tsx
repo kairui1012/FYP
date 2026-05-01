@@ -1,7 +1,8 @@
 import { Link } from '@inertiajs/react';
 import { Star } from 'lucide-react';
-import { PostAttachments } from '@/components/post-attachments';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
+import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
+import { PostAttachments } from '@/components/post-attachments';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnFollow } from '@/components/ui/btn-follow';
 import { MaterialLearningStateBadge } from '@/components/ui/material-learning-state-badge';
@@ -184,13 +185,16 @@ export function LearningTrendsPostCard({
                                                 ? `/profilePage/${post.user.id}`
                                                 : '/profilePage'
                                         }
-                                        className="cursor-pointer font-semibold text-zinc-900 transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89]"
+                                        className={`cursor-pointer font-semibold transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89] ${post.user?.is_verified ? 'text-blue-600' : 'text-zinc-900'}`}
                                         onClick={(event) =>
                                             event.stopPropagation()
                                         }
                                     >
                                         {post.user?.name ?? 'Unknown User'}
                                     </Link>
+                                )}
+                                {!post.is_anonymous && post.user?.is_verified && (
+                                    <VerifiedTeacherBadge />
                                 )}
                                 {!post.is_anonymous && (
                                     <LeaderboardTitleBadge

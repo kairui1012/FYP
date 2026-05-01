@@ -1,5 +1,6 @@
-import { Pencil, Settings2, X } from 'lucide-react';
+import { BadgeCheck, Pencil, Settings2, X } from 'lucide-react';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
+import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { BtnFollow } from '@/components/ui/btn-follow';
 import { Button } from '@/components/ui/button';
 import { FeaturedBadgeChip } from './featured-badge-chip';
@@ -70,9 +71,12 @@ export function ProfileHeader({
 
             <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-3">
-                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900 md:text-3xl dark:text-zinc-100">
+                    <h1 className={`text-2xl font-bold tracking-tight md:text-3xl ${profileUser.is_verified ? 'text-blue-600' : 'text-zinc-900 dark:text-zinc-100'}`}>
                         {displayName}
                     </h1>
+                    {profileUser.is_verified && (
+                        <VerifiedTeacherBadge className="h-6 w-6" />
+                    )}
                     <LeaderboardTitleBadge title={profileUser.leaderboard_title} />
                     {!isOwnProfile && currentUserId && currentUserId !== profileUser.id && (
                         <BtnFollow
@@ -82,6 +86,12 @@ export function ProfileHeader({
                         />
                     )}
                 </div>
+                {profileUser.is_verified && profileUser.role === 'teacher' && (
+                    <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-0.5 text-xs font-semibold text-blue-600 ring-1 ring-blue-200">
+                        <BadgeCheck className="h-3.5 w-3.5" />
+                        {trans('profile.verified_teacher')}
+                    </div>
+                )}
 
                 <p className="mt-0.5 text-sm text-zinc-500">@user-{profileUser.id}</p>
 

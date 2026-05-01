@@ -2,18 +2,18 @@ import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import AppLayout from '@/layouts/app-layout';
-import { achievements as achievementsRoute } from '@/routes';
-import type { BreadcrumbItem } from '@/types';
 import { AchievementsHero } from '@/components/achievements/AchievementsHero';
 import { AchievementsSection } from '@/components/achievements/AchievementsSection';
 import { CategoryFilterTabs } from '@/components/achievements/CategoryFilterTabs';
+import { CATEGORY_ORDER } from '@/components/achievements/constants';
 import { NextBadgeBanner } from '@/components/achievements/NextBadgeBanner';
 import { PointsBadgesSection } from '@/components/achievements/PointsBadgesSection';
 import { QuizAccuracyStats } from '@/components/achievements/QuizAccuracyStats';
 import { SummaryStats } from '@/components/achievements/SummaryStats';
-import { CATEGORY_ORDER } from '@/components/achievements/constants';
 import type { PageProps } from '@/components/achievements/types';
+import AppLayout from '@/layouts/app-layout';
+import { achievements as achievementsRoute } from '@/routes';
+import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Achievements', href: achievementsRoute() },

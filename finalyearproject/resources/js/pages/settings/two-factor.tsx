@@ -1,5 +1,5 @@
-import { Form, Head } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
+import { Form, Head } from '@inertiajs/react';
 import { ShieldBan, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import Heading from '@/components/heading';

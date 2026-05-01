@@ -17,7 +17,6 @@ export function LowRatedMaterialsSection({
     return (
         <InsightsSectionCard
             title={trans('createPost.teacher_low_rated_title')}
-            badgeLabel={trans('createPost.teacher_insight_badge')}
             accent="rose"
         >
             <InsightsDataTable

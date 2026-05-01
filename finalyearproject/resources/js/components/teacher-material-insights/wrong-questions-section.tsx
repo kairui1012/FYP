@@ -17,7 +17,6 @@ export function WrongQuestionsSection({
     return (
         <InsightsSectionCard
             title={trans('createPost.teacher_wrong_questions_title')}
-            badgeLabel={trans('createPost.teacher_insight_badge')}
             accent="amber"
         >
             <InsightsDataTable

@@ -11,7 +11,7 @@ import { PostTranslateActions } from '@/components/post-content/post-translate-a
 import type { PostContentProps } from '@/components/post-content/types';
 import { usePostContentController } from '@/components/post-content/use-post-content-controller';
 import AppLayout from '@/layouts/app-layout';
-import { homePage } from '@/routes';
+import { followingPage, homePage } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
 
 export default function PostContent({ post }: PostContentProps) {
@@ -25,6 +25,17 @@ export default function PostContent({ post }: PostContentProps) {
             ? controller.materialTranslationTexts
             : undefined;
 
+    const urlSearch = page.url.includes('?') ? page.url.split('?')[1] : '';
+    const urlParams = new URLSearchParams(urlSearch);
+    const fromTab = urlParams.get('tab');
+    const source = urlParams.get('source');
+    const backHref =
+        source === 'following'
+            ? followingPage().url
+            : fromTab === 'feed' || fromTab === 'learn'
+            ? `${homePage().url}?tab=${fromTab}`
+            : homePage().url;
+
     return (
         <>
             <Head title={controller.translated?.title ?? post.title} />
@@ -34,7 +45,7 @@ export default function PostContent({ post }: PostContentProps) {
                     <PostBackAuthorHeader
                         post={post}
                         page={page}
-                        backHref={homePage()}
+                        backHref={backHref}
                         currentUserId={controller.currentUserId}
                         displayName={controller.displayName}
                         isAnonymousPost={controller.isAnonymousPost}

@@ -1,7 +1,7 @@
 // Components
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Form, Head } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import { reactLang } from '@erag/lang-sync-inertia';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';

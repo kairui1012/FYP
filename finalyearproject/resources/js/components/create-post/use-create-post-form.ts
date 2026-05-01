@@ -22,6 +22,7 @@ import {
 import type {
     CreatePostText,
     LearningMaterialOption,
+    LinkedQuizOption,
     LocalAttachment,
     MaterialBlockType,
     MaterialContentBlock,
@@ -32,6 +33,7 @@ import type {
 type UseCreatePostFormParams = {
     subjects: PostSubject[];
     learningMaterials: LearningMaterialOption[];
+    availableQuizzes: LinkedQuizOption[];
     canPublishStudyMaterial: boolean;
     t: CreatePostText;
     trans: (key: string) => string;
@@ -49,6 +51,19 @@ const createEmptyQuiz = (): QuizItem => ({
     aiAnswerPlacement: 'random',
     explanation: '',
 });
+
+const isEmptyQuiz = (quiz: QuizItem | undefined): boolean => {
+    if (!quiz) {
+        return true;
+    }
+
+    const hasQuestion = quiz.question.trim() !== '';
+    const hasAnyOption = quiz.options.some((option) => option.trim() !== '');
+    const hasAnswer = quiz.answerIndex !== '';
+    const hasExplanation = (quiz.explanation ?? '').trim() !== '';
+
+    return !(hasQuestion || hasAnyOption || hasAnswer || hasExplanation);
+};
 
 const createMaterialBlock = (type: MaterialBlockType): MaterialContentBlock => ({
     id: `${type}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -77,6 +92,7 @@ const applyGeneratedOptionsToQuiz = (
 export function useCreatePostForm({
     subjects,
     learningMaterials,
+    availableQuizzes,
     canPublishStudyMaterial,
     t,
     trans,
@@ -95,6 +111,9 @@ export function useCreatePostForm({
     const [selectedMaterialId, setSelectedMaterialId] = useState<string>('');
     const [selectedSubject, setSelectedSubject] = useState<string>('');
     const [selectedLanguage, setSelectedLanguage] = useState<string>('');
+    const [selectedLinkedQuizIds, setSelectedLinkedQuizIds] = useState<
+        number[]
+    >([]);
     const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
     const [videoUrl, setVideoUrl] = useState('');
     const [isAnonymous, setIsAnonymous] = useState(false);
@@ -412,6 +431,8 @@ export function useCreatePostForm({
         if (value === 'material') {
             setSelectedMaterialId('');
             setIsAnonymous(false);
+        } else {
+            setSelectedLinkedQuizIds([]);
         }
     };
 
@@ -614,6 +635,10 @@ export function useCreatePostForm({
         }
 
         if (isMaterialSelected) {
+            selectedLinkedQuizIds.forEach((quizId) => {
+                formData.append('linked_quiz_ids[]', String(quizId));
+            });
+
             materialBlocks.forEach((block, index) => {
                 formData.append(`material_blocks[${index}][type]`, block.type);
 
@@ -658,6 +683,7 @@ export function useCreatePostForm({
                 setMaterialBlocks([createMaterialBlock('text')]);
                 setSelectedPostType('');
                 setSelectedMaterialId('');
+                setSelectedLinkedQuizIds([]);
                 setSelectedSubject('');
                 setSelectedLanguage('');
                 setAttachments([]);
@@ -839,15 +865,38 @@ export function useCreatePostForm({
                 throw new Error(t.materialQuizError);
             }
 
-            setQuizzes([
-                {
-                    question: firstQuestion.question,
-                    options: firstQuestion.options,
-                    answerIndex: String(firstQuestion.answerIndex),
-                    aiAnswerPlacement: 'random',
-                    explanation: firstQuestion.explanation,
-                },
-            ]);
+            const normalizedOptions = Array.from(
+                { length: AI_QUIZ_OPTION_COUNT },
+                (_, index) => firstQuestion.options[index]?.trim() ?? '',
+            );
+
+            if (
+                firstQuestion.question.trim() === '' ||
+                normalizedOptions.some((option) => option === '') ||
+                firstQuestion.answerIndex < 0 ||
+                firstQuestion.answerIndex >= AI_QUIZ_OPTION_COUNT
+            ) {
+                throw new Error(t.materialQuizError);
+            }
+
+            const generatedQuiz: QuizItem = {
+                question: firstQuestion.question.trim(),
+                options: normalizedOptions,
+                answerIndex: String(firstQuestion.answerIndex),
+                aiAnswerPlacement: 'random',
+                explanation: firstQuestion.explanation?.trim() ?? '',
+            };
+
+            setQuizzes((prev) => {
+                if (
+                    prev.length === 0 ||
+                    (prev.length === 1 && isEmptyQuiz(prev[0]))
+                ) {
+                    return [generatedQuiz];
+                }
+
+                return [...prev, generatedQuiz];
+            });
 
             if (!title.trim()) {
                 setTitle(`${material.title} Quiz`.slice(0, MAX_TITLE_LENGTH));
@@ -871,6 +920,19 @@ export function useCreatePostForm({
         } finally {
             setGeneratingMaterialQuiz(false);
         }
+    };
+
+    const toggleLinkedQuizId = (quizId: number) => {
+        const hasQuiz = availableQuizzes.some((quiz) => quiz.id === quizId);
+        if (!hasQuiz) {
+            return;
+        }
+
+        setSelectedLinkedQuizIds((prev) =>
+            prev.includes(quizId)
+                ? prev.filter((id) => id !== quizId)
+                : [...prev, quizId],
+        );
     };
     const addMaterialBlock = (type: MaterialBlockType) => {
         setMaterialBlocks((prev) => [...prev, createMaterialBlock(type)]);
@@ -963,6 +1025,8 @@ export function useCreatePostForm({
         quizOptionErrors,
         selectedMaterialId,
         setSelectedMaterialId,
+        selectedLinkedQuizIds,
+        toggleLinkedQuizId,
         generatingMaterialQuiz,
         materialQuizError,
         generateQuizFromMaterial,

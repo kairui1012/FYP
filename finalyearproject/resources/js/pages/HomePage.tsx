@@ -48,8 +48,28 @@ export default function HomePage({ posts = [], learningOverview }: HomePageProps
 
     const homeText = buildHomeText(page as any);
 
-    const goToPost = (postId: number) => router.get(`/posts/${postId}`);
-    const goToPostComments = (postId: number) => router.visit(`/posts/${postId}?focus=comments`);
+    const buildPostUrl = (postId: number, focus?: 'comments') => {
+        const params = new URLSearchParams();
+
+        if (isHomePage) {
+            params.set('tab', activeTab);
+        }
+
+        if (isFollowingPage) {
+            params.set('source', 'following');
+        }
+
+        if (focus) {
+            params.set('focus', focus);
+        }
+
+        const query = params.toString();
+        return query ? `/posts/${postId}?${query}` : `/posts/${postId}`;
+    };
+
+    const goToPost = (postId: number) => router.get(buildPostUrl(postId));
+    const goToPostComments = (postId: number) =>
+        router.visit(buildPostUrl(postId, 'comments'));
 
     return (
         <>

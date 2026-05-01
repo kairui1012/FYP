@@ -73,6 +73,7 @@ class PostSerializationService
             'id' => $post->user->id,
             'name' => $post->user->name,
             'role' => $post->user->role ?? 'student',
+            'is_verified' => (bool) ($post->user->is_verified ?? false),
             'avatar' => $post->user->socialAccounts
                 ->first(fn ($account) => ! empty($account->avatar))
                 ?->avatar,
@@ -184,6 +185,8 @@ class PostSerializationService
             'user' => $comment->user ? [
                 'id' => $comment->user->id,
                 'name' => $comment->user->name,
+                'role' => $comment->user->role ?? 'student',
+                'is_verified' => (bool) ($comment->user->is_verified ?? false),
                 'avatar' => $comment->user->socialAccounts
                     ->first(fn ($account) => ! empty($account->avatar))
                     ?->avatar,

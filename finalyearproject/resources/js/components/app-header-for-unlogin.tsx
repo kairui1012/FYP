@@ -1,9 +1,9 @@
-import { Link, usePage } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
-import { lazy, Suspense } from 'react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     Menu,
 } from 'lucide-react';
+import { lazy, Suspense } from 'react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Button } from '@/components/ui/button';

@@ -31,4 +31,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('teacher-certification.show');
     Route::post('settings/teacher-certification', [TeacherCertificationController::class, 'store'])
         ->name('teacher-certification.store');
+    Route::get('settings/teacher-certification/documents/{document}', [TeacherCertificationController::class, 'viewDocument'])
+        ->name('teacher-certification.document.view');
 });

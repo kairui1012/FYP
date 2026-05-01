@@ -88,6 +88,8 @@ class ProfilePageController extends Controller
                 'id'               => $profileUser->id,
                 'name'             => $profileUser->name,
                 'email'            => $viewer->id === $profileUser->id ? $profileUser->email : null,
+                'role'             => $profileUser->role ?? 'student',
+                'is_verified'      => (bool) ($profileUser->is_verified ?? false),
                 'avatar'           => $avatar,
                 'about'            => $profileUser->profile?->about,
                 'leaderboard_title' => $this->leaderboardTitleService->titleForUserId($profileUser->id),

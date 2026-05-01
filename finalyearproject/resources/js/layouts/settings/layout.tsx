@@ -1,5 +1,5 @@
-import { Link } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
+import { Link } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';

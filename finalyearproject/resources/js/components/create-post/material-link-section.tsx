@@ -1,5 +1,5 @@
-import { BookOpenCheck, Sparkles } from 'lucide-react';
 import { reactLang } from '@erag/lang-sync-inertia';
+import { BookOpenCheck, Lock, Sparkles } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -97,7 +97,7 @@ export function MaterialLinkSection({
                 </div>
             ) : null}
 
-            {selectedPostType === 'quiz' && canUseAiQuizTools ? (
+            {selectedPostType === 'quiz' ? (
                 <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
                     <p className="text-sm font-semibold text-amber-800">
                         {trans('createPost.material_attach_quiz_title')}
@@ -105,16 +105,38 @@ export function MaterialLinkSection({
                     <button
                         type="button"
                         onClick={onGenerateMaterialQuiz}
-                        disabled={!canGenerateQuiz || generatingMaterialQuiz}
+                        disabled={
+                            !canUseAiQuizTools ||
+                            !canGenerateQuiz ||
+                            generatingMaterialQuiz
+                        }
                         className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-700 transition hover:border-amber-500 hover:bg-amber-100 disabled:pointer-events-none disabled:opacity-50"
                     >
-                        <Sparkles
-                            className={`h-4 w-4 ${generatingMaterialQuiz ? 'animate-spin' : ''}`}
-                        />
-                        {generatingMaterialQuiz
-                            ? trans('createPost.material_quiz_generating')
-                            : trans('createPost.material_quiz_generate_ai')}
+                        {!canUseAiQuizTools ? (
+                            <Lock className="h-4 w-4" />
+                        ) : (
+                            <Sparkles
+                                className={`h-4 w-4 ${generatingMaterialQuiz ? 'animate-spin' : ''}`}
+                            />
+                        )}
+                        {!canUseAiQuizTools
+                            ? trans('createPost.material_quiz_ai_locked')
+                            : generatingMaterialQuiz
+                              ? trans('createPost.material_quiz_generating')
+                              : trans('createPost.material_quiz_generate_ai')}
                     </button>
+                    {!canUseAiQuizTools ? (
+                        <p className="text-xs font-medium text-amber-700">
+                            {trans('createPost.material_quiz_ai_locked_hint')}
+                        </p>
+                    ) : null}
+                    {canUseAiQuizTools && !canGenerateQuiz ? (
+                        <p className="text-xs font-medium text-amber-700">
+                            {trans(
+                                'createPost.material_quiz_select_material_hint',
+                            )}
+                        </p>
+                    ) : null}
                     {materialQuizError ? (
                         <p className="text-xs font-medium text-red-600">
                             {materialQuizError}

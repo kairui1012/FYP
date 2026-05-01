@@ -1,7 +1,7 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Form, Head, Link } from '@inertiajs/react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
-import { reactLang } from '@erag/lang-sync-inertia';
 import { AppHeaderForUnlogin } from '@/components/app-header-for-unlogin';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';

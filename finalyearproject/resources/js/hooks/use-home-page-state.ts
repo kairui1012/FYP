@@ -8,9 +8,14 @@ export function useHomePageState(
 ) {
     const isHomePage = pageContext === 'home';
     const isFollowingPage = pageContext === 'following';
-    const [activeTab, setActiveTab] = useState<'learn' | 'feed'>(
-        isHomePage ? 'learn' : 'feed',
-    );
+    const [activeTab, setActiveTab] = useState<'learn' | 'feed'>(() => {
+        if (!isHomePage) return 'feed';
+        const params = new URLSearchParams(
+            typeof window !== 'undefined' ? window.location.search : '',
+        );
+        const tab = params.get('tab');
+        return tab === 'feed' ? 'feed' : 'learn';
+    });
 
     useEffect(() => {
         if (!isHomePage) setActiveTab('feed');

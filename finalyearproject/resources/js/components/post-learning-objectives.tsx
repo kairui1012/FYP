@@ -1,9 +1,10 @@
 import { BookOpen, Clock, Loader2, RotateCcw, Sparkles } from 'lucide-react';
 import { useRef, useState } from 'react';
 import {
-    requestLearningObjectives,
-    type LearningObjectives,
+    requestLearningObjectives
+    
 } from '@/lib/ai-learning-objectives';
+import type {LearningObjectives} from '@/lib/ai-learning-objectives';
 import { cn } from '@/lib/utils';
 import { trans } from './post-content/post-content-config';
 

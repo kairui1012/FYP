@@ -514,21 +514,17 @@ class PostController extends Controller
 
         $isCorrect = $selectedIndex === $answerIndex;
 
-        $isFirstCompletion = false;
-
-        if ($isCorrect) {
-            $completion = QuizCompletion::query()->firstOrCreate(
-                [
-                    'user_id' => $request->user()->id,
-                    'post_id' => $post->id,
-                ],
-                [
-                    'subject_id'   => $post->subject_id,
-                    'completed_at' => now(),
-                ]
-            );
-            $isFirstCompletion = $completion->wasRecentlyCreated;
-        }
+        $completion = QuizCompletion::query()->firstOrCreate(
+            [
+                'user_id' => $request->user()->id,
+                'post_id' => $post->id,
+            ],
+            [
+                'subject_id'   => $post->subject_id,
+                'completed_at' => now(),
+            ]
+        );
+        $isFirstCompletion = $completion->wasRecentlyCreated;
 
         /** @var \App\Models\User $user */
         $user = $request->user();
@@ -1072,7 +1068,7 @@ class PostController extends Controller
 
     /**
      * @param  array<int>  $materialIds
-     * @return array<int, array{state: string, path: array<int, array{key: string, status: string, required: bool}>}>
+     * @return array<int, array{state: string, path: array<int, array{key: string, status: string, required: bool, progress_current?: int, progress_target?: int}>}>
      */
     private function buildMaterialLearningStateMap(array $materialIds, ?int $userId): array
     {
@@ -1152,20 +1148,31 @@ class PostController extends Controller
         foreach ($uniqueMaterialIds as $materialId) {
             $linkedQuizIds = $quizIdsByMaterial[$materialId] ?? [];
             $hasLinkedQuiz = count($linkedQuizIds) > 0;
+            $requiredQuizCompletions = $hasLinkedQuiz ? min(2, count($linkedQuizIds)) : 0;
             $hasViewed = isset($viewedSet[$materialId]);
             $hasAttemptedQuiz = isset($attemptedSet[$materialId]);
             $completedLinkedQuizzes = count(array_filter(
                 $linkedQuizIds,
                 fn (int $quizId) => isset($completedQuizSet[$quizId]),
             ));
-            $hasCompletedQuiz = $hasLinkedQuiz && $completedLinkedQuizzes >= count($linkedQuizIds);
+            $quizProgressCount = min($completedLinkedQuizzes, $requiredQuizCompletions);
+            $hasStartedQuiz = $hasAttemptedQuiz || $quizProgressCount > 0;
+            $hasCompletedQuiz = $hasLinkedQuiz && $quizProgressCount >= $requiredQuizCompletions;
             $hasSubmittedFeedback = isset($feedbackSet[$materialId]);
 
-            $state = $this->determineMaterialLearningState($hasLinkedQuiz, $hasViewed, $hasAttemptedQuiz, $hasCompletedQuiz);
+            $state = $this->determineMaterialLearningState($hasLinkedQuiz, $hasViewed, $hasStartedQuiz, $hasCompletedQuiz);
 
             $result[$materialId] = [
                 'state' => $state,
-                'path' => $this->buildMaterialLearningPath($hasLinkedQuiz, $hasViewed, $hasAttemptedQuiz, $hasCompletedQuiz, $hasSubmittedFeedback),
+                'path' => $this->buildMaterialLearningPath(
+                    $hasLinkedQuiz,
+                    $hasViewed,
+                    $hasStartedQuiz,
+                    $hasCompletedQuiz,
+                    $hasSubmittedFeedback,
+                    $quizProgressCount,
+                    $requiredQuizCompletions,
+                ),
             ];
         }
 
@@ -1194,7 +1201,7 @@ class PostController extends Controller
     }
 
     /**
-     * @return array<int, array{key: string, status: string, required: bool}>
+     * @return array<int, array{key: string, status: string, required: bool, progress_current?: int, progress_target?: int}>
      */
     private function buildMaterialLearningPath(
         bool $hasLinkedQuiz,
@@ -1202,6 +1209,8 @@ class PostController extends Controller
         bool $hasAttemptedQuiz,
         bool $hasCompletedQuiz,
         bool $hasSubmittedFeedback,
+        int $quizProgressCount,
+        int $requiredQuizCompletions,
     ): array {
         return [
             [
@@ -1215,6 +1224,8 @@ class PostController extends Controller
                     ? 'not_required'
                     : ($hasCompletedQuiz ? 'completed' : ($hasAttemptedQuiz ? 'in_progress' : 'pending')),
                 'required' => $hasLinkedQuiz,
+                'progress_current' => $quizProgressCount,
+                'progress_target' => $requiredQuizCompletions,
             ],
             [
                 'key' => 'submit_feedback',

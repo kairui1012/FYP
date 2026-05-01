@@ -1,10 +1,10 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Lock, Sparkles, Trophy } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import {
     getTranslatedBadgeDescription,
     getTranslatedBadgeName,
 } from '@/lib/badge-translations';
+import { cn } from '@/lib/utils';
 import { badgeIconMap } from './constants';
 import type { Badge } from './types';
 

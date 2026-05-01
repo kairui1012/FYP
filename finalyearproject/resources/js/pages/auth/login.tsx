@@ -1,10 +1,11 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Form, Head, Link } from '@inertiajs/react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
-import { reactLang } from '@erag/lang-sync-inertia';
+import { AppHeaderForUnlogin } from '@/components/app-header-for-unlogin';
+import GoogleLoginBtn from '@/components/google-login-btn';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
-import { AppHeaderForUnlogin } from '@/components/app-header-for-unlogin';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -13,7 +14,6 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
-import GoogleLoginBtn from '@/components/google-login-btn';
 import { request } from '@/routes/password';
 
 type Props = {

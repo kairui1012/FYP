@@ -11,6 +11,7 @@ import {
     MAX_TITLE_LENGTH,
     buildCreatePostText,
     type LearningMaterialOption,
+    type LinkedQuizOption,
     pillActionButton,
     pillChoiceActive,
     pillChoiceBase,
@@ -20,6 +21,7 @@ import {
 } from '@/components/create-post/create-post-config';
 import { LanguageSection } from '@/components/create-post/language-section';
 import { MaterialLinkSection } from '@/components/create-post/material-link-section';
+import { MaterialQuizLinkSection } from '@/components/create-post/material-quiz-link-section';
 import { PostTypeSection } from '@/components/create-post/post-type-section';
 import { QuizSetupSection } from '@/components/create-post/quiz-setup-section';
 import { StudyMaterialBlockEditor } from '@/components/create-post/study-material-block-editor';
@@ -36,6 +38,7 @@ import type { PostSubject } from '@/types';
 type CreatePostPageProps = {
     subjects?: PostSubject[];
     learningMaterials?: LearningMaterialOption[];
+    availableQuizzes?: LinkedQuizOption[];
     canPublishStudyMaterial?: boolean;
 };
 
@@ -45,6 +48,7 @@ export default function CreatePostPage() {
     const {
         subjects = [],
         learningMaterials = [],
+        availableQuizzes = [],
         canPublishStudyMaterial = false,
         auth,
     } = usePage<CreatePostPageProps & {
@@ -86,6 +90,8 @@ export default function CreatePostPage() {
         generatingMaterialQuiz,
         materialQuizError,
         generateQuizFromMaterial,
+        selectedLinkedQuizIds,
+        toggleLinkedQuizId,
         selectedPostType,
         setSelectedPostType,
         selectedSubject,
@@ -123,6 +129,7 @@ export default function CreatePostPage() {
     } = useCreatePostForm({
         subjects,
         learningMaterials,
+        availableQuizzes,
         canPublishStudyMaterial,
         t,
         trans,
@@ -271,6 +278,16 @@ export default function CreatePostPage() {
                                     quizAiAnswerPlacementRandom:
                                         t.quizAiAnswerPlacementRandom,
                                 }}
+                            />
+                        ) : null}
+
+                        {isMaterialSelected ? (
+                            <MaterialQuizLinkSection
+                                quizzes={availableQuizzes}
+                                selectedQuizIds={selectedLinkedQuizIds}
+                                onToggleQuiz={toggleLinkedQuizId}
+                                hint={t.materialAttachExistingQuizHint}
+                                emptyLabel={t.materialNoAttachableQuizzes}
                             />
                         ) : null}
 

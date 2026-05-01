@@ -1,13 +1,14 @@
 import { Link, router } from '@inertiajs/react';
-import { PostAttachments } from '@/components/post-attachments';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
+import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
+import { PostAttachments } from '@/components/post-attachments';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnComment } from '@/components/ui/btn-comment';
 import { BtnFollow } from '@/components/ui/btn-follow';
 import { BtnLike } from '@/components/ui/btn-like';
-import { MaterialLearningStateBadge } from '@/components/ui/material-learning-state-badge';
 import { BtnSave } from '@/components/ui/btn-save';
 import { BtnShare } from '@/components/ui/btn-share';
+import { MaterialLearningStateBadge } from '@/components/ui/material-learning-state-badge';
 import { formatFormulaText } from '@/lib/formula-display';
 import {
     formatTimeAgo,
@@ -126,13 +127,16 @@ export function CategoryPostCard({
                                                 ? `/profilePage/${post.user.id}`
                                                 : '/profilePage'
                                         }
-                                        className="cursor-pointer font-semibold text-zinc-900 transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89]"
+                                        className={`cursor-pointer font-semibold transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89] ${post.user?.is_verified ? 'text-blue-600' : 'text-zinc-900'}`}
                                         onClick={(event) =>
                                             event.stopPropagation()
                                         }
                                     >
                                         {post.user?.name ?? 'Unknown User'}
                                     </Link>
+                                )}
+                                {!post.is_anonymous && post.user?.is_verified && (
+                                    <VerifiedTeacherBadge />
                                 )}
                                 {!post.is_anonymous && (
                                     <LeaderboardTitleBadge

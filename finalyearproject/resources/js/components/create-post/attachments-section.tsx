@@ -1,6 +1,6 @@
-import { Button } from '@/components/ui/button';
 import { FileText, ImagePlus, Trash2, UploadCloud } from 'lucide-react';
-import { ChangeEvent, RefObject } from 'react';
+import type { ChangeEvent, RefObject } from 'react';
+import { Button } from '@/components/ui/button';
 
 type LocalAttachment = {
     file: File;

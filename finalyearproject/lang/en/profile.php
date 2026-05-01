@@ -49,4 +49,5 @@ return [
     'save'                    => 'Save',
     'earn_badges_hint'        => 'Post, answer quizzes, and engage with the community to earn badges.',
     'featured'                => 'Featured',
+    'verified_teacher'        => 'Verified Teacher',
 ];

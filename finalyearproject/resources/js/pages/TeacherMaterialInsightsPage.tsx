@@ -1,17 +1,16 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem } from '@/types';
 import { InsightsFilterPanel } from '@/components/teacher-material-insights/insights-filter-panel';
 import { InsightsPageHeader } from '@/components/teacher-material-insights/insights-page-header';
 import { LowRatedMaterialsSection } from '@/components/teacher-material-insights/low-rated-materials-section';
 import { MaterialVersionHistorySection } from '@/components/teacher-material-insights/material-version-history-section';
-import { WrongQuestionsSection } from '@/components/teacher-material-insights/wrong-questions-section';
 import type {
     SelectOption,
     TeacherMaterialInsightsData,
     TeacherMaterialInsightsFilters,
 } from '@/components/teacher-material-insights/types';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
 type TeacherMaterialInsightsPageProps = {
     filters: TeacherMaterialInsightsFilters;
@@ -87,11 +86,6 @@ export default function TeacherMaterialInsightsPage({
 
                     <LowRatedMaterialsSection
                         items={insights.low_rated_materials}
-                        trans={trans}
-                    />
-
-                    <WrongQuestionsSection
-                        items={insights.frequently_wrong_questions}
                         trans={trans}
                     />
 

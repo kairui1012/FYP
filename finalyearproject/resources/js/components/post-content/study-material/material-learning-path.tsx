@@ -7,6 +7,10 @@ type MaterialLearningPathProps = {
     path?: PostItem['material_learning_path'];
 };
 
+type MaterialLearningPathStep = NonNullable<
+    PostItem['material_learning_path']
+>[number];
+
 function stepLabel(stepKey: string, page: unknown): string {
     if (stepKey === 'read_material') {
         return trans('createPost.material_path_read_material', page);
@@ -23,7 +27,18 @@ function stepLabel(stepKey: string, page: unknown): string {
     return stepKey;
 }
 
-function statusLabel(status: string, page: unknown): string {
+function statusLabel(step: MaterialLearningPathStep, page: unknown): string {
+    if (step.key === 'complete_quiz' && (step.progress_target ?? 0) > 0) {
+        const progressTarget = step.progress_target ?? 0;
+        const progressCurrent = Math.min(
+            step.progress_current ?? 0,
+            progressTarget,
+        );
+
+        return `${progressCurrent}/${progressTarget}`;
+    }
+
+    const { status } = step;
     if (status === 'completed') {
         return trans('createPost.material_path_status_completed', page);
     }
@@ -55,11 +70,27 @@ function statusIcon(status: string) {
     return <Circle className="h-4 w-4 text-zinc-400" />;
 }
 
+function stepCardClassName(status: string): string {
+    if (status === 'completed') {
+        return 'rounded-lg border border-emerald-200 bg-emerald-50 p-3';
+    }
+
+    return 'rounded-lg border border-zinc-200 bg-zinc-50 p-3';
+}
+
 export function MaterialLearningPath({
     page,
     path,
 }: MaterialLearningPathProps) {
-    if (!path || path.length === 0) {
+    const visiblePath = (path ?? []).filter((step) => step.required !== false);
+    const gridClassName =
+        visiblePath.length >= 3
+            ? 'mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3'
+            : visiblePath.length === 2
+              ? 'mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2'
+              : 'mt-3 grid grid-cols-1 gap-3';
+
+    if (visiblePath.length === 0) {
         return null;
     }
 
@@ -68,11 +99,11 @@ export function MaterialLearningPath({
             <h2 className="text-sm font-semibold text-zinc-900">
                 {trans('createPost.material_path_title', page)}
             </h2>
-            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {path.map((step) => (
+            <div className={gridClassName}>
+                {visiblePath.map((step) => (
                     <div
                         key={step.key}
-                        className="rounded-lg border border-zinc-200 bg-white p-3"
+                        className={stepCardClassName(step.status)}
                     >
                         <div className="flex items-center gap-2">
                             {statusIcon(step.status)}
@@ -81,7 +112,7 @@ export function MaterialLearningPath({
                             </p>
                         </div>
                         <p className="mt-1 text-xs text-zinc-600">
-                            {statusLabel(step.status, page)}
+                            {statusLabel(step, page)}
                         </p>
                     </div>
                 ))}

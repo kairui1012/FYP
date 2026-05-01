@@ -1,7 +1,7 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Form, Head } from '@inertiajs/react';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { useMemo, useState } from 'react';
-import { reactLang } from '@erag/lang-sync-inertia';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

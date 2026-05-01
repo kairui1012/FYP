@@ -34,6 +34,22 @@ function chunkArray<T>(items: T[], size: number): T[][] {
     return chunks;
 }
 
+function uniqueNonEmptyTexts(texts: string[]): string[] {
+    const seen = new Set<string>();
+    const result: string[] = [];
+
+    texts.forEach((text) => {
+        const normalized = text.trim();
+        if (normalized === '' || seen.has(normalized)) {
+            return;
+        }
+        seen.add(normalized);
+        result.push(normalized);
+    });
+
+    return result;
+}
+
 function collectTextNodes(root: HTMLElement): Text[] {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
         acceptNode(node) {
@@ -125,10 +141,11 @@ export function BtnAiTranslate({
         setError(null);
         setLoading(true);
         try {
-            const textsToTranslate =
-                Array.isArray(texts) && texts.length > 0
-                    ? texts
-                    : [title, content];
+            const textsToTranslate = uniqueNonEmptyTexts([
+                title,
+                content,
+                ...(Array.isArray(texts) ? texts : []),
+            ]);
             let translations: Record<string, string>;
             let provider: 'deepseek' | 'gemini';
             try {

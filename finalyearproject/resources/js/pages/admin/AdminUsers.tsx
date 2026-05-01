@@ -1,7 +1,7 @@
 import { router, usePage } from '@inertiajs/react';
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Ban, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
-import AdminLayout from '@/layouts/admin/admin-layout';
 import { Button } from '@/components/ui/button';
 import {
     Select,
@@ -18,6 +18,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import AdminLayout from '@/layouts/admin/admin-layout';
 
 type User = {
     id: number;
@@ -41,6 +42,7 @@ const roleColor: Record<string, string> = {
 
 export default function AdminUsers({ users }: { users: User[] }) {
     const { auth } = usePage<PageProps>().props;
+    const { trans } = reactLang();
     const [editingId, setEditingId] = useState<number | null>(null);
 
     const changeRole = (userId: number, role: string) => {
@@ -55,8 +57,10 @@ export default function AdminUsers({ users }: { users: User[] }) {
     return (
         <AdminLayout>
             <div className="mb-6">
-                <h1 className="text-2xl font-bold">All Users</h1>
-                <p className="text-sm text-muted-foreground">{users.length} total users</p>
+                <h1 className="text-2xl font-bold">{trans('admin.users_title')}</h1>
+                <p className="text-sm text-muted-foreground">
+                    {trans('admin.users_total').replace(':count', String(users.length))}
+                </p>
             </div>
 
             <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -64,13 +68,13 @@ export default function AdminUsers({ users }: { users: User[] }) {
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-8">#</TableHead>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Points</TableHead>
-                            <TableHead>Joined</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead>{trans('admin.col_name')}</TableHead>
+                            <TableHead>{trans('admin.col_email')}</TableHead>
+                            <TableHead>{trans('admin.col_role')}</TableHead>
+                            <TableHead>{trans('admin.col_status')}</TableHead>
+                            <TableHead className="text-right">{trans('admin.col_points')}</TableHead>
+                            <TableHead>{trans('admin.col_joined')}</TableHead>
+                            <TableHead className="text-right">{trans('admin.col_actions')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -92,25 +96,25 @@ export default function AdminUsers({ users }: { users: User[] }) {
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="student">student</SelectItem>
-                                                    <SelectItem value="teacher">teacher</SelectItem>
-                                                    <SelectItem value="admin">admin</SelectItem>
+                                                    <SelectItem value="student">{trans('admin.role_student')}</SelectItem>
+                                                    <SelectItem value="teacher">{trans('admin.role_teacher')}</SelectItem>
+                                                    <SelectItem value="admin">{trans('admin.role_admin')}</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         ) : (
                                             <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${roleColor[user.role] ?? 'bg-gray-100 text-gray-700'}`}>
-                                                {user.role}
+                                                {trans(`admin.role_${user.role}`) || user.role}
                                             </span>
                                         )}
                                     </TableCell>
                                     <TableCell>
                                         {user.is_blocked ? (
                                             <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
-                                                <Ban className="h-3 w-3" /> Blocked
+                                                <Ban className="h-3 w-3" /> {trans('admin.status_blocked')}
                                             </span>
                                         ) : (
                                             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                                                <CheckCircle className="h-3 w-3" /> Active
+                                                <CheckCircle className="h-3 w-3" /> {trans('admin.status_active')}
                                             </span>
                                         )}
                                     </TableCell>
@@ -120,12 +124,12 @@ export default function AdminUsers({ users }: { users: User[] }) {
                                         <div className="flex items-center justify-end gap-2">
                                             {editingId === user.id ? (
                                                 <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}>
-                                                    Cancel
+                                                    {trans('admin.btn_cancel')}
                                                 </Button>
                                             ) : (
                                                 !isSelf && (
                                                     <Button variant="outline" size="sm" onClick={() => setEditingId(user.id)}>
-                                                        Edit Role
+                                                        {trans('admin.btn_edit_role')}
                                                     </Button>
                                                 )
                                             )}
@@ -136,7 +140,7 @@ export default function AdminUsers({ users }: { users: User[] }) {
                                                     className={user.is_blocked ? 'border-emerald-400 text-emerald-700 hover:bg-emerald-50' : ''}
                                                     onClick={() => toggleBlock(user.id)}
                                                 >
-                                                    {user.is_blocked ? 'Unblock' : 'Block'}
+                                                    {user.is_blocked ? trans('admin.btn_unblock') : trans('admin.btn_block')}
                                                 </Button>
                                             )}
                                         </div>
@@ -147,7 +151,7 @@ export default function AdminUsers({ users }: { users: User[] }) {
                         {users.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
-                                    No users found.
+                                    {trans('admin.no_users')}
                                 </TableCell>
                             </TableRow>
                         )}

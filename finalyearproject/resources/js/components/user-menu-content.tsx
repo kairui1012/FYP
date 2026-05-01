@@ -1,5 +1,5 @@
-import { Link, router } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
+import { Link, router } from '@inertiajs/react';
 import { GraduationCap, LogOut, Settings, Shield, User as UserIcon } from 'lucide-react';
 import {
     DropdownMenuGroup,

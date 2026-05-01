@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { csrfHeaders, scrollCommentsInAppContent } from '@/components/post-content/post-content-utils';
 import { buildQuizData } from '@/components/post-content/quiz/quiz-data';
 import type {
     EditableMaterialBlock,
@@ -15,7 +16,6 @@ import type {
     PostContentProps,
     QuizResultState,
 } from '@/components/post-content/types';
-import { csrfHeaders, scrollCommentsInAppContent } from '@/components/post-content/post-content-utils';
 import { formatFormulaText } from '@/lib/formula-display';
 import like from '@/routes/like';
 import type { MaterialContentBlock, PostItem } from '@/types';

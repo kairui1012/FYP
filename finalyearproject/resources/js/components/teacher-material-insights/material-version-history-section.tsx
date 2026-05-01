@@ -20,7 +20,6 @@ export function MaterialVersionHistorySection({
             description={trans(
                 'createPost.teacher_material_versions_description',
             )}
-            badgeLabel={trans('createPost.teacher_insight_badge')}
             accent="rose"
         >
             <InsightsDataTable

@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Trash2 } from 'lucide-react';
-import AdminLayout from '@/layouts/admin/admin-layout';
 import { Button } from '@/components/ui/button';
 import {
     Table,
@@ -10,6 +10,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import AdminLayout from '@/layouts/admin/admin-layout';
 
 type Report = {
     id: number;
@@ -23,6 +24,8 @@ type Report = {
 };
 
 export default function AdminReports({ reports }: { reports: Report[] }) {
+    const { trans } = reactLang();
+
     const deleteReport = (id: number) => {
         router.delete(`/admin/reports/${id}`, { preserveScroll: true });
     };
@@ -30,8 +33,10 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
     return (
         <AdminLayout>
             <div className="mb-6">
-                <h1 className="text-2xl font-bold">Report Records</h1>
-                <p className="text-sm text-muted-foreground">{reports.length} total reports</p>
+                <h1 className="text-2xl font-bold">{trans('admin.reports_title')}</h1>
+                <p className="text-sm text-muted-foreground">
+                    {trans('admin.reports_total').replace(':count', String(reports.length))}
+                </p>
             </div>
 
             <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -39,12 +44,12 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-8">#</TableHead>
-                            <TableHead>Reporter</TableHead>
-                            <TableHead>Reason</TableHead>
-                            <TableHead>Comment</TableHead>
-                            <TableHead>Comment Author</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead>{trans('admin.col_reporter')}</TableHead>
+                            <TableHead>{trans('admin.col_reason')}</TableHead>
+                            <TableHead>{trans('admin.col_comment')}</TableHead>
+                            <TableHead>{trans('admin.col_comment_author')}</TableHead>
+                            <TableHead>{trans('admin.col_date')}</TableHead>
+                            <TableHead className="text-right">{trans('admin.col_actions')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -73,7 +78,7 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                                         size="icon"
                                         className="text-red-500 hover:bg-red-50 hover:text-red-600"
                                         onClick={() => deleteReport(report.id)}
-                                        title="Dismiss report"
+                                        title={trans('admin.dismiss_report')}
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
@@ -83,7 +88,7 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                         {reports.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
-                                    No reports found.
+                                    {trans('admin.no_reports')}
                                 </TableCell>
                             </TableRow>
                         )}

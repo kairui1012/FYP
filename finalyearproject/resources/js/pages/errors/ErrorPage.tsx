@@ -1,13 +1,3 @@
-import AppLogo from '@/components/app-logo';
-import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { home } from '@/routes';
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, Link, router } from '@inertiajs/react';
 import {
@@ -18,6 +8,16 @@ import {
     SearchX,
 } from 'lucide-react';
 import { lazy, Suspense } from 'react';
+import AppLogo from '@/components/app-logo';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { home } from '@/routes';
 
 const BtnChangeLang = lazy(() =>
     import('@/components/ui/btn-change-lang').then((module) => ({

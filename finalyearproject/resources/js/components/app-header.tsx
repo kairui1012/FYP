@@ -1,13 +1,5 @@
-import { Link, router, usePage } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
-import {
-    lazy,
-    Suspense,
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-} from 'react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     Bookmark,
     FileText,
@@ -22,18 +14,26 @@ import {
     User,
     Users,
 } from 'lucide-react';
+import {
+    lazy,
+    Suspense,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from 'react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { BtnCreatePost } from '@/components/ui/btn-create-post';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
     Sheet,
     SheetContent,
