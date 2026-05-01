@@ -15,6 +15,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, KeyboardEvent, ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
 import { BestAnswerAiPanel } from '@/components/best-answer-ai-panel';
+import { CommentAiDoubtPanel } from '@/components/comment-ai-doubt-panel';
+import { CommentAiWrongPanel } from '@/components/comment-ai-wrong-panel';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -169,6 +171,12 @@ export function CommentSection({
     const [expandedReplies, setExpandedReplies] = useState<
         Record<number, boolean>
     >({});
+    const [activeDoubtCommentId, setActiveDoubtCommentId] = useState<
+        number | null
+    >(null);
+    const [activeWrongCommentId, setActiveWrongCommentId] = useState<
+        number | null
+    >(null);
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -666,12 +674,47 @@ export function CommentSection({
                         onUpvote={() =>
                             void handleToggleCommentVote(comment.id, 'up')
                         }
-                        onDownvote={() =>
-                            void handleToggleCommentVote(comment.id, 'down')
-                        }
-                        onWrong={() =>
-                            void handleToggleCommentVote(comment.id, 'wrong')
-                        }
+                        onDownvote={() => {
+                            const currentlyDownvoted =
+                                Number(comment.user_vote ?? 0) === -1 ||
+                                comment.is_downvoted === true;
+                            void handleToggleCommentVote(comment.id, 'down');
+                            if (variant === 'qna') {
+                                if (!currentlyDownvoted) {
+                                    setActiveDoubtCommentId(comment.id);
+                                } else {
+                                    setActiveDoubtCommentId((prev) =>
+                                        prev === comment.id ? null : prev,
+                                    );
+                                }
+                            }
+                        }}
+                        onWrong={() => {
+                            const currentlyWrong =
+                                Number(comment.user_vote ?? 0) === -2 ||
+                                comment.is_wrong === true;
+                            if (variant === 'qna') {
+                                if (currentlyWrong) {
+                                    void handleToggleCommentVote(
+                                        comment.id,
+                                        'wrong',
+                                    );
+                                    setActiveWrongCommentId((prev) =>
+                                        prev === comment.id ? null : prev,
+                                    );
+                                } else {
+                                    setActiveWrongCommentId(comment.id);
+                                    setActiveDoubtCommentId((prev) =>
+                                        prev === comment.id ? null : prev,
+                                    );
+                                }
+                            } else {
+                                void handleToggleCommentVote(
+                                    comment.id,
+                                    'wrong',
+                                );
+                            }
+                        }}
                         onReport={() => void handleReport(comment.id)}
                         onStartEdit={() => {
                             setEditingCommentId(comment.id);
@@ -708,6 +751,37 @@ export function CommentSection({
                         reported={reportedCommentIds.includes(comment.id)}
                     />
                 </div>
+
+                {/* AI doubt panel — shown when user marks answer as confusing (Q&A only) */}
+                {!isBestAnswerPreview &&
+                variant === 'qna' &&
+                activeDoubtCommentId === comment.id ? (
+                    <CommentAiDoubtPanel
+                        page={page}
+                        trans={trans}
+                        postTitle={post.title}
+                        postContent={post.content ?? ''}
+                        answerContent={comment.content}
+                    />
+                ) : null}
+
+                {/* AI wrong-answer validation panel — shown before submitting wrong vote (Q&A only) */}
+                {!isBestAnswerPreview &&
+                variant === 'qna' &&
+                activeWrongCommentId === comment.id ? (
+                    <CommentAiWrongPanel
+                        page={page}
+                        trans={trans}
+                        postTitle={post.title}
+                        postContent={post.content ?? ''}
+                        answerContent={comment.content}
+                        onValidated={() => {
+                            void handleToggleCommentVote(comment.id, 'wrong');
+                            setActiveWrongCommentId(null);
+                        }}
+                        onCancel={() => setActiveWrongCommentId(null)}
+                    />
+                ) : null}
 
                 {/* Nested replies */}
                 {!isBestAnswerPreview && replies.length > 0 ? (
