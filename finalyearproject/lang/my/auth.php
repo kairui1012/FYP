@@ -2,6 +2,7 @@
 
 return [
     'failed' => 'Maklumat log masuk ini tidak sepadan dengan rekod kami.',
+    'blocked' => 'Akaun anda telah disekat. Sila hubungi pentadbir.',
     'login_title' => 'Log masuk',
     'login_heading' => 'Halaman Log Masuk',
     'login_subtitle' => 'Selamat datang ke laman web ini',

@@ -36,4 +36,6 @@ return [
     'admin_panel' => '管理后台',
     'achievements' => '学习成就',
     'bookmarks' => '我的学习夹',
+    'privacy_policy' => '隐私政策',
+    'terms_of_service' => '服务条款',
 ];

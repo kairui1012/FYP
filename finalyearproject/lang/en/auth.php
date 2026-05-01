@@ -2,6 +2,7 @@
 
 return [
     'failed' => 'These credentials do not match our records.',
+    'blocked' => 'Your account has been blocked. Please contact an administrator.',
     'login_title' => 'Log in',
     'login_heading' => 'Login Page',
     'login_subtitle' => 'Welcome to this website',

@@ -8,14 +8,21 @@ import {
     Flame,
     Folder,
     HomeIcon,
+    Shield,
     ScrollText,
     Star,
     Trophy,
     Users,
 } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
-import { Sidebar, SidebarContent, useSidebar } from '@/components/ui/sidebar';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    useSidebar,
+} from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import { homePage } from '@/routes';
 import { popularPage } from '@/routes';
@@ -132,6 +139,18 @@ export function AppSidebar({ className }: AppSidebarProps) {
                   },
               ]
             : []),
+    ];
+    const footerNavItems: NavItem[] = [
+        {
+            title: trans('navigation.privacy_policy'),
+            href: '/privacy-policy',
+            icon: Shield,
+        },
+        {
+            title: trans('navigation.terms_of_service'),
+            href: '/terms-of-service',
+            icon: ScrollText,
+        },
     ];
     const { state, setOpen } = useSidebar();
     const [isPinnedOpen, setIsPinnedOpen] = useState<boolean>(() => {
@@ -268,6 +287,9 @@ export function AppSidebar({ className }: AppSidebarProps) {
                         groupLabel={trans('navigation.navigation_menu')}
                     />
                 </SidebarContent>
+                <SidebarFooter className="mt-auto pt-0">
+                    <NavFooter items={footerNavItems} />
+                </SidebarFooter>
             </Sidebar>
         </>
     );

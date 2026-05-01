@@ -36,4 +36,6 @@ return [
     'admin_panel' => 'Admin Panel',
     'achievements' => 'Learning Milestones',
     'bookmarks' => 'My Study Folder',
+    'privacy_policy' => 'Privacy Policy',
+    'terms_of_service' => 'Terms of Service',
 ];

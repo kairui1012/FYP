@@ -36,4 +36,6 @@ return [
     'admin_panel' => 'Panel Admin',
     'achievements' => 'Pencapaian Pembelajaran',
     'bookmarks' => 'Folder Belajar Saya',
+    'privacy_policy' => 'Dasar Privasi',
+    'terms_of_service' => 'Terma Perkhidmatan',
 ];

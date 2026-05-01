@@ -34,6 +34,12 @@ class GoogleAuthController extends Controller
             ->first();
 
         if ($socialAccount) {
+            if ((bool) $socialAccount->user?->is_blocked) {
+                return redirect()->route('login')->withErrors([
+                    'email' => __('auth.blocked'),
+                ]);
+            }
+
             Auth::login($socialAccount->user, true);
 
             return redirect()->intended('/homePage')->with('success', 'success verification');
@@ -53,6 +59,12 @@ class GoogleAuthController extends Controller
                 'email' => $email,
                 'password' => Hash::make(str()->random(32)),
                 'email_verified_at' => now(),
+            ]);
+        }
+
+        if ((bool) $user->is_blocked) {
+            return redirect()->route('login')->withErrors([
+                'email' => __('auth.blocked'),
             ]);
         }
 

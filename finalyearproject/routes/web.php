@@ -85,6 +85,9 @@ Route::get('/login/google', [GoogleAuthController::class, 'redirectToProvider'])
 
 Route::get('/login/google/callback', [GoogleAuthController::class, 'handleProviderCallback']);
 
+Route::get('/privacy-policy', fn () => Inertia::render('PrivacyPolicyPage'))->name('privacy-policy');
+Route::get('/terms-of-service', fn () => Inertia::render('TermsOfServicePage'))->name('terms-of-service');
+
 Route::post('/change-language-setting', [LocaleController::class, 'switchMethod'])->name('language.switch');
 
 // Admin routes

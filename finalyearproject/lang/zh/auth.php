@@ -2,6 +2,7 @@
 
 return [
     'failed' => '账号或密码不正确。',
+    'blocked' => '你的账号已被封禁，请联系管理员。',
     'login_title' => '登录',
     'login_heading' => '登录页面',
     'login_subtitle' => '欢迎来到本网站',
