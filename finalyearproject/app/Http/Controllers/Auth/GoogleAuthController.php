@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\SocialAccount;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
@@ -42,7 +43,7 @@ class GoogleAuthController extends Controller
 
             Auth::login($socialAccount->user, true);
 
-            return redirect()->intended('/homePage')->with('success', 'success verification');
+            return $this->redirectAfterLogin($socialAccount->user);
         }
 
         if (!$email) {
@@ -80,6 +81,15 @@ class GoogleAuthController extends Controller
         );
 
         Auth::login($user, true);
+
+        return $this->redirectAfterLogin($user);
+    }
+
+    private function redirectAfterLogin(User $user): RedirectResponse
+    {
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.users')->with('success', 'success verification');
+        }
 
         return redirect()->intended('/homePage')->with('success', 'success verification');
     }

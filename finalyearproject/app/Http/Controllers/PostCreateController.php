@@ -27,8 +27,7 @@ class PostCreateController extends Controller
         private readonly MaterialVersionService $materialVersionService,
         private readonly PointsService $pointsService,
         private readonly ProgressService $progressService,
-    ) {
-    }
+    ) {}
 
     public function create(): Response
     {
@@ -98,12 +97,12 @@ class PostCreateController extends Controller
             'subject_id' => ['required', 'integer', Rule::exists('subjects', 'id')],
             'language_code' => ['required', 'string', Rule::exists('languages', 'code')],
             'is_anonymous' => ['nullable', 'boolean'],
-            'quiz_questions'                    => ['nullable', 'array', 'min:1', 'required_if:post_type,quiz'],
-            'quiz_questions.*.question'         => ['required', 'string', 'max:500'],
-            'quiz_questions.*.options'          => ['required', 'array', 'min:2', 'max:8'],
-            'quiz_questions.*.options.*'        => ['required', 'string', 'max:255'],
-            'quiz_questions.*.answer_index'     => ['required', 'integer', 'min:0'],
-            'quiz_questions.*.explanation'      => ['nullable', 'string', 'max:700'],
+            'quiz_questions' => ['nullable', 'array', 'min:1', 'required_if:post_type,quiz'],
+            'quiz_questions.*.question' => ['required', 'string', 'max:500'],
+            'quiz_questions.*.options' => ['required', 'array', 'min:2', 'max:8'],
+            'quiz_questions.*.options.*' => ['required', 'string', 'max:255'],
+            'quiz_questions.*.answer_index' => ['required', 'integer', 'min:0'],
+            'quiz_questions.*.explanation' => ['nullable', 'string', 'max:700'],
             'material_blocks' => ['nullable', 'array', 'required_if:post_type,material', 'min:1'],
             'material_blocks.*.type' => ['required_with:material_blocks', 'string', Rule::in(['text', 'image', 'document', 'video'])],
             'material_blocks.*.text' => ['nullable', 'string', 'max:4000'],
@@ -112,7 +111,7 @@ class PostCreateController extends Controller
             'linked_quiz_ids' => ['nullable', 'array'],
             'linked_quiz_ids.*' => ['integer', Rule::exists('posts', 'id')->where(fn ($query) => $query->where('post_type', 'quiz'))],
             'attachments' => ['nullable', 'array'],
-            'attachments.*' => ['file', 'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx,xls,xlsx,ppt,pptx', 'max:10240'],
+            'attachments.*' => ['file', 'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx,xls,xlsx,ppt,pptx', 'max:20480'],
             'video_url' => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -151,10 +150,10 @@ class PostCreateController extends Controller
                 }
 
                 $questions[] = [
-                    'question'     => trim((string) ($q['question'] ?? '')),
-                    'options'      => $options,
+                    'question' => trim((string) ($q['question'] ?? '')),
+                    'options' => $options,
                     'answer_index' => $answerIndex,
-                    'explanation'  => trim((string) ($q['explanation'] ?? '')),
+                    'explanation' => trim((string) ($q['explanation'] ?? '')),
                 ];
             }
 
@@ -288,6 +287,8 @@ class PostCreateController extends Controller
                 $url = trim((string) ($block['url'] ?? ''));
 
                 if ($url !== '') {
+                    $this->validateMaterialVideoUrl($url, $index);
+
                     $normalized[] = [
                         'type' => 'video',
                         'url' => $url,
@@ -332,5 +333,27 @@ class PostCreateController extends Controller
             ->flatten()
             ->filter()
             ->implode("\n\n");
+    }
+
+    private function validateMaterialVideoUrl(string $url, int|string $index): void
+    {
+        if ($this->isValidHttpUrl($url)) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            "material_blocks.{$index}.url" => 'Enter a valid video URL.',
+        ]);
+    }
+
+    private function isValidHttpUrl(string $url): bool
+    {
+        if (! filter_var($url, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+
+        return in_array($scheme, ['http', 'https'], true);
     }
 }

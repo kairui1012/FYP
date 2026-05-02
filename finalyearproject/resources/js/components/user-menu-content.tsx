@@ -1,6 +1,12 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Link, router } from '@inertiajs/react';
-import { GraduationCap, LogOut, Settings, Shield, User as UserIcon } from 'lucide-react';
+import {
+    GraduationCap,
+    LogOut,
+    Settings,
+    Shield,
+    User as UserIcon,
+} from 'lucide-react';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -9,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
-import { logout } from '@/routes';
+import { logout, profilePage } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 
@@ -20,9 +26,14 @@ type Props = {
 export function UserMenuContent({ user }: Props) {
     const { trans } = reactLang();
     const cleanup = useMobileNavigation();
-    const normalizedUserRole = (user.role ?? 'student').toString().trim().toLowerCase();
+    const normalizedUserRole = (user.role ?? 'student')
+        .toString()
+        .trim()
+        .toLowerCase();
     const isAdmin = normalizedUserRole === 'admin';
-    const canApplyTeacher = !['admin', 'teacher'].includes(normalizedUserRole);
+    const isVerifiedTeacher =
+        normalizedUserRole === 'teacher' && Boolean(user.is_verified);
+    const canApplyTeacher = !isAdmin && !isVerifiedTeacher;
 
     const handleLogout = () => {
         cleanup();
@@ -39,8 +50,8 @@ export function UserMenuContent({ user }: Props) {
             <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
                     <Link
-                        className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 outline-none transition-colors focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100"
-                        href="/profilePage"
+                        className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 transition-colors outline-none focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100"
+                        href={profilePage()}
                         prefetch
                         onClick={cleanup}
                     >
@@ -50,7 +61,7 @@ export function UserMenuContent({ user }: Props) {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                     <Link
-                        className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 outline-none transition-colors focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100"
+                        className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 transition-colors outline-none focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100"
                         href={edit()}
                         prefetch
                         onClick={cleanup}
@@ -62,7 +73,7 @@ export function UserMenuContent({ user }: Props) {
                 {canApplyTeacher ? (
                     <DropdownMenuItem asChild>
                         <Link
-                            className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 outline-none transition-colors focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100"
+                            className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 transition-colors outline-none focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100"
                             href="/settings/teacher-certification"
                             prefetch
                             onClick={cleanup}
@@ -75,7 +86,7 @@ export function UserMenuContent({ user }: Props) {
                 {isAdmin ? (
                     <DropdownMenuItem asChild>
                         <Link
-                            className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 outline-none transition-colors focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100"
+                            className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 transition-colors outline-none focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100"
                             href="/admin/users"
                             prefetch
                             onClick={cleanup}
@@ -89,7 +100,7 @@ export function UserMenuContent({ user }: Props) {
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
                 <Link
-                    className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 outline-none transition-colors focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100"
+                    className="my-0.5 flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-900 transition-colors outline-none focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100"
                     href={logout()}
                     as="button"
                     onClick={handleLogout}

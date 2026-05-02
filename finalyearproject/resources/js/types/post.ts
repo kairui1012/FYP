@@ -136,6 +136,7 @@ export type PostItem = {
     bookmark_folder_id?: number | null;
     bookmark_item_id?: number | null;
     is_anonymous?: boolean;
+    is_owner?: boolean;
     language?: PostLanguage;
     user?: PostUser;
     is_quiz_completed?: boolean;

@@ -2,39 +2,42 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\CarbonInterface;
-use App\Models\Comment;
 use App\Models\Language;
 use App\Models\MaterialQuizAttempt;
 use App\Models\Post;
 use App\Models\QuizCompletion;
 use App\Models\QuizMistake;
 use App\Models\StudyMaterialFeedback;
-use App\Models\StudyMaterialView;
 use App\Models\StudyMaterialVersion;
+use App\Models\StudyMaterialView;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\AchievementService;
+use App\Services\LearningProgressService;
 use App\Services\MaterialVersionService;
 use App\Services\PostQueryBuilder;
 use App\Services\PostSerializationService;
-use App\Services\LearningProgressService;
 use App\Services\ProgressService;
+use Carbon\CarbonInterface;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class PostController extends Controller
 {
     private const POST_TYPES = ['material', 'question', 'quiz'];
+
+    private const FEED_PER_PAGE = 10;
 
     public function __construct(
         private readonly AchievementService $achievementService,
@@ -43,8 +46,7 @@ class PostController extends Controller
         private readonly PostSerializationService $serializationService,
         private readonly LearningProgressService $learningProgressService,
         private readonly ProgressService $progressService,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -71,9 +73,9 @@ class PostController extends Controller
     public function categories(Request $request): Response
     {
         $validated = $request->validate([
-            'post_type'     => ['nullable', 'string', Rule::in(self::POST_TYPES)],
+            'post_type' => ['nullable', 'string', Rule::in(self::POST_TYPES)],
             'language_code' => ['nullable', 'string', Rule::exists('languages', 'code')],
-            'subject_id'    => ['nullable', 'integer', Rule::exists('subjects', 'id')],
+            'subject_id' => ['nullable', 'integer', Rule::exists('subjects', 'id')],
         ]);
 
         return Inertia::render('CategoriesPage', [
@@ -106,13 +108,13 @@ class PostController extends Controller
                     ->pluck('users.id')
                     ->all() ?? [];
 
-                $postType     = $validated['post_type'] ?? '';
+                $postType = $validated['post_type'] ?? '';
                 $languageCode = $validated['language_code'] ?? '';
-                $subjectId    = isset($validated['subject_id']) ? (int) $validated['subject_id'] : null;
+                $subjectId = isset($validated['subject_id']) ? (int) $validated['subject_id'] : null;
 
-                $query = new PostQueryBuilder();
+                $query = new PostQueryBuilder;
 
-                $posts = $query
+                $paginator = $query
                     ->withStandardRelations()
                     ->withStandardCounts()
                     ->withUserFlags(Auth::id())
@@ -121,13 +123,19 @@ class PostController extends Controller
                     ->filterByLanguage($languageCode)
                     ->filterBySubject($subjectId)
                     ->latest()
-                    ->get();
+                    ->getQuery()
+                    ->paginate(self::FEED_PER_PAGE)
+                    ->withQueryString();
 
+                $posts = $paginator->getCollection();
                 $this->attachMaterialLearningStates($posts, Auth::id());
 
-                return $posts
-                    ->map(fn (Post $post) => $this->serializationService->serialize($post, $followingIds))
-                    ->values();
+                return [
+                    'posts' => $posts
+                        ->map(fn (Post $post) => $this->serializationService->serialize($post, $followingIds))
+                        ->values(),
+                    'pagination' => $this->paginationMeta($paginator),
+                ];
             }),
         ]);
     }
@@ -159,8 +167,8 @@ class PostController extends Controller
         $languageCode = $validated['language_code'] ?? '';
         $subjectId = isset($validated['subject_id']) ? (int) $validated['subject_id'] : null;
 
-        $query = new PostQueryBuilder();
-        $posts = $query
+        $query = new PostQueryBuilder;
+        $paginator = $query
             ->withStandardRelations()
             ->withStandardCounts()
             ->withUserFlags(Auth::id())
@@ -169,8 +177,11 @@ class PostController extends Controller
             ->filterByLanguage($languageCode)
             ->filterBySubject($subjectId)
             ->latest()
-            ->get();
+            ->getQuery()
+            ->paginate(self::FEED_PER_PAGE)
+            ->withQueryString();
 
+        $posts = $paginator->getCollection();
         $this->attachMaterialLearningStates($posts, Auth::id());
         $this->attachMaterialFeedbackSummaries($posts, Auth::id());
 
@@ -179,12 +190,27 @@ class PostController extends Controller
 
         return Inertia::render('HomePage', [
             'posts' => $serializedPosts,
+            'pagination' => $this->paginationMeta($paginator),
             'learningOverview' => $this->learningProgressService->buildLearningOverview($request->user()),
             'postTypeFilter' => count($postTypesFilter) === 1 ? $postTypesFilter[0] : null,
             'pageContext' => $pageContext,
             'languageFilter' => $languageCode !== '' ? $languageCode : null,
             'subjectFilter' => $subjectId,
         ]);
+    }
+
+    private function paginationMeta(LengthAwarePaginator $paginator): array
+    {
+        return [
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'per_page' => $paginator->perPage(),
+            'total' => $paginator->total(),
+            'from' => $paginator->firstItem(),
+            'to' => $paginator->lastItem(),
+            'prev_page_url' => $paginator->previousPageUrl(),
+            'next_page_url' => $paginator->nextPageUrl(),
+        ];
     }
 
     public function show(Post $post): Response
@@ -220,6 +246,12 @@ class PostController extends Controller
 
         $post->setAttribute('is_lesson_completed', false);
         $post->setAttribute(
+            'is_quiz_completed',
+            $post->post_type === 'quiz' && $userId
+                ? $this->hasCompletedQuiz($userId, $post->id)
+                : false
+        );
+        $post->setAttribute(
             'quiz_attempts',
             $userId ? $this->getQuizAttemptsForPost($userId, $post->id) : []
         );
@@ -228,7 +260,11 @@ class PostController extends Controller
             $this->recordMaterialView($post, $userId);
             $post->setAttribute('material_feedback_summary', $this->buildMaterialFeedbackSummary($post, $userId));
             $post->setAttribute('material_user_feedback', $this->buildMaterialUserFeedback($post, $userId));
-            $post->setAttribute('learning_analytics', $this->buildLearningAnalytics($post));
+
+            if ((request()->user()?->role ?? 'student') === 'teacher') {
+                $post->setAttribute('learning_analytics', $this->buildLearningAnalytics($post));
+            }
+
             $post->setAttribute('linked_quizzes', $this->buildLinkedQuizzes($post, $followingIds, $userId));
 
             $stateMap = $this->buildMaterialLearningStateMap([$post->id], $userId);
@@ -300,7 +336,7 @@ class PostController extends Controller
             $this->materialVersionService->createSnapshot($post);
         } else {
             $validated = $request->validate([
-                'title'   => ['required', 'string', 'max:150'],
+                'title' => ['required', 'string', 'max:150'],
                 'content' => ['required', 'string', 'max:2000'],
             ]);
 
@@ -337,6 +373,8 @@ class PostController extends Controller
                 $url = trim((string) ($block['url'] ?? ''));
 
                 if ($url !== '') {
+                    $this->validateMaterialVideoUrl($url, $index);
+
                     $normalized[] = [
                         'type' => 'video',
                         'url' => $url,
@@ -399,9 +437,40 @@ class PostController extends Controller
             ->implode("\n\n");
     }
 
+    private function validateMaterialVideoUrl(string $url, int|string $index): void
+    {
+        if ($this->isValidHttpUrl($url)) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            "material_blocks.{$index}.url" => 'Enter a valid video URL.',
+        ]);
+    }
+
+    private function isValidHttpUrl(string $url): bool
+    {
+        if (! filter_var($url, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+
+        return in_array($scheme, ['http', 'https'], true);
+    }
+
     public function destroy(Request $request, Post $post): \Illuminate\Http\RedirectResponse
     {
-        if ($post->user_id !== Auth::id()) {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        $isOwner = $post->user_id === $user->id;
+        $isAdmin = ($user->role ?? 'student') === 'admin';
+
+        if ($post->post_type === 'material') {
+            if (! $isOwner && ! $isAdmin) {
+                abort(403);
+            }
+        } elseif (! $isOwner) {
             abort(403);
         }
 
@@ -449,24 +518,24 @@ class PostController extends Controller
         if (isset($quizData['questions']) && is_array($quizData['questions'])) {
             $validated = $request->validate([
                 'question_index' => ['required', 'integer', 'min:0'],
-                'answer_index'   => ['required', 'integer', 'min:0'],
+                'answer_index' => ['required', 'integer', 'min:0'],
             ]);
 
-            $qIndex   = (int) $validated['question_index'];
+            $qIndex = (int) $validated['question_index'];
             $question = $quizData['questions'][$qIndex] ?? null;
 
             if (! $question) {
                 return response()->json(['status' => 'invalid', 'message' => 'Invalid question index.'], 422);
             }
 
-            $correctIndex  = (int) ($question['answer_index'] ?? -1);
+            $correctIndex = (int) ($question['answer_index'] ?? -1);
             $selectedIndex = (int) $validated['answer_index'];
 
             if (! isset(($question['options'] ?? [])[$selectedIndex])) {
                 return response()->json(['status' => 'invalid', 'message' => 'Invalid answer index.'], 422);
             }
 
-            $isCorrect        = $selectedIndex === $correctIndex;
+            $isCorrect = $selectedIndex === $correctIndex;
             $isFirstCompletion = false;
 
             $totalQuestions = count($quizData['questions']);
@@ -492,7 +561,7 @@ class PostController extends Controller
             }
 
             return response()->json([
-                'status'       => $isFirstCompletion ? 'completed' : 'already_completed',
+                'status' => $isFirstCompletion ? 'completed' : 'already_completed',
                 'newly_earned' => $newlyEarned,
             ]);
         }
@@ -501,7 +570,7 @@ class PostController extends Controller
         $answerIndex = isset($quizData['answer_index']) ? (int) $quizData['answer_index'] : null;
         $optionCount = count($quizData['options'] ?? []);
         $validated = $request->validate([
-            'answer_index' => ['required', 'integer', 'min:0', 'max:' . max(0, $optionCount - 1)],
+            'answer_index' => ['required', 'integer', 'min:0', 'max:'.max(0, $optionCount - 1)],
         ]);
         $selectedIndex = (int) $validated['answer_index'];
 
@@ -520,7 +589,7 @@ class PostController extends Controller
                 'post_id' => $post->id,
             ],
             [
-                'subject_id'   => $post->subject_id,
+                'subject_id' => $post->subject_id,
                 'completed_at' => now(),
             ]
         );
@@ -535,13 +604,13 @@ class PostController extends Controller
 
         if (! $isCorrect) {
             return response()->json([
-                'status'           => 'incorrect',
-                'newly_earned'     => $newlyEarned,
+                'status' => 'incorrect',
+                'newly_earned' => $newlyEarned,
             ]);
         }
 
         return response()->json([
-            'status'       => $isFirstCompletion ? 'completed' : 'already_completed',
+            'status' => $isFirstCompletion ? 'completed' : 'already_completed',
             'newly_earned' => $newlyEarned,
         ]);
     }
@@ -765,6 +834,18 @@ class PostController extends Controller
 
         return str_contains($message, "unknown column 'vote'")
             || str_contains($message, 'unknown column `vote`');
+    }
+
+    private function hasCompletedQuiz(int $userId, int $postId): bool
+    {
+        if (! Schema::hasTable('quiz_completions')) {
+            return false;
+        }
+
+        return QuizCompletion::query()
+            ->where('user_id', $userId)
+            ->where('post_id', $postId)
+            ->exists();
     }
 
     /**
@@ -1578,5 +1659,4 @@ class PostController extends Controller
             ->values()
             ->all();
     }
-
 }

@@ -42,16 +42,21 @@ class SearchController extends Controller
                 'type' => 'user',
             ]);
 
-        $posts = Post::where('title', 'LIKE', $like)
+        $posts = Post::where(function ($postQuery) use ($like) {
+            $postQuery
+                ->where('title', 'LIKE', $like)
+                ->orWhere('content', 'LIKE', $like);
+        })
             ->select('id', 'title', 'post_type', 'user_id')
             ->with('user:id,name')
             ->orderByRaw('
                 CASE
                     WHEN LOWER(title) = LOWER(?) THEN 0
                     WHEN LOWER(title) LIKE LOWER(?) THEN 1
-                    ELSE 2
+                    WHEN LOWER(content) LIKE LOWER(?) THEN 2
+                    ELSE 3
                 END
-            ', [$query, $query.'%'])
+            ', [$query, $query.'%', $like])
             ->limit(5)
             ->get()
             ->map(fn ($post) => [

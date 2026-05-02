@@ -13,7 +13,8 @@ import type { BreadcrumbItem } from '@/types';
 export default function CategoriesPage() {
     const { trans } = reactLang();
     const page = usePage<CategoriesPageProps>();
-    const currentUserId = (page.props as { auth?: { user?: { id?: number } } }).auth?.user?.id;
+    const currentUserId = (page.props as { auth?: { user?: { id?: number } } })
+        .auth?.user?.id;
 
     const {
         languages,
@@ -27,6 +28,7 @@ export default function CategoriesPage() {
         view,
         setView,
         localPosts,
+        pagination,
         isLoading,
         totalPosts,
         isFiltering,
@@ -56,6 +58,7 @@ export default function CategoriesPage() {
                     languages={languages}
                     subjects={subjects}
                     posts={localPosts}
+                    pagination={pagination}
                     selectedLanguage={selectedLanguage}
                     selectedSubject={selectedSubject}
                     selectedType={selectedType}
@@ -108,4 +111,6 @@ function CategoriesPageLayout({ page }: { page: ReactNode }) {
     return <AppLayout breadcrumbs={breadcrumbs}>{page}</AppLayout>;
 }
 
-CategoriesPage.layout = (page: ReactNode) => <CategoriesPageLayout page={page} />;
+CategoriesPage.layout = (page: ReactNode) => (
+    <CategoriesPageLayout page={page} />
+);

@@ -1,4 +1,4 @@
-import type { PostItem } from '@/types';
+import type { PaginationMeta, PostItem } from '@/types';
 
 export type CategoryLanguage = {
     id: number;
@@ -16,7 +16,12 @@ export type CategorySubject = {
 export type CategoriesPageProps = {
     languages?: CategoryLanguage[];
     subjects?: CategorySubject[];
-    filteredPosts?: PostItem[];
+    filteredPosts?:
+        | PostItem[]
+        | {
+              posts: PostItem[];
+              pagination: PaginationMeta;
+          };
 };
 
 export type ContentTypeKey = 'all' | 'material' | 'question' | 'quiz';

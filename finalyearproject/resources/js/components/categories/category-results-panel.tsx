@@ -1,5 +1,6 @@
 import { ArrowLeft, Search } from 'lucide-react';
-import type { PostItem } from '@/types';
+import { PaginationControls } from '@/components/pagination-controls';
+import type { PaginationMeta, PostItem } from '@/types';
 import { CONTENT_TYPES, resolveSubjectLabel } from './categories-config';
 import { CategoryPostCard } from './category-post-card';
 import type {
@@ -13,6 +14,7 @@ type CategoryResultsPanelProps = {
     languages: CategoryLanguage[];
     subjects: CategorySubject[];
     posts: PostItem[];
+    pagination?: PaginationMeta | null;
     selectedLanguage: string;
     selectedSubject: string;
     selectedType: ContentTypeKey | '';
@@ -35,6 +37,7 @@ export function CategoryResultsPanel({
     languages,
     subjects,
     posts,
+    pagination,
     selectedLanguage,
     selectedSubject,
     selectedType,
@@ -104,7 +107,8 @@ export function CategoryResultsPanel({
                                 {trans('popular.no_posts') || 'No posts found.'}
                             </h2>
                             <p className="mt-2 max-w-md text-sm leading-6 text-zinc-600">
-                                Try adjusting your filters or browse a different category.
+                                Try adjusting your filters or browse a different
+                                category.
                             </p>
                         </div>
                     </div>
@@ -154,6 +158,10 @@ export function CategoryResultsPanel({
                                 />
                             );
                         })}
+                        <PaginationControls
+                            pagination={pagination}
+                            only={['filteredPosts']}
+                        />
                     </div>
                 )}
             </div>

@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import type { PostItem } from '@/types';
+import type { PaginationMeta, PostItem } from '@/types';
 
 export type PopularRange = 'today' | 'week' | 'month' | 'all';
 
@@ -7,6 +7,7 @@ export type PopularSort = 'newest' | 'hottest';
 
 export type LearningTrendsPageProps = {
     posts?: PostItem[];
+    pagination?: PaginationMeta;
     activeRange?: PopularRange;
     activeSort?: PopularSort;
 };

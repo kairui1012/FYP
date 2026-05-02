@@ -1,8 +1,14 @@
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
-import { CONTENT_TYPES, hasActiveFilters } from '@/components/categories/categories-config';
-import type { CategoriesPageProps, ContentTypeKey } from '@/components/categories/types';
-import type { PostItem } from '@/types';
+import {
+    CONTENT_TYPES,
+    hasActiveFilters,
+} from '@/components/categories/categories-config';
+import type {
+    CategoriesPageProps,
+    ContentTypeKey,
+} from '@/components/categories/types';
+import type { PaginationMeta, PostItem } from '@/types';
 
 export function useCategoryFilters(props: CategoriesPageProps) {
     const languages = useMemo(() => props.languages ?? [], [props.languages]);
@@ -13,23 +19,40 @@ export function useCategoryFilters(props: CategoriesPageProps) {
     const [selectedType, setSelectedType] = useState<ContentTypeKey | ''>('');
     const [view, setView] = useState<'filters' | 'results'>('filters');
     const [localPosts, setLocalPosts] = useState<PostItem[]>([]);
+    const [pagination, setPagination] = useState<PaginationMeta | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (props.filteredPosts !== undefined) {
-            setLocalPosts(props.filteredPosts);
+            if (Array.isArray(props.filteredPosts)) {
+                setLocalPosts(props.filteredPosts);
+                setPagination(null);
+            } else {
+                setLocalPosts(props.filteredPosts.posts);
+                setPagination(props.filteredPosts.pagination);
+            }
             setView('results');
             setIsLoading(false);
         }
     }, [props.filteredPosts]);
 
     const totalPosts = useMemo(() => {
-        const languageCount = languages.reduce((sum, item) => sum + (item.posts_count ?? 0), 0);
-        const subjectCount = subjects.reduce((sum, item) => sum + (item.posts_count ?? 0), 0);
+        const languageCount = languages.reduce(
+            (sum, item) => sum + (item.posts_count ?? 0),
+            0,
+        );
+        const subjectCount = subjects.reduce(
+            (sum, item) => sum + (item.posts_count ?? 0),
+            0,
+        );
         return Math.max(languageCount, subjectCount);
     }, [languages, subjects]);
 
-    const isFiltering = hasActiveFilters(selectedLanguage, selectedSubject, selectedType);
+    const isFiltering = hasActiveFilters(
+        selectedLanguage,
+        selectedSubject,
+        selectedType,
+    );
 
     const clearAll = () => {
         setSelectedLanguage('');
@@ -51,7 +74,8 @@ export function useCategoryFilters(props: CategoriesPageProps) {
     const applyFilters = () => {
         const activeType =
             selectedType && selectedType !== 'all'
-                ? (CONTENT_TYPES.find((t) => t.key === selectedType)?.queryValue ?? '')
+                ? (CONTENT_TYPES.find((t) => t.key === selectedType)
+                      ?.queryValue ?? '')
                 : '';
 
         fetchPosts({
@@ -73,6 +97,7 @@ export function useCategoryFilters(props: CategoriesPageProps) {
         view,
         setView,
         localPosts,
+        pagination,
         isLoading,
         totalPosts,
         isFiltering,

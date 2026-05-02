@@ -20,7 +20,7 @@ type PostContentMainSectionProps = {
     translatedTitle: string;
     displayedContent: string;
     displayedMaterialBlocks: MaterialContentBlock[] | null;
-    isAdmin: boolean;
+    canViewLearningAnalytics: boolean;
     isEditing: boolean;
     linkedQuizzes: PostItem[];
     analytics: PostItem['learning_analytics'];
@@ -56,7 +56,7 @@ export function PostContentMainSection({
     translatedTitle,
     displayedContent,
     displayedMaterialBlocks,
-    isAdmin,
+    canViewLearningAnalytics,
     isEditing,
     linkedQuizzes,
     analytics,
@@ -91,7 +91,7 @@ export function PostContentMainSection({
                     translatedTitle={translatedTitle}
                     displayedContent={displayedContent}
                     displayedMaterialBlocks={displayedMaterialBlocks}
-                    isAdmin={isAdmin}
+                    canViewLearningAnalytics={canViewLearningAnalytics}
                     isEditing={isEditing}
                     linkedQuizzes={linkedQuizzes}
                     analytics={analytics}

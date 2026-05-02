@@ -10,7 +10,7 @@ type MaterialPostSectionsProps = {
     translatedTitle: string;
     displayedContent: string;
     displayedMaterialBlocks: MaterialContentBlock[] | null;
-    isAdmin: boolean;
+    canViewLearningAnalytics: boolean;
     isEditing: boolean;
     linkedQuizzes: PostItem[];
     analytics: PostItem['learning_analytics'];
@@ -34,14 +34,14 @@ export function MaterialPostSections({
     translatedTitle,
     displayedContent,
     displayedMaterialBlocks,
-    isAdmin,
+    canViewLearningAnalytics,
     isEditing,
     linkedQuizzes,
     analytics,
 }: MaterialPostSectionsProps) {
     return (
         <>
-            {isAdmin ? (
+            {canViewLearningAnalytics ? (
                 <section className="mx-4 mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
                     <h2 className="text-sm font-semibold tracking-wide text-blue-900 uppercase">
                         {trans('createPost.material_learning_analytics', page)}

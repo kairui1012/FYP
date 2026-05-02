@@ -16,6 +16,8 @@ class PostSerializationService
      */
     public function serialize(Post $post, array $followingIds = []): array
     {
+        $currentUserId = Auth::id();
+
         return [
             'id' => $post->id,
             'title' => $post->title,
@@ -32,6 +34,7 @@ class PostSerializationService
             'saved_at' => optional($post->saved_at)->toISOString(),
             'bookmark_folder_id' => $post->bookmark_folder_id ?? $post->pivot?->bookmark_folder_id,
             'is_anonymous' => (bool) ($post->is_anonymous ?? false),
+            'is_owner' => $currentUserId !== null && (int) $post->user_id === (int) $currentUserId,
             'user' => $this->serializeUser($post, $followingIds),
             'language' => $this->serializeLanguage($post),
             'subject' => $this->serializeSubject($post),

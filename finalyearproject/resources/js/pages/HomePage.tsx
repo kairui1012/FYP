@@ -3,17 +3,22 @@ import { router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { HomeFeedSection } from '@/components/home/home-feed-section';
 import { HomeHeroSection } from '@/components/home/home-hero-section';
-import { buildFeedSectionText, buildHomeText } from '@/components/home/home-page-text';
+import { PaginationControls } from '@/components/pagination-controls';
+import {
+    buildFeedSectionText,
+    buildHomeText,
+} from '@/components/home/home-page-text';
 import { StudyHomeDashboard } from '@/components/home/study-home-dashboard';
 import type { StudyHomeOverview } from '@/components/home/study-home-dashboard';
 import { useHomePageState } from '@/hooks/use-home-page-state';
 import { usePostInteractions } from '@/hooks/use-post-interactions';
 import AppLayout from '@/layouts/app-layout';
 import { homePage } from '@/routes';
-import type { BreadcrumbItem, PostItem } from '@/types';
+import type { BreadcrumbItem, PaginationMeta, PostItem } from '@/types';
 
 type HomePageProps = {
     posts?: PostItem[];
+    pagination?: PaginationMeta;
     learningOverview?: StudyHomeOverview;
 };
 
@@ -24,16 +29,20 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function HomePage({ posts = [], learningOverview }: HomePageProps) {
+export default function HomePage({
+    posts = [],
+    pagination,
+    learningOverview,
+}: HomePageProps) {
     const page = usePage();
-    const currentUserId = (page.props as { auth?: { user?: { id?: number } } }).auth?.user?.id;
+    const currentUserId = (page.props as { auth?: { user?: { id?: number } } })
+        .auth?.user?.id;
     const pageContext =
-        (page.props as { pageContext?: 'home' | 'following' }).pageContext ?? 'home';
+        (page.props as { pageContext?: 'home' | 'following' }).pageContext ??
+        'home';
 
-    const { isHomePage, isFollowingPage, activeTab, setActiveTab } = useHomePageState(
-        pageContext,
-        posts,
-    );
+    const { isHomePage, isFollowingPage, activeTab, setActiveTab } =
+        useHomePageState(pageContext, posts);
     const {
         likeStateByPost,
         likingPostIds,
@@ -73,7 +82,13 @@ export default function HomePage({ posts = [], learningOverview }: HomePageProps
 
     return (
         <>
-            <Head title={isFollowingPage ? homeText.followingTitle : homeText.pageTitle} />
+            <Head
+                title={
+                    isFollowingPage
+                        ? homeText.followingTitle
+                        : homeText.pageTitle
+                }
+            />
             <div className="pb-8">
                 <div className="mx-auto w-full max-w-5xl space-y-4 p-4 md:p-6 md:pb-10">
                     <HomeHeroSection
@@ -101,7 +116,9 @@ export default function HomePage({ posts = [], learningOverview }: HomePageProps
                         <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200 md:p-5">
                             <HomeFeedSection
                                 posts={posts}
-                                emptyStateVariant={isFollowingPage ? 'following' : 'home'}
+                                emptyStateVariant={
+                                    isFollowingPage ? 'following' : 'home'
+                                }
                                 currentUserId={currentUserId}
                                 likeStateByPost={likeStateByPost}
                                 saveStateByPost={saveStateByPost}
@@ -116,6 +133,7 @@ export default function HomePage({ posts = [], learningOverview }: HomePageProps
                                 onToggleFollow={handleFollowToggle}
                                 text={buildFeedSectionText(homeText)}
                             />
+                            <PaginationControls pagination={pagination} />
                         </section>
                     )}
                 </div>

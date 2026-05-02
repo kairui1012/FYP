@@ -9,10 +9,13 @@ use App\Services\PointsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 
 class FollowerController extends Controller
 {
+    private const FEED_PER_PAGE = 10;
+
     public function __construct(
         private readonly LeaderboardTitleService $leaderboardTitleService,
         private readonly PointsService $pointsService,
@@ -62,7 +65,7 @@ class FollowerController extends Controller
             ->pluck('users.id')
             ->all() ?? [];
 
-        $posts = Post::query()
+        $paginator = Post::query()
             ->whereIn('user_id', $followingIds)
             ->whereHas('user', fn ($q) => $q->where('is_blocked', false))
             ->with([
@@ -76,7 +79,10 @@ class FollowerController extends Controller
                 'bookmarkItems as is_saved' => fn ($query) => $query->where('user_id', Auth::id()),
             ])
             ->latest()
-            ->get()
+            ->paginate(self::FEED_PER_PAGE)
+            ->withQueryString();
+
+        $posts = $paginator->getCollection()
             ->map(fn (Post $post) => [
                 'id' => $post->id,
                 'title' => $post->title,
@@ -106,8 +112,23 @@ class FollowerController extends Controller
 
         return inertia('HomePage', [
             'posts' => $posts,
+            'pagination' => $this->paginationMeta($paginator),
             'postTypeFilter' => null,
             'pageContext' => 'following',
         ]);
+    }
+
+    private function paginationMeta(LengthAwarePaginator $paginator): array
+    {
+        return [
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'per_page' => $paginator->perPage(),
+            'total' => $paginator->total(),
+            'from' => $paginator->firstItem(),
+            'to' => $paginator->lastItem(),
+            'prev_page_url' => $paginator->previousPageUrl(),
+            'next_page_url' => $paginator->nextPageUrl(),
+        ];
     }
 }

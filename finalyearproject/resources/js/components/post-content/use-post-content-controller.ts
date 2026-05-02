@@ -35,19 +35,20 @@ export function usePostContentController({
         (pageProps as { auth?: { user?: { role?: string } } }).auth?.user
             ?.role ?? 'student';
 
-    const isOwner = Boolean(currentUserId && post.user?.id === currentUserId);
+    const isOwner = Boolean(
+        post.is_owner ?? (currentUserId && post.user?.id === currentUserId),
+    );
     const isAnonymousPost = Boolean(post.is_anonymous);
     const canPublishStudyMaterial = ['admin', 'teacher'].includes(
         currentUserRole,
     );
-    const isAdmin = currentUserRole === 'admin';
+    const canViewLearningAnalytics = currentUserRole === 'teacher';
     const canManageMaterial =
         post.post_type === 'material' &&
         canPublishStudyMaterial &&
         (isOwner || currentUserRole === 'admin');
     const canManagePost =
-        !isAnonymousPost &&
-        (post.post_type === 'material' ? canManageMaterial : isOwner);
+        post.post_type === 'material' ? canManageMaterial : isOwner;
     const displayName = isAnonymousPost
         ? 'Anonymous User'
         : (post.user?.name ?? 'Unknown User');
@@ -524,7 +525,7 @@ export function usePostContentController({
 
     return {
         currentUserId,
-        isAdmin,
+        canViewLearningAnalytics,
         displayName,
         isAnonymousPost,
         canManagePost,

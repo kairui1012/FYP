@@ -362,14 +362,6 @@ export function StudyHomeDashboard({
                                                             )}
                                                         </span>
                                                     ) : null}
-                                                    {overview?.latest_posts
-                                                        ?.source ===
-                                                        'community' &&
-                                                    post.user_name ? (
-                                                        <span>
-                                                            {post.user_name}
-                                                        </span>
-                                                    ) : null}
                                                 </div>
                                             </div>
                                             <span className="shrink-0 text-[11px] text-zinc-400">

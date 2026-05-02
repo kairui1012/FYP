@@ -13,7 +13,7 @@ type StudyMaterialMainSectionProps = {
     translatedTitle: string;
     displayedContent: string;
     displayedMaterialBlocks: MaterialContentBlock[] | null;
-    isAdmin: boolean;
+    canViewLearningAnalytics: boolean;
     isEditing: boolean;
     linkedQuizzes: PostItem[];
     analytics: PostItem['learning_analytics'];
@@ -41,7 +41,7 @@ export function StudyMaterialMainSection({
     translatedTitle,
     displayedContent,
     displayedMaterialBlocks,
-    isAdmin,
+    canViewLearningAnalytics,
     isEditing,
     linkedQuizzes,
     analytics,
@@ -67,7 +67,7 @@ export function StudyMaterialMainSection({
                 translatedTitle={translatedTitle}
                 displayedContent={displayedContent}
                 displayedMaterialBlocks={displayedMaterialBlocks}
-                isAdmin={isAdmin}
+                canViewLearningAnalytics={canViewLearningAnalytics}
                 isEditing={isEditing}
                 linkedQuizzes={linkedQuizzes}
                 analytics={analytics}

@@ -1,14 +1,30 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { router } from '@inertiajs/react';
-import { CheckCircle, Clock, Eye, FileText, ShieldCheck, XCircle } from 'lucide-react';
-import { type ChangeEvent, useRef, useState } from 'react';
+import {
+    CheckCircle,
+    Clock,
+    Eye,
+    FileText,
+    ShieldCheck,
+    XCircle,
+} from 'lucide-react';
+import { useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import { AttachmentsSection } from '@/components/create-post/attachments-section';
+import {
+    pillActionButton,
+    pillIconButton,
+} from '@/components/create-post/create-post-config';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { pillActionButton, pillIconButton } from '@/components/create-post/create-post-config';
 import AppLayout from '@/layouts/app-layout';
 
 const ACCEPTED_CERT_TYPES =
@@ -38,17 +54,24 @@ type Application = {
 
 type Props = {
     userRole: string;
+    userIsVerified: boolean;
     application: Application | null;
 };
 
-export default function TeacherCertification({ userRole, application }: Props) {
+export default function TeacherCertification({
+    userRole,
+    userIsVerified,
+    application,
+}: Props) {
     const { trans } = reactLang();
     const [agreeTerms, setAgreeTerms] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
     const [isDragging, setIsDragging] = useState(false);
     const [fileError, setFileError] = useState<string | null>(null);
-    const [previewDoc, setPreviewDoc] = useState<SubmittedDocument | null>(null);
+    const [previewDoc, setPreviewDoc] = useState<SubmittedDocument | null>(
+        null,
+    );
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const getDocType = (name: string): 'pdf' | 'image' | 'other' => {
@@ -58,9 +81,19 @@ export default function TeacherCertification({ userRole, application }: Props) {
         return 'other';
     };
 
-    const normalizedRole = (userRole ?? 'student').toString().trim().toLowerCase();
-    const isAlreadyTeacher = ['teacher', 'admin'].includes(normalizedRole);
-    const canSubmit = !application || application.status === 'rejected';
+    const normalizedRole = (userRole ?? 'student')
+        .toString()
+        .trim()
+        .toLowerCase();
+    const isAlreadyVerifiedTeacher =
+        normalizedRole === 'admin' ||
+        (normalizedRole === 'teacher' && userIsVerified);
+    const canSubmit =
+        !isAlreadyVerifiedTeacher &&
+        (!application ||
+            application.status === 'rejected' ||
+            (normalizedRole === 'teacher' &&
+                application.status === 'approved'));
 
     const processFiles = (incoming: File[]) => {
         setFileError(null);
@@ -82,7 +115,13 @@ export default function TeacherCertification({ userRole, application }: Props) {
                     break;
                 }
                 const key = `${file.name}-${file.size}-${file.lastModified}`;
-                if (combined.some((a) => `${a.file.name}-${a.file.size}-${a.file.lastModified}` === key)) {
+                if (
+                    combined.some(
+                        (a) =>
+                            `${a.file.name}-${a.file.size}-${a.file.lastModified}` ===
+                            key,
+                    )
+                ) {
                     continue;
                 }
                 const isImage = file.type.startsWith('image/');
@@ -133,7 +172,9 @@ export default function TeacherCertification({ userRole, application }: Props) {
         router.post('/settings/teacher-certification', formData, {
             forceFormData: true,
             onSuccess: () => {
-                attachments.forEach((a) => { if (a.preview) URL.revokeObjectURL(a.preview); });
+                attachments.forEach((a) => {
+                    if (a.preview) URL.revokeObjectURL(a.preview);
+                });
                 setAttachments([]);
                 setAgreeTerms(false);
             },
@@ -152,7 +193,7 @@ export default function TeacherCertification({ userRole, application }: Props) {
                     description={trans('settings.teacher_cert_description')}
                 />
 
-                {isAlreadyTeacher ? (
+                {isAlreadyVerifiedTeacher ? (
                     <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
                         <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
                         <p className="text-sm font-medium text-green-800">
@@ -161,7 +202,8 @@ export default function TeacherCertification({ userRole, application }: Props) {
                     </div>
                 ) : null}
 
-                {!isAlreadyTeacher && application?.status === 'pending' ? (
+                {!isAlreadyVerifiedTeacher &&
+                application?.status === 'pending' ? (
                     <div className="flex items-start gap-3 rounded-xl border border-yellow-200 bg-yellow-50 p-4">
                         <Clock className="mt-0.5 h-5 w-5 shrink-0 text-yellow-600" />
                         <div>
@@ -174,7 +216,9 @@ export default function TeacherCertification({ userRole, application }: Props) {
                             {previousDocs.length > 0 ? (
                                 <div className="mt-3 space-y-1">
                                     <p className="text-xs font-medium text-yellow-800">
-                                        {trans('settings.teacher_cert_submitted_files')}
+                                        {trans(
+                                            'settings.teacher_cert_submitted_files',
+                                        )}
                                     </p>
                                     {previousDocs.map((doc) => (
                                         <button
@@ -193,7 +237,8 @@ export default function TeacherCertification({ userRole, application }: Props) {
                     </div>
                 ) : null}
 
-                {!isAlreadyTeacher && application?.status === 'approved' ? (
+                {isAlreadyVerifiedTeacher &&
+                application?.status === 'approved' ? (
                     <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
                         <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
                         <div>
@@ -207,7 +252,8 @@ export default function TeacherCertification({ userRole, application }: Props) {
                     </div>
                 ) : null}
 
-                {!isAlreadyTeacher && application?.status === 'rejected' ? (
+                {!isAlreadyVerifiedTeacher &&
+                application?.status === 'rejected' ? (
                     <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
                         <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
                         <div>
@@ -216,7 +262,12 @@ export default function TeacherCertification({ userRole, application }: Props) {
                             </p>
                             {application.admin_note ? (
                                 <p className="mt-1 text-sm text-red-700">
-                                    <span className="font-medium">{trans('settings.teacher_cert_admin_note')}:</span>{' '}
+                                    <span className="font-medium">
+                                        {trans(
+                                            'settings.teacher_cert_admin_note',
+                                        )}
+                                        :
+                                    </span>{' '}
                                     {application.admin_note}
                                 </p>
                             ) : null}
@@ -224,15 +275,20 @@ export default function TeacherCertification({ userRole, application }: Props) {
                     </div>
                 ) : null}
 
-                {!isAlreadyTeacher && canSubmit ? (
-                    <form onSubmit={handleSubmit} className="space-y-5 rounded-xl border border-border bg-muted/40 p-5">
+                {canSubmit ? (
+                    <form
+                        onSubmit={handleSubmit}
+                        className="space-y-5 rounded-xl border border-border bg-muted/40 p-5"
+                    >
                         <div className="space-y-3">
                             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                                 <ShieldCheck className="h-4 w-4 text-[#e36a8b]" />
                                 {trans('settings.teacher_cert_rules_title')}
                             </div>
                             <p className="text-sm text-muted-foreground">
-                                {trans('settings.teacher_cert_rules_description')}
+                                {trans(
+                                    'settings.teacher_cert_rules_description',
+                                )}
                             </p>
                         </div>
 
@@ -258,11 +314,21 @@ export default function TeacherCertification({ userRole, application }: Props) {
                                 pillIconButton={pillIconButton}
                                 text={{
                                     mediaLabel: '',
-                                    addFiles: trans('settings.teacher_cert_add_files'),
-                                    dragDropTitle: trans('settings.teacher_cert_drag_title'),
-                                    dragDropSubtitle: trans('settings.teacher_cert_drag_subtitle'),
-                                    supportedFormat: trans('settings.teacher_cert_supported_format'),
-                                    previewAlt: trans('settings.teacher_cert_preview_alt'),
+                                    addFiles: trans(
+                                        'settings.teacher_cert_add_files',
+                                    ),
+                                    dragDropTitle: trans(
+                                        'settings.teacher_cert_drag_title',
+                                    ),
+                                    dragDropSubtitle: trans(
+                                        'settings.teacher_cert_drag_subtitle',
+                                    ),
+                                    supportedFormat: trans(
+                                        'settings.teacher_cert_supported_format',
+                                    ),
+                                    previewAlt: trans(
+                                        'settings.teacher_cert_preview_alt',
+                                    ),
                                 }}
                             />
                         </div>
@@ -275,7 +341,10 @@ export default function TeacherCertification({ userRole, application }: Props) {
                                     setAgreeTerms(checked === true)
                                 }
                             />
-                            <Label htmlFor="agree-terms" className="cursor-pointer text-sm leading-5">
+                            <Label
+                                htmlFor="agree-terms"
+                                className="cursor-pointer text-sm leading-5"
+                            >
                                 {trans('settings.teacher_cert_rules_agree')}
                             </Label>
                         </div>
@@ -296,7 +365,12 @@ export default function TeacherCertification({ userRole, application }: Props) {
             </div>
 
             {/* Document preview modal */}
-            <Dialog open={previewDoc !== null} onOpenChange={(open) => { if (!open) setPreviewDoc(null); }}>
+            <Dialog
+                open={previewDoc !== null}
+                onOpenChange={(open) => {
+                    if (!open) setPreviewDoc(null);
+                }}
+            >
                 <DialogContent className="flex h-[92vh] w-[92vw] max-w-6xl flex-col gap-0 p-0">
                     <DialogHeader className="shrink-0 border-b px-5 py-3">
                         <DialogTitle className="flex items-center gap-2 text-sm font-medium">
@@ -306,35 +380,46 @@ export default function TeacherCertification({ userRole, application }: Props) {
                     </DialogHeader>
 
                     <div className="min-h-0 flex-1 overflow-auto">
-                        {previewDoc && getDocType(previewDoc.original_name) === 'pdf' && (
-                            <iframe
-                                src={previewDoc.view_url}
-                                className="h-full w-full border-0"
-                                title={previewDoc.original_name}
-                            />
-                        )}
-                        {previewDoc && getDocType(previewDoc.original_name) === 'image' && (
-                            <div className="flex h-full items-center justify-center p-4">
-                                <img
+                        {previewDoc &&
+                            getDocType(previewDoc.original_name) === 'pdf' && (
+                                <iframe
                                     src={previewDoc.view_url}
-                                    alt={previewDoc.original_name}
-                                    className="max-h-full max-w-full rounded object-contain"
+                                    className="h-full w-full border-0"
+                                    title={previewDoc.original_name}
                                 />
-                            </div>
-                        )}
-                        {previewDoc && getDocType(previewDoc.original_name) === 'other' && (
-                            <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
-                                <FileText className="h-10 w-10" />
-                                <p className="text-sm">{trans('settings.teacher_cert_no_preview')}</p>
-                                <a
-                                    href={previewDoc.view_url}
-                                    download={previewDoc.original_name}
-                                    className="text-sm font-medium text-[#e36a8b] hover:underline"
-                                >
-                                    {trans('settings.teacher_cert_download_instead')}
-                                </a>
-                            </div>
-                        )}
+                            )}
+                        {previewDoc &&
+                            getDocType(previewDoc.original_name) ===
+                                'image' && (
+                                <div className="flex h-full items-center justify-center p-4">
+                                    <img
+                                        src={previewDoc.view_url}
+                                        alt={previewDoc.original_name}
+                                        className="max-h-full max-w-full rounded object-contain"
+                                    />
+                                </div>
+                            )}
+                        {previewDoc &&
+                            getDocType(previewDoc.original_name) ===
+                                'other' && (
+                                <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
+                                    <FileText className="h-10 w-10" />
+                                    <p className="text-sm">
+                                        {trans(
+                                            'settings.teacher_cert_no_preview',
+                                        )}
+                                    </p>
+                                    <a
+                                        href={previewDoc.view_url}
+                                        download={previewDoc.original_name}
+                                        className="text-sm font-medium text-[#e36a8b] hover:underline"
+                                    >
+                                        {trans(
+                                            'settings.teacher_cert_download_instead',
+                                        )}
+                                    </a>
+                                </div>
+                            )}
                     </div>
                 </DialogContent>
             </Dialog>

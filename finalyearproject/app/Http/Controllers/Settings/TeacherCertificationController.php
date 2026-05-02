@@ -22,16 +22,17 @@ class TeacherCertificationController extends Controller
             ->first();
 
         return Inertia::render('settings/teacher-certification', [
-            'userRole'    => $user->role ?? 'student',
+            'userRole' => $user->role ?? 'student',
+            'userIsVerified' => (bool) ($user->is_verified ?? false),
             'application' => $application ? [
-                'id'            => $application->id,
-                'status'        => $application->status,
-                'admin_note'    => $application->admin_note,
-                'submitted_at'  => $application->created_at?->toDateString(),
-                'documents'     => $application->documents->map(fn ($doc) => [
-                    'id'            => $doc->id,
+                'id' => $application->id,
+                'status' => $application->status,
+                'admin_note' => $application->admin_note,
+                'submitted_at' => $application->created_at?->toDateString(),
+                'documents' => $application->documents->map(fn ($doc) => [
+                    'id' => $doc->id,
                     'original_name' => $doc->original_name,
-                    'view_url'      => route('teacher-certification.document.view', $doc->id),
+                    'view_url' => route('teacher-certification.document.view', $doc->id),
                 ])->values()->all(),
             ] : null,
         ]);
@@ -41,7 +42,7 @@ class TeacherCertificationController extends Controller
     {
         $request->validate([
             'agree_terms' => ['accepted'],
-            'documents'   => ['nullable', 'array', 'max:5'],
+            'documents' => ['nullable', 'array', 'max:5'],
             'documents.*' => ['file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:10240'],
         ]);
 
@@ -54,17 +55,17 @@ class TeacherCertificationController extends Controller
         if ($existing && in_array($existing->status, ['pending', 'rejected'], true)) {
             $existing->update([
                 'qualification' => $existing->qualification ?? 'Policy acknowledgement submitted',
-                'bio'           => $existing->bio ?? 'Applicant agreed to teacher responsibilities and content guidelines.',
-                'status'        => 'pending',
-                'admin_note'    => null,
+                'bio' => $existing->bio ?? 'Applicant agreed to teacher responsibilities and content guidelines.',
+                'status' => 'pending',
+                'admin_note' => null,
             ]);
             $application = $existing;
         } else {
             $application = TeacherApplication::create([
-                'user_id'       => $user->id,
+                'user_id' => $user->id,
                 'qualification' => 'Policy acknowledgement submitted',
-                'bio'           => 'Applicant agreed to teacher responsibilities and content guidelines.',
-                'status'        => 'pending',
+                'bio' => 'Applicant agreed to teacher responsibilities and content guidelines.',
+                'status' => 'pending',
             ]);
         }
 
@@ -78,7 +79,7 @@ class TeacherCertificationController extends Controller
             foreach ($request->file('documents') as $file) {
                 $path = $file->store("teacher-verification/{$application->id}", 'local');
                 $application->documents()->create([
-                    'path'          => $path,
+                    'path' => $path,
                     'original_name' => $file->getClientOriginalName(),
                 ]);
             }
@@ -104,15 +105,15 @@ class TeacherCertificationController extends Controller
             $ext = strtolower(pathinfo($document->original_name, PATHINFO_EXTENSION));
             $mimeType = match ($ext) {
                 'jpg', 'jpeg' => 'image/jpeg',
-                'png'         => 'image/png',
-                'pdf'         => 'application/pdf',
-                default       => 'application/octet-stream',
+                'png' => 'image/png',
+                'pdf' => 'application/pdf',
+                default => 'application/octet-stream',
             };
         }
 
         return response()->file($fullPath, [
-            'Content-Type'        => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . $document->original_name . '"',
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="'.$document->original_name.'"',
         ]);
     }
 }

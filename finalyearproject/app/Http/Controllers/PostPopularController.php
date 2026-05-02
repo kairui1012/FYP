@@ -8,6 +8,7 @@ use App\Models\Subject;
 use App\Services\PostSerializationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -15,6 +16,8 @@ use Inertia\Response;
 
 class PostPopularController extends Controller
 {
+    private const FEED_PER_PAGE = 10;
+
     public function __construct(private readonly PostSerializationService $serializationService)
     {
     }
@@ -86,8 +89,11 @@ class PostPopularController extends Controller
             $popularPostsQuery->orderByDesc('popular_likes_count')->latest();
         }
 
-        $posts = $popularPostsQuery
-            ->get()
+        $paginator = $popularPostsQuery
+            ->paginate(self::FEED_PER_PAGE)
+            ->withQueryString();
+
+        $posts = $paginator->getCollection()
             ->map(function (Post $post) use ($followingIds) {
                 $post->setAttribute('likes_count', (int) ($post->popular_likes_count ?? 0));
 
@@ -97,6 +103,7 @@ class PostPopularController extends Controller
 
         return Inertia::render('LearningTrendsPage', [
             'posts'      => $posts,
+            'pagination' => $this->paginationMeta($paginator),
             'activeRange' => $range,
             'activeSort' => $sort,
             'rangeOptions' => [
@@ -106,6 +113,20 @@ class PostPopularController extends Controller
                 'all'   => __('popular.all'),
             ],
         ]);
+    }
+
+    private function paginationMeta(LengthAwarePaginator $paginator): array
+    {
+        return [
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'per_page' => $paginator->perPage(),
+            'total' => $paginator->total(),
+            'from' => $paginator->firstItem(),
+            'to' => $paginator->lastItem(),
+            'prev_page_url' => $paginator->previousPageUrl(),
+            'next_page_url' => $paginator->nextPageUrl(),
+        ];
     }
 
     /**

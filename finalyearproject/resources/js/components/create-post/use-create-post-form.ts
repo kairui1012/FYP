@@ -1,10 +1,5 @@
 import { router } from '@inertiajs/react';
-import {
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, DragEvent, FormEvent } from 'react';
 import { requestMaterialQuiz } from '@/lib/ai-material-quiz';
 import { requestQuizOptions } from '@/lib/ai-quiz-options';
@@ -65,7 +60,9 @@ const isEmptyQuiz = (quiz: QuizItem | undefined): boolean => {
     return !(hasQuestion || hasAnyOption || hasAnswer || hasExplanation);
 };
 
-const createMaterialBlock = (type: MaterialBlockType): MaterialContentBlock => ({
+const createMaterialBlock = (
+    type: MaterialBlockType,
+): MaterialContentBlock => ({
     id: `${type}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     type,
     text: '',
@@ -451,13 +448,24 @@ export function useCreatePostForm({
         return supportedExtensions.includes(extension);
     };
 
+    const isSupportedImage = (file: File) => {
+        const extension = file.name.toLowerCase().split('.').pop() ?? '';
+        const supportedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+
+        return (
+            file.type.startsWith('image/') ||
+            supportedExtensions.includes(extension)
+        );
+    };
+
+    const getAttachmentKind = (file: File): LocalAttachment['type'] =>
+        isSupportedImage(file) ? 'image' : 'document';
+
     const appendFiles = (incomingFiles: FileList | File[]) => {
         setFileError(null);
 
         const validFiles = Array.from(incomingFiles).filter((file) => {
-            if (
-                !(file.type.startsWith('image/') || isSupportedDocument(file))
-            ) {
+            if (!(isSupportedImage(file) || isSupportedDocument(file))) {
                 return false;
             }
             if (file.size > MAX_FILE_SIZE) {
@@ -468,9 +476,7 @@ export function useCreatePostForm({
         });
 
         const selectedKinds = new Set(
-            validFiles.map((file) =>
-                file.type.startsWith('image/') ? 'image' : 'document',
-            ),
+            validFiles.map((file) => getAttachmentKind(file)),
         );
 
         if (selectedKinds.size > 1) {
@@ -485,9 +491,7 @@ export function useCreatePostForm({
 
         setAttachments((prev) => {
             const currentKind = prev[0]?.type ?? null;
-            const batchKind = validFiles[0].type.startsWith('image/')
-                ? 'image'
-                : 'document';
+            const batchKind = getAttachmentKind(validFiles[0]);
 
             if (currentKind && currentKind !== batchKind) {
                 setFileError(t.fileTypeLimit);
@@ -514,11 +518,14 @@ export function useCreatePostForm({
                     return;
                 }
 
-                const isImage = file.type.startsWith('image/');
+                const attachmentType = getAttachmentKind(file);
                 nextAttachments.push({
                     file,
-                    preview: isImage ? URL.createObjectURL(file) : null,
-                    type: isImage ? 'image' : 'document',
+                    preview:
+                        attachmentType === 'image'
+                            ? URL.createObjectURL(file)
+                            : null,
+                    type: attachmentType,
                 });
                 totalSize += file.size;
             });
@@ -590,13 +597,11 @@ export function useCreatePostForm({
         }
 
         setIsSubmitting(true);
+        setFileError(null);
 
         const formData = new FormData();
         formData.append('title', title.trim());
-        formData.append(
-            'content',
-            isMaterialSelected ? '' : content.trim(),
-        );
+        formData.append('content', isMaterialSelected ? '' : content.trim());
         formData.append('post_type', selectedPostType);
         formData.append('subject_id', selectedSubject);
         formData.append(
@@ -671,6 +676,15 @@ export function useCreatePostForm({
 
         router.post('/posts', formData, {
             forceFormData: true,
+            onError: (errors) => {
+                const uploadError = Object.entries(errors).find(([key]) =>
+                    key.startsWith('attachments'),
+                )?.[1];
+
+                if (uploadError) {
+                    setFileError(uploadError);
+                }
+            },
             onSuccess: () => {
                 attachmentsRef.current.forEach((attachment) => {
                     if (attachment.preview) {

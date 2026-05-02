@@ -63,7 +63,9 @@ export default function PostContent({ post }: PostContentProps) {
                         displayedMaterialBlocks={
                             controller.displayedMaterialBlocks
                         }
-                        isAdmin={controller.isAdmin}
+                        canViewLearningAnalytics={
+                            controller.canViewLearningAnalytics
+                        }
                         isEditing={controller.isEditing}
                         linkedQuizzes={controller.linkedQuizzes}
                         analytics={controller.analytics}
