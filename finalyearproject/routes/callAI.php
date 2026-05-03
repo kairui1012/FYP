@@ -10,7 +10,32 @@ use Illuminate\Http\Request;
 use Laravel\Fortify\Features;
 use Illuminate\Support\Facades\Http;
 
-Route::post('/translate', function (Request $request) {
+$callGemini = function (array $payload, int $timeout = 20) {
+    $apiKey = trim((string) config('services.gemini.key'));
+    if ($apiKey === '') {
+        throw new \Exception('Gemini API key is missing. Set GEMINI_API_KEY in .env.');
+    }
+
+    $endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    $res = Http::withHeaders(['x-goog-api-key' => $apiKey])
+        ->acceptJson()
+        ->timeout($timeout)
+        ->post($endpoint, $payload);
+
+    if (!$res->successful()) {
+        $errorBody = $res->json('error.message') ?? $res->body();
+        throw new \Exception('Gemini error: ' . $res->status() . ' - ' . str($errorBody)->limit(220));
+    }
+
+    $text = $res->json('candidates.0.content.parts.0.text');
+    if (!is_string($text) || trim($text) === '') {
+        throw new \Exception('Gemini returned empty content');
+    }
+
+    return $text;
+};
+
+Route::post('/translate', function (Request $request) use ($callGemini) {
     $request->validate([
         'texts'    => 'required|array|max:200',
         'texts.*'  => 'string|max:500',
@@ -28,6 +53,7 @@ Route::post('/translate', function (Request $request) {
 
     $prompt = "Translate the following JSON array of strings to {$targetLanguage}.\n"
         . "Return ONLY a valid JSON object where each key is the original string and the value is the {$targetLanguage} translation.\n"
+        . "Each translation value must contain only {$targetLanguage} text, without the original source text.\n"
         . "Do NOT translate proper nouns, brand names, or code.\n"
         . "Sexual explicit content -> {\"error\":\"inappropriate content\"}. Biological ok.\n"
         . "No explanation, no extra text.\n\n"
@@ -72,24 +98,16 @@ Route::post('/translate', function (Request $request) {
                 return $decoded;
             })(),
 
-            'gemini' => (function () use ($prompt) {
-                $res = Http::withQueryParameters(['key' => config('services.gemini.key')])
-                    ->timeout(15)
-                    ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', [
-                        'contents' => [
-                            ['parts' => [['text' => $prompt]]],
-                        ],
-                        'generationConfig' => [
-                            'responseMimeType' => 'application/json',
-                            'temperature'      => 0.2,
-                        ],
-                    ]);
-
-                if (!$res->successful()) {
-                    throw new \Exception('Gemini error: ' . $res->status());
-                }
-
-                $text    = $res->json('candidates.0.content.parts.0.text');
+            'gemini' => (function () use ($prompt, $callGemini) {
+                $text = $callGemini([
+                    'contents' => [
+                        ['parts' => [['text' => $prompt]]],
+                    ],
+                    'generationConfig' => [
+                        'responseMimeType' => 'application/json',
+                        'temperature'      => 0.2,
+                    ],
+                ], 15);
                 $decoded = json_decode($text, true);
 
                 if (!is_array($decoded)) {
@@ -124,7 +142,7 @@ Route::post('/translate', function (Request $request) {
 
 })->middleware(['web', 'throttle:30,1']);
 
-Route::post('/ai-explain', function (Request $request) {
+Route::post('/ai-explain', function (Request $request) use ($callGemini) {
     $request->validate([
         'question'    => 'required|string|max:500',
         'options'     => 'required|array|min:2|max:8',
@@ -223,29 +241,15 @@ Route::post('/ai-explain', function (Request $request) {
                 return $text;
             })(),
 
-            'gemini' => (function () use ($prompt) {
-                $res = Http::withQueryParameters(['key' => config('services.gemini.key')])
-                    ->timeout(20)
-                    ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', [
-                        'contents' => [
-                            ['parts' => [['text' => $prompt]]],
-                        ],
-                        'generationConfig' => [
-                            'temperature' => 0.4,
-                        ],
-                    ]);
-
-                if (!$res->successful()) {
-                    throw new \Exception('Gemini error: ' . $res->status());
-                }
-
-                $text = $res->json('candidates.0.content.parts.0.text');
-
-                if (!is_string($text) || trim($text) === '') {
-                    throw new \Exception('Gemini returned empty analysis');
-                }
-
-                return $text;
+            'gemini' => (function () use ($prompt, $callGemini) {
+                return $callGemini([
+                    'contents' => [
+                        ['parts' => [['text' => $prompt]]],
+                    ],
+                    'generationConfig' => [
+                        'temperature' => 0.4,
+                    ],
+                ], 20);
             })(),
         };
 

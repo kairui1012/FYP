@@ -35,6 +35,7 @@ type PostCardProps = {
     trans: TransFn;
     showFolderSelect: boolean;
     showQuizPreview?: boolean;
+    showQuizStatus?: boolean;
 };
 
 export function PostCard({
@@ -48,6 +49,7 @@ export function PostCard({
     trans,
     showFolderSelect,
     showQuizPreview = false,
+    showQuizStatus = true,
 }: PostCardProps) {
     const type =
         post.post_type === 'quiz'
@@ -65,9 +67,10 @@ export function PostCard({
               : trans('createPost.share_material');
 
     const quizStatus =
-        post.is_quiz_completed === true
+        post.is_quiz_completed === true && post.is_quiz_correct !== false
             ? 'correct'
-            : post.is_quiz_completed === false && post.post_type === 'quiz'
+            : post.post_type === 'quiz' &&
+                (post.is_quiz_completed === false || post.is_quiz_correct === false)
               ? 'incorrect'
               : 'unanswered';
 
@@ -190,7 +193,7 @@ export function PostCard({
                       })()
                     : null}
 
-                {post.post_type === 'quiz' && showQuizPreview ? (
+                {post.post_type === 'quiz' && showQuizPreview && showQuizStatus ? (
                     <QuizStatusBadge status={quizStatus} />
                 ) : null}
                 {post.post_type === 'material' ? (

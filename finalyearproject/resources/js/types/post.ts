@@ -140,6 +140,7 @@ export type PostItem = {
     language?: PostLanguage;
     user?: PostUser;
     is_quiz_completed?: boolean;
+    is_quiz_correct?: boolean;
     quiz_attempts?: Array<{
         question_index: number;
         selected_answer_index: number;

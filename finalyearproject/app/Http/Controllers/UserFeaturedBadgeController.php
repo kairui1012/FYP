@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class UserFeaturedBadgeController extends Controller
 {
-    private const MAX_FEATURED = 5;
+    private const MAX_FEATURED = 3;
 
     public function update(Request $request, User $user): JsonResponse
     {

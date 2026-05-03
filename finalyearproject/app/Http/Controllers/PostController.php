@@ -541,7 +541,7 @@ class PostController extends Controller
             $totalQuestions = count($quizData['questions']);
             $isLastQuestion = $qIndex === $totalQuestions - 1;
 
-            if ($isLastQuestion) {
+            if ($isLastQuestion && $isCorrect) {
                 $completion = QuizCompletion::query()->firstOrCreate(
                     ['user_id' => $request->user()->id, 'post_id' => $post->id],
                     ['subject_id' => $post->subject_id, 'completed_at' => now()],
@@ -583,17 +583,20 @@ class PostController extends Controller
 
         $isCorrect = $selectedIndex === $answerIndex;
 
-        $completion = QuizCompletion::query()->firstOrCreate(
-            [
-                'user_id' => $request->user()->id,
-                'post_id' => $post->id,
-            ],
-            [
-                'subject_id' => $post->subject_id,
-                'completed_at' => now(),
-            ]
-        );
-        $isFirstCompletion = $completion->wasRecentlyCreated;
+        $isFirstCompletion = false;
+        if ($isCorrect) {
+            $completion = QuizCompletion::query()->firstOrCreate(
+                [
+                    'user_id' => $request->user()->id,
+                    'post_id' => $post->id,
+                ],
+                [
+                    'subject_id' => $post->subject_id,
+                    'completed_at' => now(),
+                ]
+            );
+            $isFirstCompletion = $completion->wasRecentlyCreated;
+        }
 
         /** @var \App\Models\User $user */
         $user = $request->user();

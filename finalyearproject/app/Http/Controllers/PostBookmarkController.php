@@ -51,6 +51,7 @@ class PostBookmarkController extends Controller
 
         if (in_array($studyMode, ['completed', 'correct', 'wrong'], true)) {
             if ($studyMode === 'completed') {
+                $quizStatusByPostId = $this->getCompletedQuizStatusByPostId($user->id, $completedPostIds);
                 $posts = Post::query()
                     ->whereIn('id', array_values($completedPostIds))
                     ->with([
@@ -66,9 +67,10 @@ class PostBookmarkController extends Controller
                     ])
                     ->orderByDesc('created_at')
                     ->get()
-                    ->map(function (Post $post) use ($followingIds, $completedPostIds) {
+                    ->map(function (Post $post) use ($followingIds, $completedPostIds, $quizStatusByPostId) {
                         $serialized = $this->serializationService->serialize($post, $followingIds);
                         $serialized['is_quiz_completed'] = in_array($post->id, $completedPostIds, true);
+                        $serialized['is_quiz_correct'] = $quizStatusByPostId[$post->id] ?? true;
 
                         return $serialized;
                     });
@@ -171,6 +173,38 @@ class PostBookmarkController extends Controller
             ->where('user_id', $userId)
             ->where('is_correct', $isCorrect)
             ->count();
+    }
+
+    /**
+     * @param  int[]  $completedPostIds
+     * @return array<int, bool>
+     */
+    private function getCompletedQuizStatusByPostId(int $userId, array $completedPostIds): array
+    {
+        if ($completedPostIds === []) {
+            return [];
+        }
+
+        if (! Schema::hasTable('quiz_mistakes')) {
+            return array_fill_keys($completedPostIds, true);
+        }
+
+        $statuses = array_fill_keys($completedPostIds, true);
+
+        QuizMistake::query()
+            ->where('user_id', $userId)
+            ->whereIn('post_id', $completedPostIds)
+            ->where('is_correct', false)
+            ->pluck('post_id')
+            ->unique()
+            ->each(function ($postId) use (&$statuses): void {
+                $id = (int) $postId;
+                if (array_key_exists($id, $statuses)) {
+                    $statuses[$id] = false;
+                }
+            });
+
+        return $statuses;
     }
 
     /**

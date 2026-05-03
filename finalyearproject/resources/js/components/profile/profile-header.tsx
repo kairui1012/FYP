@@ -5,7 +5,6 @@ import { BtnFollow } from '@/components/ui/btn-follow';
 import { Button } from '@/components/ui/button';
 import { FeaturedBadgeChip } from './featured-badge-chip';
 import type { Badge, ProfileUser, TransFn } from './types';
-
 export function ProfileHeader({
     displayName,
     firstLetter,
@@ -49,6 +48,8 @@ export function ProfileHeader({
     onOpenProfileEditor: () => void;
     onToggleBadgeEditor: () => void;
 }) {
+    const isVerifiedTeacher = profileUser.is_verified && profileUser.role === 'teacher';
+
     return (
         <section className="flex flex-col gap-5 sm:flex-row sm:items-start">
             <div className="shrink-0">
@@ -71,10 +72,10 @@ export function ProfileHeader({
 
             <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-3">
-                    <h1 className={`text-2xl font-bold tracking-tight md:text-3xl ${profileUser.is_verified ? 'text-blue-600' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                    <h1 className={`text-2xl font-bold tracking-tight md:text-3xl ${isVerifiedTeacher ? 'text-blue-600' : 'text-zinc-900 dark:text-zinc-100'}`}>
                         {displayName}
                     </h1>
-                    {profileUser.is_verified && (
+                    {isVerifiedTeacher && (
                         <VerifiedTeacherBadge className="h-6 w-6" />
                     )}
                     <LeaderboardTitleBadge title={profileUser.leaderboard_title} />
@@ -86,7 +87,7 @@ export function ProfileHeader({
                         />
                     )}
                 </div>
-                {profileUser.is_verified && profileUser.role === 'teacher' && (
+                {isVerifiedTeacher && (
                     <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-0.5 text-xs font-semibold text-blue-600 ring-1 ring-blue-200">
                         <BadgeCheck className="h-3.5 w-3.5" />
                         {trans('profile.verified_teacher')}

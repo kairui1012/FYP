@@ -50,6 +50,7 @@ export function StudyPostList({
                         trans={trans}
                         showFolderSelect={false}
                         showQuizPreview
+                        showQuizStatus={studyMode !== 'completed'}
                     />
                 </Fragment>
             ))}
