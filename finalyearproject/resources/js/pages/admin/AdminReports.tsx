@@ -28,6 +28,19 @@ type Report = {
 
 export default function AdminReports({ reports }: { reports: Report[] }) {
     const { trans } = reactLang();
+    const t = (key: string, fallbackKey?: string) => {
+        const primary = trans(key);
+        if (primary !== key) {
+            return primary;
+        }
+
+        if (!fallbackKey) {
+            return primary;
+        }
+
+        const fallback = trans(fallbackKey);
+        return fallback !== fallbackKey ? fallback : primary;
+    };
     const [armedDeleteCommentId, setArmedDeleteCommentId] = useState<
         number | null
     >(null);
@@ -117,12 +130,16 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-8">#</TableHead>
-                            <TableHead>{trans('admin.col_reporter')}</TableHead>
-                            <TableHead>{trans('admin.col_reason')}</TableHead>
-                            <TableHead>{trans('admin.col_report_target')}</TableHead>
-                            <TableHead>{trans('admin.col_target_author')}</TableHead>
-                            <TableHead>{trans('admin.col_date')}</TableHead>
-                            <TableHead className="text-right">{trans('admin.col_actions')}</TableHead>
+                            <TableHead>{t('admin.col_reporter')}</TableHead>
+                            <TableHead>{t('admin.col_reason')}</TableHead>
+                            <TableHead>
+                                {t('admin.col_report_target', 'admin.col_comment')}
+                            </TableHead>
+                            <TableHead>
+                                {t('admin.col_target_author', 'admin.col_comment_author')}
+                            </TableHead>
+                            <TableHead>{t('admin.col_date')}</TableHead>
+                            <TableHead className="text-right">{t('admin.col_actions')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
