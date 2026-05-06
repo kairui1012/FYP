@@ -1,615 +1,671 @@
-# 数据库架构文档
-
-## 概览
-
-FYP 项目使用 **Laravel + PostgreSQL/MySQL** 数据库架构。本文档详细列出所有表、字段、类型和关系。
-
----
-
-## 📊 核心表结构
-
-### 1. **users** 表
-用户账户信息
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| name | VARCHAR | NOT NULL | 用户名 |
-| email | VARCHAR | UNIQUE, NOT NULL | 邮箱 |
-| email_verified_at | TIMESTAMP | NULLABLE | 邮箱验证时间 |
-| password | VARCHAR | NOT NULL | 密码哈希 |
-| avatar | VARCHAR | NULLABLE | 头像 URL |
-| points | INT | DEFAULT: 0 | 用户积分 |
-| two_factor_secret | TEXT | NULLABLE | 2FA 密钥 |
-| two_factor_recovery_codes | TEXT | NULLABLE | 2FA 恢复码 |
-| remember_token | VARCHAR | NULLABLE | 记住我令牌 |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**关系：**
-- HasMany: posts, comments, likes, comment_likes, post_saves, follows (as follower), follows (as following), bookmark_folders, bookmark_items, social_accounts, badges, quiz_completions
-
----
-
-### 2. **profiles** 表
-用户详细资料
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| user_id | BIGINT | FK(users), UNIQUE | 用户ID（一对一） |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**关系：**
-- BelongsTo: users
-
----
-
-### 3. **posts** 表
-发帖和学习资料
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| user_id | BIGINT | FK(users), CASCADE | 发帖用户 |
-| subject_id | BIGINT | FK(subjects), NULLABLE | 科目 |
-| lesson_id | BIGINT | FK(lessons), NULLABLE | 关联课时 |
-| language_id | BIGINT | FK(languages) | 语言 |
-| title | VARCHAR | NOT NULL | 标题 |
-| content | TEXT | NOT NULL | 内容 |
-| post_type | VARCHAR | DEFAULT: 'question' | 类型：question / material / quiz |
-| image | JSON | NULLABLE | 图片数组 |
-| quiz_data | JSON | NULLABLE | 测验数据 |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**关系：**
-- BelongsTo: user, subject, language, lesson
-- HasMany: comments, likes, post_saves, bookmark_items, quiz_completions
-- HasMany: lessons (source post for lessons)
-
----
-
-### 4. **comments** 表
-评论和回复
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| user_id | BIGINT | FK(users), CASCADE | 评论用户 |
-| post_id | BIGINT | FK(posts), CASCADE | 所属帖子 |
-| parent_id | BIGINT | FK(comments), NULLABLE | 父评论ID（用于回复） |
-| content | TEXT | NOT NULL | 评论内容 |
-| attachments | JSON | NULLABLE | 附件数组 |
-| mentions | JSON | NULLABLE | @提及信息 |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**关系：**
-- BelongsTo: user, post, parent (self-reference)
-- HasMany: replies (self-reference), comment_likes
-
----
-
-### 5. **likes** 表
-帖子点赞
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| user_id | BIGINT | FK(users), CASCADE | 点赞用户 |
-| post_id | BIGINT | FK(posts), CASCADE | 被点赞帖子 |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**约束：** UNIQUE(user_id, post_id) - 防止重复点赞
-
-**关系：**
-- BelongsTo: user, post
-
----
-
-### 6. **comment_likes** 表
-评论点赞/点踩
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| user_id | BIGINT | FK(users), CASCADE | 投票用户 |
-| comment_id | BIGINT | FK(comments), CASCADE | 被投票评论 |
-| vote | INT | NULLABLE | 投票值：1(点赞) / -1(点踩) / NULL(取消) |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**约束：** UNIQUE(user_id, comment_id) - 防止重复投票
-
-**关系：**
-- BelongsTo: user, comment
-
----
-
-### 7. **post_saves** 表
-收藏帖子
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| user_id | BIGINT | FK(users), CASCADE | 收藏用户 |
-| post_id | BIGINT | FK(posts), CASCADE | 被收藏帖子 |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**约束：** UNIQUE(user_id, post_id) - 防止重复收藏
-
-**关系：**
-- BelongsTo: user, post
-
----
-
-### 8. **bookmark_folders** 表
-收藏夹
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| user_id | BIGINT | FK(users), CASCADE | 所有者 |
-| name | VARCHAR | NOT NULL | 收藏夹名称 |
-| is_default | BOOLEAN | DEFAULT: false | 是否为默认收藏夹 |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**关系：**
-- BelongsTo: user
-- HasMany: bookmark_items
-- BelongsToMany: posts (via bookmark_items)
-
----
-
-### 9. **bookmark_items** 表
-收藏夹中的帖子（中间表）
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| user_id | BIGINT | FK(users), CASCADE | 用户ID |
-| bookmark_folder_id | BIGINT | FK(bookmark_folders), CASCADE | 收藏夹ID |
-| post_id | BIGINT | FK(posts), CASCADE | 帖子ID |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**关系：**
-- BelongsTo: user, folder (bookmark_folder), post
-
----
-
-### 10. **follows** 表
-用户关注关系
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| follower_id | BIGINT | FK(users), CASCADE | 关注者 |
-| following_id | BIGINT | FK(users), CASCADE | 被关注者 |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**约束：** UNIQUE(follower_id, following_id) - 防止重复关注
-
----
-
-### 11. **subjects** 表
-科目（预填充数据）
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| name | VARCHAR | UNIQUE, NOT NULL | 科目名称 |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**预设科目：**
-- General Studies, Mathematics, Additional Mathematics, Physics, Chemistry, Biology, Science, Computer Science
-- Islamic Studies, Moral Studies
-- Malay Language, English Language, Chinese Language, Tamil Language
-- History, Geography, Civics and Citizenship
-- Economics, Accounting, Business Studies
-- Art, Music, Physical Education, Design and Technology
-
-**关系：**
-- HasMany: posts
-- HasMany: lessons
-
----
-
-### 12. **languages** 表
-支持语言
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| code | VARCHAR | UNIQUE | 语言代码：en / zh / my |
-| name | VARCHAR | NOT NULL | 语言名称：English / 中文 / Bahasa Melayu |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**关系：**
-- HasMany: posts
-
----
-
-### 13. **lessons** 表
-课时
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| subject_id | BIGINT | FK(subjects), CASCADE | 科目 |
-| source_post_id | BIGINT | FK(posts), NULL ON DELETE, UNIQUE | 源帖子ID |
-| title | VARCHAR | NOT NULL | 课时标题 |
-| sequence | INT | DEFAULT: 1 | 排序序号 |
-| is_published | BOOLEAN | DEFAULT: true | 是否发布 |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**索引：** (subject_id, sequence), (subject_id, is_published)
-
-**关系：**
-- BelongsTo: subject, sourcePost (posts)
-
----
-
-### 14. **quiz_completions** 表
-测验完成记录
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| user_id | BIGINT | FK(users), CASCADE | 用户ID |
-| post_id | BIGINT | FK(posts), CASCADE | 测验帖子 |
-| subject_id | BIGINT | FK(subjects), NULL ON DELETE, NULLABLE | 科目 |
-| completed_at | TIMESTAMP | NULLABLE | 完成时间 |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**约束：** UNIQUE(user_id, post_id)
-
-**索引：** (user_id, subject_id)
-
-**关系：**
-- BelongsTo: user, post, subject
-
----
-
-### 17. **badges** 表
-成就徽章
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| key | VARCHAR | UNIQUE | 徽章标识 |
-| name | VARCHAR | NOT NULL | 徽章名称 |
-| description | VARCHAR | NOT NULL | 徽章描述 |
-| icon | VARCHAR | NULLABLE | 图标名称 |
-| points_required | INT | NOT NULL | 所需积分 |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**预设徽章：**
-- rookie_author (50pt) - Sparkles 图标
-- rising_star (150pt) - Star 图标
-- community_hero (300pt) - Trophy 图标
-- legend (600pt) - Crown 图标
-
-**关系：**
-- BelongsToMany: users (via badge_user)
-
----
-
-### 18. **badge_user** 表
-用户徽章关联（中间表）
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| user_id | BIGINT | FK(users), CASCADE | 用户ID |
-| badge_id | BIGINT | FK(badges), CASCADE | 徽章ID |
-| awarded_at | TIMESTAMP | NOT NULL | 获得时间 |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**约束：** UNIQUE(user_id, badge_id)
-
----
-
-### 19. **social_accounts** 表
-社交账号绑定
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AI | 主键 |
-| user_id | BIGINT | FK(users), CASCADE | 用户ID |
-| provider | VARCHAR | NOT NULL | 提供商：google 等 |
-| provider_id | VARCHAR | NOT NULL | 提供商用户ID |
-| avatar | VARCHAR | NULLABLE | 头像 URL |
-| created_at | TIMESTAMP | - | 创建时间 |
-| updated_at | TIMESTAMP | - | 更新时间 |
-
-**关系：**
-- BelongsTo: user
-
----
-
-## 🔗 关键关系图
-
-### 用户中心关系
-```
-User (中心)
-   └─ HasMany Lessons (课时)
-
-Lesson (课时)
-   ├─ BelongsTo Subject (所属科目)
-   └─ BelongsTo Post (源内容，可选)
-  ├─ HasMany CommentLikes (投票评论)
-  ├─ HasMany PostSaves (收藏帖子)
-  ├─ HasMany BookmarkFolders (收藏夹)
-  ├─ HasMany BookmarkItems (收藏项)
-  ├─ HasMany Follows (as follower - 关注的用户)
-   ├─ BelongsTo Lesson (可选课时)
-   ├─ HasMany Comments (评论树)
-   ├─ HasMany Likes (点赞)
-   ├─ HasMany PostSaves (收藏)
-   ├─ HasMany BookmarkItems (收藏项)
-   └─ HasMany QuizCompletions (测验完成)
-
-### 内容发布流程
-```
-Subject (科目)
-   └─ HasMany Lessons (课时)
-          ├─ BelongsTo Post (源内容)
-          └─ BelongsTo Subject (所属科目)
-
-Post (帖子)
-  ├─ BelongsTo User (发帖者)
-  ├─ BelongsTo Subject (科目)
-  ├─ BelongsTo Language (语言)
-   └─ BelongsTo Lesson (可选课时)
-       ├─ HasMany Comments (评论树)
-       ├─ HasMany Likes (点赞)
-       ├─ HasMany PostSaves (收藏)
-       ├─ HasMany BookmarkItems (收藏项)
-       └─ HasMany QuizCompletions (测验完成)
-
-Comment (评论)
-  ├─ BelongsTo User (评论者)
-  ├─ BelongsTo Post (所属帖子)
-  ├─ BelongsTo Parent (父评论 - 可为空)
-  ├─ HasMany Replies (子评论)
-  └─ HasMany CommentLikes (投票)
-```
-
-### 收藏系统
-```
-BookmarkFolder
-  ├─ BelongsTo User
-  ├─ HasMany BookmarkItems
-  └─ BelongsToMany Posts (via BookmarkItems)
-
-BookmarkItem
-  ├─ BelongsTo User
-  ├─ BelongsTo BookmarkFolder
-  └─ BelongsTo Post
-```
-
----
-
-## 📈 数据流向
-
-### 1. 用户发帖流程
-```
-User → Post (user_id)
-      → Post (subject_id) → Subject
-      → Post (language_id) → Language
-   → Post (lesson_id) [可选] → Lesson → Subject
-```
-
-### 2. 评论互动流程
-```
-User → Comment (user_id)
-     → Comment (post_id) → Post
-     → Comment (parent_id) [可选] → Comment (自引用，形成树)
-     → Comment → CommentLike (user votes)
-```
-
-### 3. 收藏流程
-```
-User → PostSave (user_id)
-     → PostSave (post_id) → Post
-
-User → BookmarkFolder (user_id)
-     → BookmarkFolder → BookmarkItems
-     → BookmarkItem (post_id) → Post
-```
-
-### 4. 积分和徽章流程
-```
-User (points) → 获赞数、发帖数累计
-User → QuizCompletions (quiz 完成)
-User → (自动同步) → Badges (当 points 达到阈值)
-```
-
----
-
-## 🔑 关键设计点
-
-1. **评论树结构**
-   - 使用 `parent_id` 自引用实现
-   - 支持无限层级回复
-
-2. **用户关注**
-   - `follower_id` 和 `following_id` 形成有向图
-   - UNIQUE 约束防止重复关注
-
-3. **收藏分类**
-   - 每个用户自动生成一个默认收藏夹
-   - BookmarkItem 中间表支持灵活分类
-
-4. **投票系统**
-   - CommentLike.vote: 1(点赞) / -1(点踩) / NULL(取消)
-   - 兼容旧数据结构（点赞/点踩模式）
-
-5. **课时系统**
-   - 从 Subject → Lessons 的直接结构
-   - 学习材料帖子自动生成对应课时
-   - 课时直接绑定到所属科目
-
-6. **多语言支持**
-   - 所有内容帖子关联 language_id
-   - 支持 en / zh / my 三种语言
-
-7. **级联删除**
-   - 用户删除 → 自动删除其所有帖子、评论、点赞等
-   - 帖子删除 → 自动删除相关评论、收藏等
-
----
-
-## 🛠️ 查询示例
-
-### 获取用户主页帖子（含点赞数、评论数）
-```sql
-SELECT 
-    posts.*,
-    COUNT(DISTINCT likes.id) as likes_count,
-    COUNT(DISTINCT comments.id) as comments_count
-FROM posts
-LEFT JOIN likes ON posts.id = likes.post_id
-LEFT JOIN comments ON posts.id = comments.post_id
-WHERE posts.user_id = ? AND posts.post_type = 'question'
-GROUP BY posts.id
-ORDER BY posts.created_at DESC;
-```
-
-### 获取评论树（含最佳答案）
-```sql
-SELECT c.*,
-    COUNT(DISTINCT cl.id) as upvotes_count,
-    (SELECT COUNT(*) FROM comment_likes WHERE comment_id = c.id AND vote = -1) as downvotes_count
-FROM comments c
-LEFT JOIN comment_likes cl ON c.id = cl.comment_id AND cl.vote = 1
-WHERE c.post_id = ?
-ORDER BY c.parent_id IS NULL DESC, 
-         upvotes_count DESC,
-         c.created_at DESC;
-```
-
-### 获取用户收藏（按文件夹分组）
-```sql
-SELECT 
-    bf.id, bf.name,
-    COUNT(bi.id) as item_count
-FROM bookmark_folders bf
-LEFT JOIN bookmark_items bi ON bf.id = bi.bookmark_folder_id
-WHERE bf.user_id = ?
-GROUP BY bf.id
-ORDER BY bf.is_default DESC, bf.name;
-```
-
-### 获取用户已解锁的徽章
-```sql
-SELECT b.* FROM badges b
-INNER JOIN badge_user bu ON b.id = bu.badge_id
-WHERE bu.user_id = ?
-ORDER BY bu.awarded_at DESC;
-```
-
----
-
-## 📝 迁移执行顺序
-
-| 序号 | 迁移文件 | 说明 |
-|------|---------|------|
-| 1 | 0001_01_01_000000 | 创建 users, password_reset_tokens, sessions |
-| 2 | 0001_01_01_000001 | 创建 cache 表 |
-| 3 | 0001_01_01_000002 | 创建 jobs 表 |
-| 4 | 2025_08_14_170933 | 添加 2FA 字段到 users |
-| 5 | 2026_03_26_032214 | 创建 social_accounts |
-| 6 | 2026_04_08_041148 | 创建 posts |
-| 7 | 2026_04_08_041719 | 创建 likes |
-| 8 | 2026_04_08_041727 | 创建 comments |
-| 9 | 2026_04_09_182249 | 创建 languages |
-| 10 | 2026_04_10_000001 | 添加 language_id 到 posts |
-| 11 | 2026_04_13_030000 | 创建 profiles |
-| 12 | 2026_04_13_220000 | 添加投票字段到 comments |
-| 13 | 2026_04_14_061137 | 添加 avatar 到 users |
-| 14 | 2026_04_14_120000 | 添加 parent_id 到 comments |
-| 15 | 2026_04_14_120100 | 创建 comment_likes |
-| 16 | 2026_04_14_180000 | 添加 post_type 到 posts |
-| 17 | 2026_04_14_190000 | 创建 post_saves |
-| 18 | 2026_04_14_200000 | 创建 follows |
-| 19 | 2026_04_14_210000 | 创建 subjects (包含预填充数据) |
-| 20 | 2026_04_14_210100 | 添加 subject_id 到 posts |
-| 21 | 2026_04_14_220100 | 添加 points 到 users |
-| 22 | 2026_04_14_220200 | 创建 badges 和 badge_user (包含预填充数据) |
-| 23 | 2026_04_15_000100 | 添加 vote 字段到 comment_likes |
-| 24 | 2026_04_15_120000 | 添加 quiz_data 到 posts |
-| 25 | 2026_04_15_120000 | 创建 bookmark_folders 和 bookmark_items |
-| 26 | 2026_04_18_120000 | 创建 quiz_completions |
-| 27 | 2026_04_24_000000 | 删除用户封面字段 |
-| 28 | 2026_04_24_000001 | 删除学习进度表 |
-| 29 | 2026_04_24_000002 | 让 lessons 直接关联 subjects |
-
----
-
-## 📌 Model 模型列表
-
-```
-app/Models/
-├── User.php                    # 用户 (Authenticatable)
-├── Post.php                    # 帖子
-├── Comment.php                 # 评论
-├── Like.php                    # 帖子点赞
-├── CommentLike.php             # 评论投票
-├── PostSave.php                # 帖子收藏
-├── BookmarkFolder.php          # 收藏夹
-├── BookmarkItem.php            # 收藏项
-├── Subject.php                 # 科目
-├── Language.php                # 语言
-├── Lesson.php                  # 课时
-├── Badge.php                   # 成就
-├── QuizCompletion.php          # 测验完成
-├── Profile.php                 # 用户资料
-└── SocialAccount.php           # 社交账号
-```
-
----
-
-## 🚀 性能优化建议
-
-1. **缓存策略**
-   - 缓存热门帖子列表
-   - 缓存用户徽章列表
-   - 缓存科目和课时数据
-
-2. **索引优化**
-   - posts: (user_id, created_at)
-   - lessons: (subject_id, sequence)
-   - comments: (post_id, parent_id, created_at)
-   - comment_likes: (comment_id, user_id)
-   - bookmark_items: (user_id, bookmark_folder_id)
-
-3. **查询优化**
-   - 使用 eager loading (with) 避免 N+1 问题
-   - 分页大表查询（如评论列表）
-   - 使用计数缓存优化点赞/评论统计
-
-4. **数据库连接**
-   - 启用连接池
-   - 定期优化表统计信息
-   - 监控慢查询日志
-
----
-
-**文档版本：** 1.0  
-**最后更新：** 2026-04-23  
-**数据库引擎：** MySQL/PostgreSQL compatible  
-**Laravel 版本：** 10+
+Table 1: ACHIEVEMENTS  
+Name of Table: ACHIEVEMENTS  
+Primary key constraint name: PK_ACHIEVEMENTS  
+Comment: To store achievement definitions used for gamification and learner progress tracking  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| category | No | varchar(255) | Yes | Achievement category classification |
+| created_at | No | timestamp | No | Record creation timestamp |
+| icon | No | varchar(255) | Yes | Icon path or icon identifier |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing achievement identifier |
+| key | No | varchar(255) | Yes | Unique logical key for achievement rule lookup |
+| metric | No | varchar(255) | Yes | Metric tracked for achievement eligibility |
+| threshold | No | int unsigned | Yes | Required metric threshold to unlock achievement |
+| updated_at | No | timestamp | No | Record last update timestamp |
+
+Table 2: BADGE_USER  
+Name of Table: BADGE_USER  
+Primary key constraint name: PK_BADGE_USER  
+Comment: To store awarded badge records for users  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| awarded_at | No | timestamp | No | Time when badge was awarded |
+| badge_id | No | bigint unsigned | Yes | Referenced badge identifier |
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing award record identifier |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | Referenced user identifier |
+
+Table 3: BADGES  
+Name of Table: BADGES  
+Primary key constraint name: PK_BADGES  
+Comment: To store badge definitions and eligibility point thresholds  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| created_at | No | timestamp | No | Record creation timestamp |
+| description | No | varchar(255) | Yes | Badge description text |
+| icon | No | varchar(255) | Yes | Badge icon path or identifier |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing badge identifier |
+| key | No | varchar(255) | Yes | Unique logical key for the badge |
+| name | No | varchar(255) | Yes | Badge display name |
+| points_required | No | int unsigned | Yes | Required points to obtain badge |
+| updated_at | No | timestamp | No | Record last update timestamp |
+
+Table 4: BOOKMARK_FOLDERS  
+Name of Table: BOOKMARK_FOLDERS  
+Primary key constraint name: PK_BOOKMARK_FOLDERS  
+Comment: To store user-defined bookmark folders for organizing saved posts  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing folder identifier |
+| is_default | No | tinyint(1) | Yes | Indicates whether this is the default folder |
+| name | No | varchar(255) | Yes | Bookmark folder name |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | Owner user identifier |
+
+Table 5: BOOKMARK_ITEMS  
+Name of Table: BOOKMARK_ITEMS  
+Primary key constraint name: PK_BOOKMARK_ITEMS  
+Comment: To store post bookmark entries linked to user folders  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| bookmark_folder_id | No | bigint unsigned | Yes | Referenced bookmark folder identifier |
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing bookmark item identifier |
+| post_id | No | bigint unsigned | Yes | Referenced bookmarked post identifier |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | Owner user identifier |
+
+Table 6: CACHE  
+Name of Table: CACHE  
+Primary key constraint name: PK_CACHE  
+Comment: To store key-value cache entries with expiration metadata  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| expiration | No | int | Yes | Cache expiration epoch or interval marker |
+| key | Yes | varchar(255) | Yes | Primary cache key |
+| value | No | mediumtext | Yes | Serialized cached value |
+
+Table 7: CACHE_LOCKS  
+Name of Table: CACHE_LOCKS  
+Primary key constraint name: PK_CACHE_LOCKS  
+Comment: To store distributed lock records used by cache-backed synchronization  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| expiration | No | int | Yes | Lock expiration epoch or timeout value |
+| key | Yes | varchar(255) | Yes | Primary lock key |
+| owner | No | varchar(255) | Yes | Lock owner token or process identifier |
+
+Table 8: COMMENT_LIKES  
+Name of Table: COMMENT_LIKES  
+Primary key constraint name: PK_COMMENT_LIKES  
+Comment: To store user reactions and vote values on comments  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| comment_id | No | bigint unsigned | Yes | Referenced comment identifier |
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing reaction identifier |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | User who reacted to the comment |
+| vote | No | smallint | Yes | Vote value representing reaction polarity/intensity |
+
+Table 9: COMMENT_REPORTS  
+Name of Table: COMMENT_REPORTS  
+Primary key constraint name: PK_COMMENT_REPORTS  
+Comment: To store moderation reports submitted for comments  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| comment_id | No | bigint unsigned | Yes | Reported comment identifier |
+| created_at | No | timestamp | No | Report creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing report identifier |
+| moderation_queued_at | No | timestamp | No | Time report entered moderation queue |
+| reason | No | varchar(255) | Yes | Report reason provided by reporter |
+| status | No | varchar(32) | Yes | Moderation lifecycle status |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | Reporter user identifier |
+
+Table 10: COMMENTS  
+Name of Table: COMMENTS  
+Primary key constraint name: PK_COMMENTS  
+Comment: To store comments, threaded replies, and answer metadata on posts  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| attachments | No | json | No | Attached files metadata in JSON format |
+| content | No | text | Yes | Main comment body text |
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing comment identifier |
+| is_accepted | No | tinyint(1) | Yes | Indicates accepted solution status |
+| is_answer | No | tinyint(1) | Yes | Indicates whether entry is marked as an answer |
+| mentions | No | json | No | Mentioned users metadata in JSON format |
+| parent_id | No | bigint unsigned | No | Parent comment identifier for thread nesting |
+| post_id | No | bigint unsigned | Yes | Referenced post identifier |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | Author user identifier |
+
+Table 11: FAILED_JOBS  
+Name of Table: FAILED_JOBS  
+Primary key constraint name: PK_FAILED_JOBS  
+Comment: To store failed asynchronous job executions and their exception payloads  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| connection | No | text | Yes | Queue connection name used by the job |
+| exception | No | longtext | Yes | Full exception traceback and message |
+| failed_at | No | timestamp | Yes | Time when job failure occurred |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing failed job identifier |
+| payload | No | longtext | Yes | Serialized job payload |
+| queue | No | text | Yes | Queue name from which job was processed |
+| uuid | No | varchar(255) | Yes | Unique job UUID |
+
+Table 12: FOLLOWS  
+Name of Table: FOLLOWS  
+Primary key constraint name: PK_FOLLOWS  
+Comment: To store follower-following relationships between users  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| created_at | No | timestamp | No | Record creation timestamp |
+| follower_id | No | bigint unsigned | Yes | User initiating the follow relationship |
+| following_id | No | bigint unsigned | Yes | User being followed |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing follow record identifier |
+| updated_at | No | timestamp | No | Record last update timestamp |
+
+Table 13: JOB_BATCHES  
+Name of Table: JOB_BATCHES  
+Primary key constraint name: PK_JOB_BATCHES  
+Comment: To store batched queue job execution metadata  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| cancelled_at | No | int | No | Cancellation time as integer timestamp |
+| created_at | No | int | Yes | Creation time as integer timestamp |
+| failed_job_ids | No | longtext | Yes | Serialized list of failed job identifiers |
+| failed_jobs | No | int | Yes | Number of failed jobs in the batch |
+| finished_at | No | int | No | Completion time as integer timestamp |
+| id | Yes | varchar(255) | Yes | Primary key batch identifier |
+| name | No | varchar(255) | Yes | Human-readable batch name |
+| options | No | mediumtext | No | Serialized batch execution options |
+| pending_jobs | No | int | Yes | Number of pending jobs |
+| total_jobs | No | int | Yes | Total number of jobs in the batch |
+
+Table 14: JOBS  
+Name of Table: JOBS  
+Primary key constraint name: PK_JOBS  
+Comment: To store queued job payloads pending asynchronous execution  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| attempts | No | tinyint unsigned | Yes | Number of processing attempts |
+| available_at | No | int unsigned | Yes | Earliest execution time as Unix timestamp |
+| created_at | No | int unsigned | Yes | Enqueue time as Unix timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing queued job identifier |
+| payload | No | longtext | Yes | Serialized job payload |
+| queue | No | varchar(255) | Yes | Queue channel name |
+| reserved_at | No | int unsigned | No | Reservation time as Unix timestamp |
+
+Table 15: LANGUAGES  
+Name of Table: LANGUAGES  
+Primary key constraint name: PK_LANGUAGES  
+Comment: To store supported language metadata for content localization and tagging  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| code | No | varchar(255) | Yes | Language code (e.g., en, ms) |
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing language identifier |
+| name | No | varchar(255) | Yes | Language display name |
+| updated_at | No | timestamp | No | Record last update timestamp |
+
+Table 16: LESSONS  
+Name of Table: LESSONS  
+Primary key constraint name: PK_LESSONS  
+Comment: To store lesson entities linked to subjects and source learning material posts  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing lesson identifier |
+| is_published | No | tinyint(1) | Yes | Publication status flag |
+| sequence | No | int unsigned | Yes | Ordered sequence within subject progression |
+| source_post_id | No | bigint unsigned | No | Referenced source post identifier |
+| subject_id | No | bigint unsigned | Yes | Referenced subject identifier |
+| title | No | varchar(255) | Yes | Lesson title |
+| updated_at | No | timestamp | No | Record last update timestamp |
+
+Table 17: LIKES  
+Name of Table: LIKES  
+Primary key constraint name: PK_LIKES  
+Comment: To store user likes associated with posts  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing like identifier |
+| post_id | No | bigint unsigned | Yes | Liked post identifier |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | User who liked the post |
+
+Table 18: MATERIAL_QUIZ_ATTEMPTS  
+Name of Table: MATERIAL_QUIZ_ATTEMPTS  
+Primary key constraint name: PK_MATERIAL_QUIZ_ATTEMPTS  
+Comment: To store user quiz attempt data for study materials and assessment outcomes  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| answers | No | json | No | Submitted answers in JSON format |
+| created_at | No | timestamp | No | Attempt creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing quiz attempt identifier |
+| material_id | No | bigint unsigned | No | Referenced material identifier |
+| passed | No | tinyint(1) | Yes | Pass/fail flag for the attempt |
+| post_id | No | bigint unsigned | Yes | Referenced quiz post identifier |
+| score | No | decimal(5,2) | Yes | Numeric score achieved |
+| time_taken | No | int | Yes | Completion time in seconds |
+| total_questions | No | int unsigned | Yes | Total number of questions in the attempt |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | Attempting user identifier |
+
+Table 19: MIGRATIONS  
+Name of Table: MIGRATIONS  
+Primary key constraint name: PK_MIGRATIONS  
+Comment: To track executed database migration files and their batch order  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| batch | No | int | Yes | Migration batch execution number |
+| id | Yes | int unsigned | Yes | Primary key, auto-incrementing migration record identifier |
+| migration | No | varchar(255) | Yes | Migration class/file name |
+
+Table 20: PASSWORD_RESET_TOKENS  
+Name of Table: PASSWORD_RESET_TOKENS  
+Primary key constraint name: PK_PASSWORD_RESET_TOKENS  
+Comment: To store password reset tokens associated with user email addresses  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| created_at | No | timestamp | No | Token issuance timestamp |
+| email | Yes | varchar(255) | Yes | Primary email identifier for reset lookup |
+| token | No | varchar(255) | Yes | Password reset token value |
+
+Table 21: POINTS_TRANSACTIONS  
+Name of Table: POINTS_TRANSACTIONS  
+Primary key constraint name: PK_POINTS_TRANSACTIONS  
+Comment: To store auditable point changes and source actions per user  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| action | No | varchar(255) | Yes | Action type causing point transaction |
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing transaction identifier |
+| points | No | int | Yes | Points delta (positive or negative) |
+| source_id | No | bigint unsigned | No | Polymorphic source record identifier |
+| source_type | No | varchar(255) | No | Polymorphic source model/type |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | User affected by points transaction |
+
+Table 22: POST_REPORTS  
+Name of Table: POST_REPORTS  
+Primary key constraint name: PK_POST_REPORTS  
+Comment: To store moderation reports submitted for posts  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| created_at | No | timestamp | No | Report creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing report identifier |
+| moderation_queued_at | No | timestamp | No | Time report entered moderation queue |
+| post_id | No | bigint unsigned | Yes | Reported post identifier |
+| reason | No | varchar(255) | Yes | Report reason provided by reporter |
+| status | No | varchar(32) | Yes | Moderation status |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | Reporter user identifier |
+
+Table 23: POSTS  
+Name of Table: POSTS  
+Primary key constraint name: PK_POSTS  
+Comment: To store discussion posts, questions, and study material content with rich metadata  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| attachments | No | json | No | Attached resources metadata in JSON format |
+| content | No | text | No | Main post body content |
+| content_blocks | No | json | No | Structured content blocks in JSON format |
+| created_at | No | timestamp | No | Record creation timestamp |
+| difficulty_level | No | varchar(255) | No | Difficulty level classification |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing post identifier |
+| image | No | json | No | Image metadata in JSON format |
+| is_anonymous | No | tinyint(1) | Yes | Indicates whether author identity is hidden |
+| is_discussion | No | tinyint(1) | Yes | Indicates whether post is discussion-type |
+| language_id | No | bigint unsigned | No | Referenced language identifier |
+| learning_objectives | No | json | No | Learning objective definitions in JSON format |
+| lesson_id | No | bigint unsigned | No | Referenced lesson identifier |
+| material_improved_from_feedback | No | tinyint(1) | Yes | Indicates whether material was revised from feedback |
+| parent_material_id | No | bigint unsigned | No | Parent material post identifier |
+| post_type | No | varchar(20) | Yes | Post classification type |
+| quiz_data | No | json | No | Embedded quiz configuration in JSON format |
+| subject_id | No | bigint unsigned | No | Referenced subject identifier |
+| title | No | varchar(255) | Yes | Post title |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | Author user identifier |
+| video_url | No | varchar(255) | No | External video URL |
+
+Table 24: PROFILES  
+Name of Table: PROFILES  
+Primary key constraint name: PK_PROFILES  
+Comment: To store extended user profile information and avatar metadata  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| about | No | text | No | User biography/about section |
+| avatar | No | varchar(255) | No | Avatar image path or URL |
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing profile identifier |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | Referenced user identifier |
+
+Table 25: QUIZ_COMPLETIONS  
+Name of Table: QUIZ_COMPLETIONS  
+Primary key constraint name: PK_QUIZ_COMPLETIONS  
+Comment: To store completed quiz events by user and subject context  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| completed_at | No | timestamp | No | Time quiz completion was recorded |
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing completion identifier |
+| post_id | No | bigint unsigned | Yes | Completed quiz post identifier |
+| subject_id | No | bigint unsigned | No | Associated subject identifier |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | User who completed the quiz |
+
+Table 26: QUIZ_MISTAKES  
+Name of Table: QUIZ_MISTAKES  
+Primary key constraint name: PK_QUIZ_MISTAKES  
+Comment: To store per-question mistake analytics from user quiz attempts  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| attempted_at | No | timestamp | No | Time question attempt occurred |
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing mistake record identifier |
+| is_correct | No | tinyint(1) | Yes | Whether the selected answer was correct |
+| post_id | No | bigint unsigned | Yes | Referenced quiz post identifier |
+| question_index | No | int unsigned | Yes | Zero-based or one-based question index |
+| selected_answer_index | No | int unsigned | Yes | Selected answer option index |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | User who attempted the question |
+
+Table 27: SESSIONS  
+Name of Table: SESSIONS  
+Primary key constraint name: PK_SESSIONS  
+Comment: To store authenticated and guest session state data  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| id | Yes | varchar(255) | Yes | Primary session identifier |
+| ip_address | No | varchar(45) | No | Client IP address |
+| last_activity | No | int | Yes | Last activity Unix timestamp |
+| payload | No | longtext | Yes | Serialized session payload |
+| user_agent | No | text | No | Client user agent string |
+| user_id | No | bigint unsigned | No | Authenticated user identifier linked to session |
+
+Table 28: SOCIAL_ACCOUNTS  
+Name of Table: SOCIAL_ACCOUNTS  
+Primary key constraint name: PK_SOCIAL_ACCOUNTS  
+Comment: To store external social login account mappings for users  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| avatar | No | varchar(255) | No | Social provider avatar URL |
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing social account identifier |
+| provider | No | varchar(255) | Yes | Social authentication provider name |
+| provider_id | No | varchar(255) | Yes | Provider-specific user identifier |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | Local user identifier |
+
+Table 29: STUDY_MATERIAL_FEEDBACK  
+Name of Table: STUDY_MATERIAL_FEEDBACK  
+Primary key constraint name: PK_STUDY_MATERIAL_FEEDBACK  
+Comment: To store user ratings and textual feedback for study materials  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| created_at | No | timestamp | No | Feedback creation timestamp |
+| feedback | No | text | No | Free-text feedback comments |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing feedback identifier |
+| post_id | No | bigint unsigned | Yes | Referenced study material post identifier |
+| rating | No | tinyint unsigned | Yes | Numeric rating value |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | User providing feedback |
+| vote | No | tinyint | Yes | Vote flag/value associated with feedback |
+
+Table 30: STUDY_MATERIAL_VERSIONS  
+Name of Table: STUDY_MATERIAL_VERSIONS  
+Primary key constraint name: PK_STUDY_MATERIAL_VERSIONS  
+Comment: To store version history snapshots for study material content  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| change_summary | No | text | No | Summary of changes introduced in this version |
+| content | No | text | No | Versioned material content body |
+| content_blocks | No | json | No | Structured content blocks snapshot |
+| created_at | No | timestamp | No | Version creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing version identifier |
+| post_id | No | bigint unsigned | Yes | Referenced study material post identifier |
+| title | No | varchar(255) | Yes | Versioned material title |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | User who created the version |
+| version_number | No | int | Yes | Sequential version number |
+
+Table 31: STUDY_MATERIAL_VIEWS  
+Name of Table: STUDY_MATERIAL_VIEWS  
+Primary key constraint name: PK_STUDY_MATERIAL_VIEWS  
+Comment: To store user view tracking statistics for study materials  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing view record identifier |
+| last_viewed_at | No | timestamp | No | Most recent view timestamp |
+| post_id | No | bigint unsigned | Yes | Referenced study material post identifier |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | Viewer user identifier |
+| view_count | No | int | Yes | Accumulated view count |
+
+Table 32: SUBJECTS  
+Name of Table: SUBJECTS  
+Primary key constraint name: PK_SUBJECTS  
+Comment: To store subject taxonomy used to classify lessons and materials  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing subject identifier |
+| name | No | varchar(255) | Yes | Subject name |
+| updated_at | No | timestamp | No | Record last update timestamp |
+
+Table 33: TEACHER_APPLICATIONS  
+Name of Table: TEACHER_APPLICATIONS  
+Primary key constraint name: PK_TEACHER_APPLICATIONS  
+Comment: To store teacher role application submissions and document metadata  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| created_at | No | timestamp | No | Application creation timestamp |
+| document_original_name | No | varchar(255) | Yes | Original uploaded document filename |
+| document_path | No | varchar(255) | Yes | Stored file path for application document |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing application identifier |
+| reason | No | text | Yes | Applicant statement or justification |
+| status | No | varchar(255) | Yes | Application review status |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | Applicant user identifier |
+
+Table 34: TEACHER_VERIFICATION_DOCUMENTS  
+Name of Table: TEACHER_VERIFICATION_DOCUMENTS  
+Primary key constraint name: PK_TEACHER_VERIFICATION_DOCUMENTS  
+Comment: To store teacher verification document submissions and review outcomes  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| created_at | No | timestamp | No | Record creation timestamp |
+| document_type | No | varchar(255) | Yes | Type/category of verification document |
+| file_path | No | varchar(255) | Yes | Stored path to uploaded document |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing verification document identifier |
+| status | No | varchar(255) | Yes | Verification workflow status |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | User associated with the document |
+| verification_notes | No | text | No | Reviewer notes about verification outcome |
+| verified_at | No | timestamp | No | Timestamp when verification was finalized |
+
+Table 35: USER_ACHIEVEMENTS  
+Name of Table: USER_ACHIEVEMENTS  
+Primary key constraint name: PK_USER_ACHIEVEMENTS  
+Comment: To store achieved achievement records for individual users  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| achieved_at | No | timestamp | No | Time achievement was unlocked |
+| achievement_key | No | varchar(255) | Yes | Logical key of unlocked achievement |
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing user achievement identifier |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | User who unlocked the achievement |
+
+Table 36: USER_FEATURED_BADGES  
+Name of Table: USER_FEATURED_BADGES  
+Primary key constraint name: PK_USER_FEATURED_BADGES  
+Comment: To store user-selected badges highlighted on public profiles or leaderboard views  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| badge_id | No | bigint unsigned | Yes | Featured badge identifier |
+| created_at | No | timestamp | No | Record creation timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing featured badge record identifier |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | User owning the featured badge entry |
+
+Table 37: USER_PROGRESS  
+Name of Table: USER_PROGRESS  
+Primary key constraint name: PK_USER_PROGRESS  
+Comment: To store aggregate learning and contribution progress metrics per user  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| accepted_answers_count | No | int | Yes | Total accepted answers count |
+| correct_answers_count | No | int unsigned | Yes | Total correct answers count |
+| created_at | No | timestamp | No | Record creation timestamp |
+| discussion_posts_created | No | int | Yes | Number of discussion posts created |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing progress record identifier |
+| improvement_score | No | int | Yes | Composite improvement score metric |
+| questions_answered | No | int | Yes | Number of questions answered |
+| quiz_scores | No | json | No | Aggregated quiz score details in JSON format |
+| quizzes_completed | No | int unsigned | Yes | Number of quizzes completed |
+| total_likes_received | No | int unsigned | Yes | Total likes received across content |
+| total_post_posted | No | int unsigned | Yes | Total posts published by user |
+| total_questions_answered | No | int unsigned | Yes | Total question responses submitted |
+| total_questions_posted | No | int unsigned | Yes | Total questions created |
+| updated_at | No | timestamp | No | Record last update timestamp |
+| user_id | No | bigint unsigned | Yes | Referenced user identifier |
+
+Table 38: USERS  
+Name of Table: USERS  
+Primary key constraint name: PK_USERS  
+Comment: To store user account information, role authorization data, and profile-level security settings  
+
+Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless otherwise configured.
+
+| Column Name | Primary Key | Data Type | NOT NULL | Description |
+|---|---|---|---|---|
+| created_at | No | timestamp | No | Record creation timestamp |
+| email | No | varchar(255) | Yes | User login email address |
+| email_verified_at | No | timestamp | No | Email verification completion timestamp |
+| id | Yes | bigint unsigned | Yes | Primary key, auto-incrementing user identifier |
+| is_blocked | No | tinyint(1) | Yes | Account block status flag |
+| is_verified | No | tinyint(1) | Yes | Manual/admin verification status flag |
+| locale | No | varchar(5) | Yes | Preferred locale code |
+| name | No | varchar(255) | Yes | User display/full name |
+| password | No | varchar(255) | Yes | Hashed password value |
+| points | No | int unsigned | Yes | Current points balance |
+| remember_token | No | varchar(100) | No | Persistent login remember token |
+| role | No | varchar(20) | Yes | Authorization role code |
+| show_leaderboard_badge | No | tinyint(1) | Yes | Visibility flag for leaderboard badge |
+| show_on_leaderboard | No | tinyint(1) | Yes | Visibility flag for leaderboard listing |
+| total_points | No | int unsigned | Yes | Lifetime accumulated points |
+| two_factor_confirmed_at | No | timestamp | No | Timestamp for confirmed two-factor setup |
+| two_factor_recovery_codes | No | text | No | Stored two-factor recovery codes |
+| two_factor_secret | No | text | No | Encrypted two-factor secret |
+| updated_at | No | timestamp | No | Record last update timestamp |
