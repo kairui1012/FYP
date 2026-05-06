@@ -55,7 +55,8 @@ jobs:
 
             chmod 600 /var/www/jomstudy/finalyearproject/.env
 
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml down --remove-orphans || true
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --force-recreate
             docker compose -f docker-compose.yml -f docker-compose.prod.yml exec -T app php artisan config:clear
             docker compose -f docker-compose.yml -f docker-compose.prod.yml exec -T app php artisan migrate:fresh --seed --force
             docker compose -f docker-compose.yml -f docker-compose.prod.yml exec -T app php artisan config:cache

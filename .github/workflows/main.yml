@@ -19,7 +19,8 @@ jobs:
           script: |
             cd /var/www/jomstudy
             git pull origin main
-            docker compose up -d --build
+            docker compose down --remove-orphans || true
+            docker compose up -d --build --force-recreate
             docker compose exec -T app php artisan migrate --force
             docker compose exec -T app php artisan config:cache
             docker compose exec -T app php artisan route:cache
