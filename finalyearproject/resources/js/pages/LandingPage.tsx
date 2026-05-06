@@ -49,7 +49,7 @@ export default function LandingPage({ canRegister }: LandingPageProps) {
                         <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-16 md:px-8 md:py-24">
                             <div className="max-w-3xl">
                                 <h1 className="text-4xl font-black leading-tight tracking-tight sm:text-5xl md:text-6xl">
-                                    <span className="text-[#d6597a]">{trans('landing.hero_title')}</span>
+                                    <span className="text-[#d6597a]">{trans('landing.hero_title_long')}</span>
                                 </h1>
                                 <p className="mt-6 max-w-2xl text-base text-zinc-700 sm:text-lg">{trans('landing.hero_subtitle')}</p>
 

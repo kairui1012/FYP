@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'hero_title' => 'Enhancing Learning Engagement through a Multilingual Educational Community Platform in Malaysia',
-    'hero_title_long' => 'Enhancing Learning Engagement through a Multilingual Educational Community Platform in Malaysia',
+    'hero_title' => 'Learn, share, and grow in one community',
+    'hero_title_long' => 'Learn, share, and grow in one community',
     'hero_subtitle' => 'Create materials, discuss difficult questions, and track progress across your courses in one focused platform.',
 
     'start_learning' => 'Start Learning',

@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'hero_title' => '通过马来西亚多语言教育社区平台提升学习参与度',
-    'hero_title_long' => '通过马来西亚多语言教育社区平台提升学习参与度',
+    'hero_title' => '在同一个社区中学习、分享、成长',
+    'hero_title_long' => '在同一个社区中学习、分享、成长',
     'hero_subtitle' => '创建资料、讨论疑难问题，并在一个专注的平台上跟踪课程进度。',
 
     'start_learning' => '开始学习',

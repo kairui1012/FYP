@@ -55,6 +55,7 @@ class HandleInertiaRequests extends Middleware
             syncLangFiles('achievement'),
             syncLangFiles('bookmark'),
             syncLangFiles('popular'),
+            syncLangFiles('landing'),
             syncLangFiles('errors'),
             syncLangFiles('rules'),
             syncLangFiles('admin'),
