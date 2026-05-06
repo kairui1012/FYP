@@ -55,7 +55,7 @@ jobs:
 
             chmod 600 /var/www/jomstudy/finalyearproject/.env
 
-            docker compose up -d --build
-            docker compose exec -T app php artisan config:clear
-            docker compose exec -T app php artisan migrate:fresh --seed --force
-            docker compose exec -T app php artisan config:cache
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml exec -T app php artisan config:clear
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml exec -T app php artisan migrate:fresh --seed --force
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml exec -T app php artisan config:cache
