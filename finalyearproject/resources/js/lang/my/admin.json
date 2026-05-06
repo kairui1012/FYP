@@ -50,5 +50,12 @@
     "no_applications": "Tiada permohonan ditemui.",
     "dialog_reject_title": "Tolak Permohonan",
     "dialog_reject_placeholder": "Nota pilihan kepada pemohon...",
-    "btn_confirm_reject": "Sahkan Penolakan"
+    "btn_confirm_reject": "Sahkan Penolakan",
+    "col_report_target": "Kandungan Dilaporkan",
+    "col_target_author": "Penulis Kandungan",
+    "delete_reported_post": "Padam kiriman dilaporkan",
+    "confirm_delete_reported_post": "Padam kiriman yang dilaporkan? Tindakan ini tidak boleh dibatalkan.",
+    "tap_again_delete_post": "Tekan padam sekali lagi dalam 4 saat untuk sahkan.",
+    "delete_reported_comment": "Padam komen dilaporkan",
+    "tap_again_delete_comment": "Tekan padam komen sekali lagi dalam 4 saat untuk sahkan."
 }

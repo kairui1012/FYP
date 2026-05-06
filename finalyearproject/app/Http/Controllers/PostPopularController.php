@@ -50,7 +50,7 @@ class PostPopularController extends Controller
         $popularPostsQuery = Post::query()
             ->whereHas('user', fn ($q) => $q->where('is_blocked', false))
             ->with([
-                'user:id,name',
+                'user:id,name,role,is_verified',
                 'user.socialAccounts:id,user_id,avatar',
                 'subject:id,name',
                 'language:id,code,name',

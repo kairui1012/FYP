@@ -1,24 +1,53 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
+        @php
+            $appName = config('app.name', 'Final Year Project');
+            $defaultDescription = $appName.' is a collaborative learning platform for sharing study materials, asking questions, and tracking learning progress.';
+            $currentUrl = request()->url();
+            $defaultImage = asset('apple-touch-icon.png');
+            $isPrivateArea = auth()->check()
+                || request()->routeIs('admin.*')
+                || request()->routeIs('settings.*')
+                || request()->is('admin/*')
+                || request()->is('settings/*')
+                || request()->is('homePage*')
+                || request()->is('posts*')
+                || request()->is('bookmarks*')
+                || request()->is('leaderboard*')
+                || request()->is('learning-materials*')
+                || request()->is('questions*')
+                || request()->is('following*')
+                || request()->is('profilePage*')
+                || request()->is('createPostPage*')
+                || request()->is('achievements*')
+                || request()->is('categories*')
+                || request()->is('search*')
+                || request()->is('teacher/*');
+            $robotsContent = $isPrivateArea
+                ? 'noindex, nofollow, noarchive'
+                : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+        @endphp
+
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta name="description" content="{{ config('app.name', 'Final Year Project') }} is a collaborative learning platform for sharing study materials, asking questions, and tracking learning progress.">
-        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-        <link rel="canonical" href="{{ url()->current() }}">
+        <meta name="description" content="{{ $defaultDescription }}" head-key="description">
+        <meta name="robots" content="{{ $robotsContent }}" head-key="robots">
+        <link rel="canonical" href="{{ $currentUrl }}" head-key="canonical">
 
         <meta property="og:type" content="website">
-        <meta property="og:site_name" content="{{ config('app.name', 'Final Year Project') }}">
-        <meta property="og:title" content="{{ config('app.name', 'Final Year Project') }}">
-        <meta property="og:description" content="{{ config('app.name', 'Final Year Project') }} is a collaborative learning platform for sharing study materials, asking questions, and tracking learning progress.">
-        <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:image" content="{{ asset('apple-touch-icon.png') }}">
+        <meta property="og:site_name" content="{{ $appName }}">
+        <meta property="og:title" content="{{ $appName }}" head-key="og:title">
+        <meta property="og:description" content="{{ $defaultDescription }}" head-key="og:description">
+        <meta property="og:url" content="{{ $currentUrl }}" head-key="og:url">
+        <meta property="og:image" content="{{ $defaultImage }}" head-key="og:image">
+        <meta property="og:locale" content="{{ str_replace('-', '_', app()->getLocale()) }}">
 
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="{{ config('app.name', 'Final Year Project') }}">
-        <meta name="twitter:description" content="{{ config('app.name', 'Final Year Project') }} is a collaborative learning platform for sharing study materials, asking questions, and tracking learning progress.">
-        <meta name="twitter:image" content="{{ asset('apple-touch-icon.png') }}">
+        <meta name="twitter:title" content="{{ $appName }}" head-key="twitter:title">
+        <meta name="twitter:description" content="{{ $defaultDescription }}" head-key="twitter:description">
+        <meta name="twitter:image" content="{{ $defaultImage }}" head-key="twitter:image">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>

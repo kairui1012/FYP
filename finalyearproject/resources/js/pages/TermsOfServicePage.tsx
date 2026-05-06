@@ -58,7 +58,26 @@ export default function TermsOfServicePage() {
 
     return (
         <div className="min-h-[calc(100svh-4rem)] bg-zinc-50 pb-20">
-            <Head title={trans('legal.legal_terms_title')} />
+            <Head title={trans('legal.legal_terms_title')}>
+                <meta
+                    name="description"
+                    head-key="description"
+                    content="Read the terms and conditions for using Learning Community Platform."
+                />
+                <meta property="og:title" head-key="og:title" content={trans('legal.legal_terms_title')} />
+                <meta
+                    property="og:description"
+                    head-key="og:description"
+                    content="Read the terms and conditions for using Learning Community Platform."
+                />
+                <meta name="twitter:title" head-key="twitter:title" content={trans('legal.legal_terms_title')} />
+                <meta
+                    name="twitter:description"
+                    head-key="twitter:description"
+                    content="Read the terms and conditions for using Learning Community Platform."
+                />
+                <link rel="canonical" href={termsRoute} head-key="canonical" />
+            </Head>
 
             <div className="mx-auto w-full max-w-4xl px-4 py-8 md:px-6">
                 <header className="mb-6 border-b border-zinc-200 pb-5">

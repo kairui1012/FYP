@@ -16,10 +16,16 @@ type PostActionFooterProps = {
     onComment: () => void;
     comments: number;
     isOwner: boolean;
+    canReport: boolean;
+    reportLoading?: boolean;
+    reported?: boolean;
     onEdit: () => void;
     onDelete: () => void;
+    onReport: () => void;
     editLabel: string;
     deleteLabel: string;
+    reportLabel: string;
+    reportedLabel: string;
 };
 
 export function PostActionFooter({
@@ -35,10 +41,16 @@ export function PostActionFooter({
     comments,
     onComment,
     isOwner,
+    canReport,
+    reportLoading = false,
+    reported = false,
     onEdit,
     onDelete,
+    onReport,
     editLabel,
     deleteLabel,
+    reportLabel,
+    reportedLabel,
 }: PostActionFooterProps) {
     return (
         <div className="mt-7 mb-3 flex flex-wrap items-center gap-5 px-4 text-sm text-zinc-900">
@@ -56,6 +68,16 @@ export function PostActionFooter({
                 onClick={() => onSave(postId)}
             />
             <BtnShare postId={postId} />
+            {!isOwner && canReport ? (
+                <button
+                    type="button"
+                    onClick={onReport}
+                    disabled={reportLoading || reported}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-zinc-200 px-3.5 py-1.5 text-sm font-semibold text-zinc-600 transition-colors select-none hover:bg-linear-to-r hover:from-amber-300 hover:to-amber-400 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                    {reported ? reportedLabel : reportLabel}
+                </button>
+            ) : null}
             {isOwner && (
                 <>
                     <button

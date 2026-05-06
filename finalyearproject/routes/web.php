@@ -17,6 +17,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostCreateController;
 use App\Http\Controllers\PostPopularController;
 use App\Http\Controllers\PostBookmarkToggleController;
+use App\Http\Controllers\PostReportController;
 use App\Http\Controllers\ProfilePageController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Auth;
@@ -51,6 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
     Route::post('/comments/{comment}/vote', [CommentLikeController::class, 'toggle'])->name('comments.vote.toggle');
     Route::post('/comments/{comment}/report', [CommentReportController::class, 'store'])->name('comments.report');
+    Route::post('/posts/{post}/report', [PostReportController::class, 'store'])->name('posts.report');
     Route::get('/popularPage', [PostPopularController::class, 'index'])->name('popularPage');
     Route::get('/createPostPage', [PostCreateController::class, 'create'])->name('createPostPage');
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
@@ -89,18 +91,31 @@ Route::get('/privacy-policy', fn () => Inertia::render('PrivacyPolicyPage'))->na
 Route::get('/terms-of-service', fn () => Inertia::render('TermsOfServicePage'))->name('terms-of-service');
 
 Route::get('/sitemap.xml', function () {
+    $lastmod = now()->toDateString();
+
     $urls = [
-        url('/'),
-        route('privacy-policy'),
-        route('terms-of-service'),
-        route('login.google'),
+        [
+            'loc' => url('/'),
+            'lastmod' => $lastmod,
+            'changefreq' => 'daily',
+            'priority' => '1.0',
+        ],
+        [
+            'loc' => route('privacy-policy'),
+            'lastmod' => $lastmod,
+            'changefreq' => 'monthly',
+            'priority' => '0.3',
+        ],
+        [
+            'loc' => route('terms-of-service'),
+            'lastmod' => $lastmod,
+            'changefreq' => 'monthly',
+            'priority' => '0.3',
+        ],
     ];
 
-    $escapedUrls = array_map(static fn (string $url): string => htmlspecialchars($url, ENT_XML1), $urls);
-
     $xml = view('sitemap', [
-        'urls' => $escapedUrls,
-        'lastmod' => now()->toDateString(),
+        'urls' => $urls,
     ])->render();
 
     return response($xml, 200)->header('Content-Type', 'application/xml');
@@ -115,7 +130,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('users.role');
     Route::patch('/users/{user}/toggle-block', [AdminController::class, 'toggleBlock'])->name('users.toggle-block');
     Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
-    Route::delete('/reports/{report}', [AdminController::class, 'deleteReport'])->name('reports.delete');
+    Route::delete('/reports/comments/{report}', [AdminController::class, 'deleteCommentReport'])->name('reports.comments.delete');
+    Route::delete('/reports/comments/{comment}/content', [AdminController::class, 'deleteReportedComment'])->name('reports.comments.content.delete');
+    Route::delete('/reports/posts/{report}', [AdminController::class, 'deletePostReport'])->name('reports.posts.delete');
+    Route::delete('/reports/posts/{post}/content', [AdminController::class, 'deleteReportedPost'])->name('reports.posts.content.delete');
     Route::get('/teacher-applications', [AdminController::class, 'teacherApplications'])->name('teacher-applications');
     Route::patch('/teacher-applications/{application}/approve', [AdminController::class, 'approveApplication'])->name('teacher-applications.approve');
     Route::patch('/teacher-applications/{application}/reject', [AdminController::class, 'rejectApplication'])->name('teacher-applications.reject');
@@ -123,8 +141,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/verification-documents/{document}/download', [AdminController::class, 'downloadVerificationDocument'])->name('verification-document.download');
 });
 
-// Teacher application (any auth user can submit)
-Route::middleware(['auth', 'verified'])->post('/teacher-applications', function (\Illuminate\Http\Request $request) {
+// Teacher application (authenticated users can submit, including unverified students)
+Route::middleware(['auth'])->post('/teacher-applications', function (\Illuminate\Http\Request $request) {
     $request->validate(['qualification' => 'required|string|max:255', 'bio' => 'nullable|string|max:2000']);
     \App\Models\TeacherApplication::create([
         'user_id'       => $request->user()->id,

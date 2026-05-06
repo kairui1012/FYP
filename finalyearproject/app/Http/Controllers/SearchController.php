@@ -48,7 +48,7 @@ class SearchController extends Controller
                 ->orWhere('content', 'LIKE', $like);
         })
             ->select('id', 'title', 'post_type', 'user_id')
-            ->with('user:id,name')
+            ->with('user:id,name,is_verified')
             ->orderByRaw('
                 CASE
                     WHEN LOWER(title) = LOWER(?) THEN 0

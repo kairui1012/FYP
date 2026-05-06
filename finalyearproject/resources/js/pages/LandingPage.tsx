@@ -32,13 +32,23 @@ export default function LandingPage({ canRegister }: LandingPageProps) {
                 <title>Learning Community Platform | Study, Share, Improve</title>
                 <meta
                     name="description"
+                    head-key="description"
                     content="A collaborative learning platform for students and educators to share study materials, ask questions, and track learning progress."
                 />
-                <meta property="og:title" content="Learning Community Platform | Study, Share, Improve" />
+                <meta property="og:title" head-key="og:title" content="Learning Community Platform | Study, Share, Improve" />
                 <meta
                     property="og:description"
+                    head-key="og:description"
                     content="Share study materials, join discussions, and improve learning outcomes with a community-first platform."
                 />
+                <meta property="og:url" head-key="og:url" content="/" />
+                <meta name="twitter:title" head-key="twitter:title" content="Learning Community Platform | Study, Share, Improve" />
+                <meta
+                    name="twitter:description"
+                    head-key="twitter:description"
+                    content="A collaborative learning platform for students and educators to share study materials, ask questions, and track learning progress."
+                />
+                <link rel="canonical" href="/" head-key="canonical" />
             </Head>
 
             <div className="min-h-screen bg-[#fffdf8] text-zinc-900">

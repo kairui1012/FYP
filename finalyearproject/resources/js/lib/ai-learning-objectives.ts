@@ -24,8 +24,8 @@ function parsePayload(payload: unknown): Omit<LearningObjectives, 'provider'> {
           )
         : [];
 
-    if (objectives.length === 0) {
-        throw new Error('no objectives returned');
+    if (objectives.length < 3 || objectives.length > 5) {
+        throw new Error('AI must return 3 to 5 learning objectives');
     }
 
     const difficulty =

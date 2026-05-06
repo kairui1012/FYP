@@ -111,10 +111,18 @@ export default function PostContent({ post }: PostContentProps) {
                         saveLoading={controller.saving}
                         onComment={controller.handleCommentClick}
                         isOwner={controller.canManagePost}
+                        canReport={Boolean(controller.currentUserId)}
+                        reportLoading={controller.reportLoading}
+                        reported={controller.reported}
                         onEdit={controller.handleEditStart}
                         onDelete={() => controller.setShowDeleteModal(true)}
+                        onReport={() => {
+                            void controller.handleReportPost();
+                        }}
                         editLabel={trans('createPost.edit_post', page)}
                         deleteLabel={trans('createPost.delete_post', page)}
+                        reportLabel={trans('comment.report', page)}
+                        reportedLabel={trans('comment.report_sent', page)}
                     />
 
                     <PostTranslateActions

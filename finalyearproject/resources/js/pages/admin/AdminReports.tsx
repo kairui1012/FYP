@@ -1,6 +1,8 @@
 import { router } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
-import { Trash2 } from 'lucide-react';
+import { AlertTriangle, Trash2 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import {
     Table,
@@ -14,20 +16,91 @@ import AdminLayout from '@/layouts/admin/admin-layout';
 
 type Report = {
     id: number;
+    report_type: 'comment' | 'post';
     reason: string;
     reporter_name: string;
     reporter_email: string;
-    comment_id: number;
-    comment_body: string;
-    comment_author: string;
+    target_id: number;
+    target_body: string | null;
+    target_author: string | null;
     created_at: string;
 };
 
 export default function AdminReports({ reports }: { reports: Report[] }) {
     const { trans } = reactLang();
+    const [armedDeleteCommentId, setArmedDeleteCommentId] = useState<
+        number | null
+    >(null);
+    const [armedDeletePostId, setArmedDeletePostId] = useState<number | null>(
+        null,
+    );
+    const clearArmTimerRef = useRef<number | null>(null);
 
-    const deleteReport = (id: number) => {
-        router.delete(`/admin/reports/${id}`, { preserveScroll: true });
+    const deleteReport = (id: number, reportType: Report['report_type']) => {
+        const basePath =
+            reportType === 'post'
+                ? '/admin/reports/posts'
+                : '/admin/reports/comments';
+        router.delete(`${basePath}/${id}`, { preserveScroll: true });
+    };
+
+    const deletePost = (postId: number) => {
+        if (armedDeletePostId !== postId) {
+            setArmedDeletePostId(postId);
+            toast(
+                trans('admin.tap_again_delete_post') ||
+                    trans('admin.confirm_delete_reported_post'),
+            );
+            if (clearArmTimerRef.current) {
+                window.clearTimeout(clearArmTimerRef.current);
+            }
+            clearArmTimerRef.current = window.setTimeout(() => {
+                setArmedDeletePostId(null);
+            }, 4000);
+            return;
+        }
+
+        router.delete(`/admin/reports/posts/${postId}/content`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success(trans('admin.delete_reported_post'));
+            },
+            onError: () => {
+                toast.error(trans('errors.generic') || 'Failed to delete post.');
+            },
+            onFinish: () => {
+                setArmedDeletePostId(null);
+            },
+        });
+    };
+
+    const deleteComment = (commentId: number) => {
+        if (armedDeleteCommentId !== commentId) {
+            setArmedDeleteCommentId(commentId);
+            toast(trans('admin.tap_again_delete_comment'));
+            if (clearArmTimerRef.current) {
+                window.clearTimeout(clearArmTimerRef.current);
+            }
+            clearArmTimerRef.current = window.setTimeout(() => {
+                setArmedDeleteCommentId(null);
+            }, 4000);
+            return;
+        }
+
+        router.delete(`/admin/reports/comments/${commentId}/content`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success(trans('admin.delete_reported_comment'));
+            },
+            onError: () => {
+                toast.error(
+                    trans('errors.generic') || 'Failed to delete comment.',
+                );
+            },
+            onFinish: () => {
+                setArmedDeleteCommentId(null);
+            },
+        });
     };
 
     return (
@@ -46,8 +119,8 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                             <TableHead className="w-8">#</TableHead>
                             <TableHead>{trans('admin.col_reporter')}</TableHead>
                             <TableHead>{trans('admin.col_reason')}</TableHead>
-                            <TableHead>{trans('admin.col_comment')}</TableHead>
-                            <TableHead>{trans('admin.col_comment_author')}</TableHead>
+                            <TableHead>{trans('admin.col_report_target')}</TableHead>
+                            <TableHead>{trans('admin.col_target_author')}</TableHead>
                             <TableHead>{trans('admin.col_date')}</TableHead>
                             <TableHead className="text-right">{trans('admin.col_actions')}</TableHead>
                         </TableRow>
@@ -67,21 +140,56 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                                 </TableCell>
                                 <TableCell className="max-w-xs">
                                     <p className="line-clamp-2 text-sm text-muted-foreground">
-                                        {report.comment_body ?? '—'}
+                                        {report.target_body ?? '—'}
                                     </p>
                                 </TableCell>
-                                <TableCell className="text-muted-foreground">{report.comment_author ?? '—'}</TableCell>
+                                <TableCell className="text-muted-foreground">{report.target_author ?? '—'}</TableCell>
                                 <TableCell className="text-muted-foreground">{report.created_at}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="text-red-500 hover:bg-red-50 hover:text-red-600"
-                                        onClick={() => deleteReport(report.id)}
-                                        title={trans('admin.dismiss_report')}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <div className="flex justify-end gap-1">
+                                        {report.report_type === 'post' ? (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                                                onClick={() =>
+                                                    deletePost(report.target_id)
+                                                }
+                                                title={trans('admin.delete_reported_post')}
+                                            >
+                                                <AlertTriangle className="h-4 w-4" />
+                                            </Button>
+                                        ) : null}
+                                        {report.report_type === 'comment' ? (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="text-amber-600 hover:bg-amber-50 hover:text-amber-700"
+                                                onClick={() =>
+                                                    deleteComment(
+                                                        report.target_id,
+                                                    )
+                                                }
+                                                title={trans('admin.delete_reported_comment')}
+                                            >
+                                                <AlertTriangle className="h-4 w-4" />
+                                            </Button>
+                                        ) : null}
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                                            onClick={() =>
+                                                deleteReport(
+                                                    report.id,
+                                                    report.report_type,
+                                                )
+                                            }
+                                            title={trans('admin.dismiss_report')}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))}

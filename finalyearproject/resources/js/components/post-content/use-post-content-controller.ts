@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { csrfHeaders, scrollCommentsInAppContent } from '@/components/post-content/post-content-utils';
 import { buildQuizData } from '@/components/post-content/quiz/quiz-data';
 import type {
@@ -35,9 +36,9 @@ export function usePostContentController({
         (pageProps as { auth?: { user?: { role?: string } } }).auth?.user
             ?.role ?? 'student';
 
-    const isOwner = Boolean(
-        post.is_owner ?? (currentUserId && post.user?.id === currentUserId),
-    );
+    const isOwner =
+        post.is_owner === true ||
+        Boolean(currentUserId && post.user?.id === currentUserId);
     const isAnonymousPost = Boolean(post.is_anonymous);
     const canPublishStudyMaterial = ['admin', 'teacher'].includes(
         currentUserRole,
@@ -46,7 +47,7 @@ export function usePostContentController({
     const canManageMaterial =
         post.post_type === 'material' &&
         canPublishStudyMaterial &&
-        (isOwner || currentUserRole === 'admin');
+        isOwner;
     const canManagePost =
         post.post_type === 'material' ? canManageMaterial : isOwner;
     const displayName = isAnonymousPost
@@ -70,6 +71,8 @@ export function usePostContentController({
     const [editLoading, setEditLoading] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [reportLoading, setReportLoading] = useState(false);
+    const [reported, setReported] = useState(false);
     const [isLiked, setIsLiked] = useState(Boolean(post.is_liked));
     const [likesCount, setLikesCount] = useState(post.likes_count ?? 0);
     const [commentsCount, setCommentsCount] = useState(
@@ -479,6 +482,37 @@ export function usePostContentController({
         scrollCommentsInAppContent(document.getElementById('comments'));
     };
 
+    const handleReportPost = async () => {
+        if (isOwner || reportLoading || reported) {
+            return;
+        }
+
+        setReportLoading(true);
+
+        try {
+            const response = await fetch(`/posts/${post.id}/report`, {
+                method: 'POST',
+                headers: csrfHeaders('json'),
+                body: JSON.stringify({
+                    reason: 'inappropriate',
+                }),
+            });
+
+            const payload = (await response.json().catch(() => null)) as {
+                message?: string;
+            } | null;
+
+            if (response.ok || payload?.message === 'Already reported.') {
+                setReported(true);
+                toast.success('Report submitted. Thank you.');
+            } else {
+                toast.error('Failed to submit report. Please try again.');
+            }
+        } finally {
+            setReportLoading(false);
+        }
+    };
+
     const handleAnswerSelect = (questionIndex: number, value: string) => {
         setSelectedAnswers((prev) => ({
             ...prev,
@@ -538,6 +572,8 @@ export function usePostContentController({
         editLoading,
         showDeleteModal,
         deleteLoading,
+        reportLoading,
+        reported,
         isLiked,
         likesCount,
         commentsCount,
@@ -575,6 +611,7 @@ export function usePostContentController({
         addMaterialEditBlock,
         handleDeleteConfirm,
         handleCommentClick,
+        handleReportPost,
         handleAnswerSelect,
         handleCheckAnswer,
     };

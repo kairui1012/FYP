@@ -1,15 +1,11 @@
 <?php
 
-use App\Http\Controllers\Auth\GoogleAuthController;
-use App\Http\Controllers\LocaleController;
-use App\Http\Controllers\PostController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use Illuminate\Http\Request;
-use Laravel\Fortify\Features;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+
+Route::middleware(['auth'])->group(function () {
 
 Route::post('/translate', function (Request $request) {
     $request->validate([
@@ -992,8 +988,8 @@ Route::post('/ai-learning-objectives', function (Request $request) {
             ? trim($decoded['estimated_time'])
             : '';
 
-        if (count($objectives) < 1) {
-            throw new \Exception('AI returned no learning objectives');
+        if (count($objectives) < 3 || count($objectives) > 5) {
+            throw new \Exception('AI must return 3 to 5 learning objectives');
         }
 
         return response()->json([
@@ -1294,3 +1290,5 @@ Route::post('/ai-validate-wrong', function (Request $request) {
     }
 
 })->middleware(['web', 'throttle:15,1']);
+
+});

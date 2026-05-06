@@ -32,7 +32,15 @@ export default function Login({
 
     return (
         <>
-            <Head title={trans('auth.login_title')} />
+            <Head title={trans('auth.login_title')}>
+                <meta name="robots" content="noindex, nofollow, noarchive" head-key="robots" />
+                <meta
+                    name="description"
+                    head-key="description"
+                    content="Sign in to access your learning dashboard, saved materials, and discussions."
+                />
+                <link rel="canonical" href="/login" head-key="canonical" />
+            </Head>
             <AppHeaderForUnlogin />
 
             <div className="flex min-h-[calc(100svh-4rem)] items-center justify-center bg-muted px-3 py-5 sm:px-4 sm:py-6 lg:px-6">

@@ -54,7 +54,26 @@ export default function PrivacyPolicyPage() {
 
     return (
         <div className="min-h-[calc(100svh-4rem)] bg-zinc-50 pb-20">
-            <Head title={trans('legal.legal_privacy_title')} />
+            <Head title={trans('legal.legal_privacy_title')}>
+                <meta
+                    name="description"
+                    head-key="description"
+                    content="Read how Learning Community Platform collects, uses, and protects your personal data."
+                />
+                <meta property="og:title" head-key="og:title" content={trans('legal.legal_privacy_title')} />
+                <meta
+                    property="og:description"
+                    head-key="og:description"
+                    content="Read how Learning Community Platform collects, uses, and protects your personal data."
+                />
+                <meta name="twitter:title" head-key="twitter:title" content={trans('legal.legal_privacy_title')} />
+                <meta
+                    name="twitter:description"
+                    head-key="twitter:description"
+                    content="Read how Learning Community Platform collects, uses, and protects your personal data."
+                />
+                <link rel="canonical" href={privacyRoute} head-key="canonical" />
+            </Head>
 
             <div className="mx-auto w-full max-w-4xl px-4 py-8 md:px-6">
                 <header className="mb-6 border-b border-zinc-200 pb-5">

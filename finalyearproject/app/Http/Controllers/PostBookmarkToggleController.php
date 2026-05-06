@@ -5,13 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\BookmarkFolder;
 use App\Models\BookmarkItem;
 use App\Models\Post;
+use App\Models\UserProgress;
+use App\Services\AchievementService;
 use App\Services\PointsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PostBookmarkToggleController extends Controller
 {
-    public function __construct(private readonly PointsService $pointsService) {}
+    public function __construct(
+        private readonly PointsService $pointsService,
+        private readonly AchievementService $achievementService,
+    ) {}
 
     public function toggle(Request $request, Post $post): JsonResponse
     {
@@ -43,6 +48,10 @@ class PostBookmarkToggleController extends Controller
                 $this->pointsService->award($post->user, 'resource_bookmarked', $bookmarkItem, $user);
             }
         }
+
+        // Ensure progress row exists, then re-evaluate save-based achievements
+        UserProgress::query()->firstOrCreate(['user_id' => $user->id]);
+        $this->achievementService->evaluateAchievements($user->fresh());
 
         return response()->json([
             'saved' => $isSaved,

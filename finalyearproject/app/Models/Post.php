@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Post extends Model
 {
@@ -34,6 +35,55 @@ class Post extends Model
             'is_anonymous' => 'boolean',
             'material_improved_from_feedback' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Post $post): void {
+            $paths = $post->collectStoredFilePaths();
+
+            if ($paths !== []) {
+                Storage::disk('public')->delete($paths);
+            }
+        });
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function collectStoredFilePaths(): array
+    {
+        $paths = [];
+        $attachments = $this->image;
+
+        if (is_string($attachments) && trim($attachments) !== '') {
+            $paths[] = trim($attachments);
+        } elseif (is_array($attachments)) {
+            foreach ($attachments as $path) {
+                if (is_string($path) && trim($path) !== '') {
+                    $paths[] = trim($path);
+                }
+            }
+        }
+
+        foreach ($this->content_blocks ?? [] as $block) {
+            if (! is_array($block)) {
+                continue;
+            }
+
+            $type = $block['type'] ?? null;
+            $path = $block['path'] ?? null;
+
+            if (
+                is_string($path) &&
+                trim($path) !== '' &&
+                in_array($type, ['image', 'document'], true)
+            ) {
+                $paths[] = trim($path);
+            }
+        }
+
+        return array_values(array_unique($paths));
     }
 
     public function user() {

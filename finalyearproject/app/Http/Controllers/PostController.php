@@ -17,6 +17,7 @@ use App\Services\LearningProgressService;
 use App\Services\MaterialVersionService;
 use App\Services\PostQueryBuilder;
 use App\Services\PostSerializationService;
+use App\Services\PointsService;
 use App\Services\ProgressService;
 use Carbon\CarbonInterface;
 use Illuminate\Database\QueryException;
@@ -46,6 +47,7 @@ class PostController extends Controller
         private readonly PostSerializationService $serializationService,
         private readonly LearningProgressService $learningProgressService,
         private readonly ProgressService $progressService,
+        private readonly PointsService $pointsService,
     ) {}
 
     public function index(Request $request): Response
@@ -281,11 +283,10 @@ class PostController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = $request->user();
-        $isAdmin = ($user->role ?? 'student') === 'admin';
         $isOwner = $post->user_id === $user->id;
 
         if ($post->post_type === 'material') {
-            if (! $user->canPublishStudyMaterials() || (! $isOwner && ! $isAdmin)) {
+            if (! $user->canPublishStudyMaterials() || ! $isOwner) {
                 abort(403);
             }
         } elseif (! $isOwner) {
@@ -464,17 +465,27 @@ class PostController extends Controller
         /** @var \App\Models\User $user */
         $user = $request->user();
         $isOwner = $post->user_id === $user->id;
-        $isAdmin = ($user->role ?? 'student') === 'admin';
 
         if ($post->post_type === 'material') {
-            if (! $isOwner && ! $isAdmin) {
+            if (! $isOwner) {
                 abort(403);
             }
         } elseif (! $isOwner) {
             abort(403);
         }
 
-        $post->delete();
+        DB::transaction(function () use ($post): void {
+            $owner = $post->user()->first();
+            $action = $post->post_type === 'material'
+                ? 'resource_uploaded'
+                : 'question_asked';
+
+            if ($owner) {
+                $this->pointsService->revoke($owner, $action, $post);
+            }
+
+            $post->delete();
+        });
 
         return redirect()->route('homePage');
     }

@@ -50,5 +50,12 @@
     "no_applications": "No applications found.",
     "dialog_reject_title": "Reject Application",
     "dialog_reject_placeholder": "Optional note to the applicant...",
-    "btn_confirm_reject": "Confirm Reject"
+    "btn_confirm_reject": "Confirm Reject",
+    "col_report_target": "Reported Content",
+    "col_target_author": "Content Author",
+    "delete_reported_post": "Delete reported post",
+    "confirm_delete_reported_post": "Delete the reported post? This cannot be undone.",
+    "tap_again_delete_post": "Tap delete again within 4 seconds to confirm.",
+    "delete_reported_comment": "Delete reported comment",
+    "tap_again_delete_comment": "Tap delete comment again within 4 seconds to confirm."
 }

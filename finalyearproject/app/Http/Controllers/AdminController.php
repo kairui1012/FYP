@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\CommentReport;
+use App\Models\Comment;
+use App\Models\Post;
+use App\Models\PostReport;
 use App\Models\TeacherApplication;
 use App\Models\TeacherVerificationDocument;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
 class AdminController extends Controller
@@ -33,26 +37,93 @@ class AdminController extends Controller
 
     public function reports()
     {
-        $reports = CommentReport::with(['user:id,name,email', 'comment.user:id,name'])
-            ->orderBy('created_at', 'desc')
+        $commentReportsQuery = CommentReport::with(['user:id,name,email', 'comment.user:id,name'])
+            ->orderBy('created_at', 'desc');
+
+        if (Schema::hasColumn('comment_reports', 'status')) {
+            $commentReportsQuery->where('status', 'pending');
+        }
+
+        $commentReports = $commentReportsQuery
             ->get()
             ->map(fn ($r) => [
-                'id'             => $r->id,
-                'reason'         => $r->reason,
-                'reporter_name'  => $r->user?->name,
+                'id' => $r->id,
+                'report_type' => 'comment',
+                'reason' => $r->reason,
+                'reporter_name' => $r->user?->name,
                 'reporter_email' => $r->user?->email,
-                'comment_id'     => $r->comment_id,
-                'comment_body'   => $r->comment?->body,
-                'comment_author' => $r->comment?->user?->name,
-                'created_at'     => $r->created_at?->toDateString(),
+                'target_id' => $r->comment_id,
+                'target_body' => $r->comment?->body,
+                'target_author' => $r->comment?->user?->name,
+                'status' => $r->status ?? 'pending',
+                'created_at' => $r->created_at?->toDateString(),
             ]);
+
+        $postReports = collect();
+        if (Schema::hasTable('post_reports')) {
+            $postReportsQuery = PostReport::with(['user:id,name,email', 'post.user:id,name'])
+                ->orderBy('created_at', 'desc');
+
+            if (Schema::hasColumn('post_reports', 'status')) {
+                $postReportsQuery->where('status', 'pending');
+            }
+
+            $postReports = $postReportsQuery
+                ->get()
+                ->map(fn ($r) => [
+                    'id' => $r->id,
+                    'report_type' => 'post',
+                    'reason' => $r->reason,
+                    'reporter_name' => $r->user?->name,
+                    'reporter_email' => $r->user?->email,
+                    'target_id' => $r->post_id,
+                    'target_body' => $r->post?->title,
+                    'target_author' => $r->post?->user?->name,
+                    'status' => $r->status ?? 'pending',
+                    'created_at' => $r->created_at?->toDateString(),
+                ]);
+        }
+
+        $reports = $commentReports
+            ->concat($postReports)
+            ->sortByDesc('created_at')
+            ->values();
 
         return Inertia::render('admin/AdminReports', compact('reports'));
     }
 
-    public function deleteReport(CommentReport $report)
+    public function deleteCommentReport(CommentReport $report)
     {
-        $report->delete();
+        if (Schema::hasColumn('comment_reports', 'status')) {
+            $report->update(['status' => 'dismissed']);
+        } else {
+            $report->delete();
+        }
+
+        return back();
+    }
+
+    public function deleteReportedComment(Comment $comment)
+    {
+        $comment->delete();
+
+        return back();
+    }
+
+    public function deletePostReport(PostReport $report)
+    {
+        if (Schema::hasColumn('post_reports', 'status')) {
+            $report->update(['status' => 'dismissed']);
+        } else {
+            $report->delete();
+        }
+
+        return back();
+    }
+
+    public function deleteReportedPost(Post $post)
+    {
+        $post->delete();
 
         return back();
     }
@@ -88,6 +159,10 @@ class AdminController extends Controller
 
     public function approveApplication(TeacherApplication $application)
     {
+        if (($application->status ?? 'pending') !== 'pending') {
+            return back()->with('error', 'Only pending applications can be approved.');
+        }
+
         $application->update(['status' => 'approved']);
         $application->user?->update(['role' => 'teacher']);
 
@@ -96,6 +171,10 @@ class AdminController extends Controller
 
     public function rejectApplication(Request $request, TeacherApplication $application)
     {
+        if (($application->status ?? 'pending') !== 'pending') {
+            return back()->with('error', 'Only pending applications can be rejected.');
+        }
+
         $application->update([
             'status'     => 'rejected',
             'admin_note' => $request->input('note'),
@@ -110,6 +189,10 @@ class AdminController extends Controller
 
         if (! $user || $user->role !== 'teacher') {
             return back()->with('error', 'User must be an approved teacher to toggle verification.');
+        }
+
+        if (($application->status ?? 'pending') !== 'approved') {
+            return back()->with('error', 'Only approved teacher applications can toggle verification.');
         }
 
         $user->update(['is_verified' => ! $user->is_verified]);
@@ -145,6 +228,10 @@ class AdminController extends Controller
 
     public function updateUserRole(Request $request, User $user)
     {
+        if ((int) $request->user()->id === (int) $user->id) {
+            return back()->with('error', 'You cannot change your own role.');
+        }
+
         $request->validate(['role' => 'required|in:student,teacher,admin']);
         $user->update(['role' => $request->role]);
 

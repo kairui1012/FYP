@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CommentReport extends Model
+class PostReport extends Model
 {
     protected $fillable = [
         'user_id',
-        'comment_id',
+        'post_id',
         'reason',
         'status',
         'moderation_queued_at',
@@ -21,13 +22,14 @@ class CommentReport extends Model
         ];
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function comment()
+    public function post(): BelongsTo
     {
-        return $this->belongsTo(Comment::class);
+        return $this->belongsTo(Post::class);
     }
 }
+

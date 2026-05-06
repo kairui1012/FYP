@@ -19,7 +19,15 @@ export default function Register() {
 
     return (
         <>
-            <Head title={trans('auth.register_title')} />
+            <Head title={trans('auth.register_title')}>
+                <meta name="robots" content="noindex, nofollow, noarchive" head-key="robots" />
+                <meta
+                    name="description"
+                    head-key="description"
+                    content="Create your account to join discussions, share study materials, and track your progress."
+                />
+                <link rel="canonical" href="/register" head-key="canonical" />
+            </Head>
             <AppHeaderForUnlogin />
 
             <AuthCardLayout
