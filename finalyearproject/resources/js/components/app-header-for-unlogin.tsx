@@ -14,7 +14,7 @@ import {
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
-import { homePage, login, register } from '@/routes';
+import { home, login, register } from '@/routes';
 
 const BtnChangeLang = lazy(() => import('@/components/ui/btn-change-lang').then((module) => ({ default: module.BtnChangeLang })));
 
@@ -53,7 +53,7 @@ export function AppHeaderForUnlogin() {
                                 <div className="flex h-full flex-1 flex-col space-y-4 p-4">
                                     <div className="flex h-full flex-col justify-between text-sm">
                                         <div className="flex flex-col space-y-4">
-                                            <Link href={homePage()} className="font-medium">
+                                            <Link href={home()} className="font-medium">
                                                 {trans('navigation.home')}
                                             </Link>
                                         </div>
@@ -73,7 +73,7 @@ export function AppHeaderForUnlogin() {
                     </div>
 
                     <Link
-                        href={homePage()}
+                        href={home()}
                         prefetch
                         className="flex min-w-0 items-center gap-2"
                     >

@@ -25,13 +25,13 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
-    syncLangFiles('auth');
-
     if (Auth::check()) {
         return redirect()->route('homePage');
     }
 
-    return Inertia::render('auth/login', [
+    syncLangFiles('auth');
+
+    return Inertia::render('LandingPage', [
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('home');
@@ -87,6 +87,24 @@ Route::get('/login/google/callback', [GoogleAuthController::class, 'handleProvid
 
 Route::get('/privacy-policy', fn () => Inertia::render('PrivacyPolicyPage'))->name('privacy-policy');
 Route::get('/terms-of-service', fn () => Inertia::render('TermsOfServicePage'))->name('terms-of-service');
+
+Route::get('/sitemap.xml', function () {
+    $urls = [
+        url('/'),
+        route('privacy-policy'),
+        route('terms-of-service'),
+        route('login.google'),
+    ];
+
+    $escapedUrls = array_map(static fn (string $url): string => htmlspecialchars($url, ENT_XML1), $urls);
+
+    $xml = view('sitemap', [
+        'urls' => $escapedUrls,
+        'lastmod' => now()->toDateString(),
+    ])->render();
+
+    return response($xml, 200)->header('Content-Type', 'application/xml');
+})->name('sitemap');
 
 Route::post('/change-language-setting', [LocaleController::class, 'switchMethod'])->name('language.switch');
 

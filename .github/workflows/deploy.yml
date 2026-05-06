@@ -51,12 +51,11 @@ jobs:
             GOOGLE_REDIRECT_URI="${{ secrets.GOOGLE_REDIRECT_URI }}"
 
             DEEPSEEK_API_KEY="${{ secrets.DEEPSEEK_API_KEY }}"
-            GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
             EOF
 
             chmod 600 /var/www/jomstudy/finalyearproject/.env
 
             docker compose up -d --build
             docker compose exec -T app php artisan config:clear
-            docker compose exec -T app php artisan migrate --force
+            docker compose exec -T app php artisan migrate:fresh --seed --force
             docker compose exec -T app php artisan config:cache

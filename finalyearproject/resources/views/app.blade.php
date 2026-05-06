@@ -4,6 +4,21 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="description" content="{{ config('app.name', 'Final Year Project') }} is a collaborative learning platform for sharing study materials, asking questions, and tracking learning progress.">
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+        <link rel="canonical" href="{{ url()->current() }}">
+
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="{{ config('app.name', 'Final Year Project') }}">
+        <meta property="og:title" content="{{ config('app.name', 'Final Year Project') }}">
+        <meta property="og:description" content="{{ config('app.name', 'Final Year Project') }} is a collaborative learning platform for sharing study materials, asking questions, and tracking learning progress.">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:image" content="{{ asset('apple-touch-icon.png') }}">
+
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ config('app.name', 'Final Year Project') }}">
+        <meta name="twitter:description" content="{{ config('app.name', 'Final Year Project') }} is a collaborative learning platform for sharing study materials, asking questions, and tracking learning progress.">
+        <meta name="twitter:image" content="{{ asset('apple-touch-icon.png') }}">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
@@ -43,6 +58,20 @@
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         @inertiaHead
+
+        <script type="application/ld+json">
+            {!! json_encode([
+                '@context' => 'https://schema.org',
+                '@type' => 'WebSite',
+                'name' => config('app.name', 'Final Year Project'),
+                'url' => url('/'),
+                'potentialAction' => [
+                    '@type' => 'SearchAction',
+                    'target' => url('/search').'?q={search_term_string}',
+                    'query-input' => 'required name=search_term_string',
+                ],
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+        </script>
     </head>
     <body class="font-sans antialiased">
         @inertia
