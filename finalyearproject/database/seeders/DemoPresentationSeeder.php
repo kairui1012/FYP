@@ -19,6 +19,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class DemoPresentationSeeder extends Seeder
 {
@@ -964,17 +965,39 @@ class DemoPresentationSeeder extends Seeder
     {
         $userIds = $users->pluck('id')->all();
 
-        Comment::query()->whereIn('user_id', $userIds)->delete();
-        Like::query()->whereIn('user_id', $userIds)->delete();
-        BookmarkItem::query()->whereIn('user_id', $userIds)->delete();
-        QuizAttempt::query()->whereIn('user_id', $userIds)->delete();
-        StudyMaterialFeedback::query()->whereIn('user_id', $userIds)->delete();
-        DB::table('material_quiz_attempts')->whereIn('user_id', $userIds)->delete();
-        DB::table('study_material_views')->whereIn('user_id', $userIds)->delete();
-        DB::table('badge_user')->whereIn('user_id', $userIds)->delete();
-        DB::table('user_achievements')->whereIn('user_id', $userIds)->delete();
-        UserProgress::query()->whereIn('user_id', $userIds)->delete();
-        Post::query()->whereIn('user_id', $userIds)->delete();
+        if (Schema::hasTable('comments')) {
+            Comment::query()->whereIn('user_id', $userIds)->delete();
+        }
+        if (Schema::hasTable('likes')) {
+            Like::query()->whereIn('user_id', $userIds)->delete();
+        }
+        if (Schema::hasTable('bookmark_items')) {
+            BookmarkItem::query()->whereIn('user_id', $userIds)->delete();
+        }
+        if (Schema::hasTable('quiz_attempts')) {
+            QuizAttempt::query()->whereIn('user_id', $userIds)->delete();
+        }
+        if (Schema::hasTable('study_material_feedback')) {
+            StudyMaterialFeedback::query()->whereIn('user_id', $userIds)->delete();
+        }
+        if (Schema::hasTable('material_quiz_attempts')) {
+            DB::table('material_quiz_attempts')->whereIn('user_id', $userIds)->delete();
+        }
+        if (Schema::hasTable('study_material_views')) {
+            DB::table('study_material_views')->whereIn('user_id', $userIds)->delete();
+        }
+        if (Schema::hasTable('badge_user')) {
+            DB::table('badge_user')->whereIn('user_id', $userIds)->delete();
+        }
+        if (Schema::hasTable('user_achievements')) {
+            DB::table('user_achievements')->whereIn('user_id', $userIds)->delete();
+        }
+        if (Schema::hasTable('user_progress')) {
+            UserProgress::query()->whereIn('user_id', $userIds)->delete();
+        }
+        if (Schema::hasTable('posts')) {
+            Post::query()->whereIn('user_id', $userIds)->delete();
+        }
     }
 
     private function createQuestion(

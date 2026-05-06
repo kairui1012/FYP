@@ -28,7 +28,10 @@ export function CommentAiWrongPanel({
 }: Props) {
     const [reasoning, setReasoning] = useState('');
     const [loading, setLoading] = useState(false);
-    const [verdict, setVerdict] = useState<{ is_valid: boolean; feedback: string } | null>(null);
+    const [verdict, setVerdict] = useState<{
+        isWrong: boolean;
+        message: string;
+    } | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     const t = {
@@ -47,7 +50,7 @@ export function CommentAiWrongPanel({
 
     const handleSubmit = async () => {
         const trimmed = reasoning.trim();
-        if (trimmed.length < 10) return;
+        if (Array.from(trimmed).length < 4) return;
 
         setLoading(true);
         setError(null);
@@ -60,7 +63,13 @@ export function CommentAiWrongPanel({
                 answerContent,
                 userReasoning: trimmed,
             });
-            setVerdict({ is_valid: result.is_valid, feedback: result.feedback });
+            setVerdict({
+                isWrong: result.is_wrong,
+                message: result.message,
+            });
+            if (result.is_wrong) {
+                onValidated();
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : t.error);
         } finally {
@@ -68,16 +77,18 @@ export function CommentAiWrongPanel({
         }
     };
 
-    const isTooShort = reasoning.trim().length < 10;
+    const isTooShort = Array.from(reasoning.trim()).length < 4;
 
     return (
         <div className="mx-1 mb-3 overflow-hidden rounded-xl border border-rose-200 bg-rose-50/50">
             <div className="flex items-center gap-2 border-b border-rose-200/70 bg-rose-100/60 px-3 py-2">
                 <XCircle className="h-3.5 w-3.5 shrink-0 text-rose-600" />
-                <span className="text-xs font-semibold text-rose-800">{t.label}</span>
+                <span className="text-xs font-semibold text-rose-800">
+                    {t.label}
+                </span>
             </div>
 
-            <div className="px-3 py-2.5 space-y-2.5">
+            <div className="space-y-2.5 px-3 py-2.5">
                 {/* Input area — hidden once verdict is shown */}
                 {verdict === null ? (
                     <>
@@ -119,7 +130,9 @@ export function CommentAiWrongPanel({
                                 {t.cancel}
                             </button>
                             {isTooShort && reasoning.trim().length > 0 ? (
-                                <span className="text-[11px] text-zinc-400">{t.minLength}</span>
+                                <span className="text-[11px] text-zinc-400">
+                                    {t.minLength}
+                                </span>
                             ) : null}
                         </div>
                     </>
@@ -127,29 +140,31 @@ export function CommentAiWrongPanel({
 
                 {/* Verdict display */}
                 {verdict !== null ? (
-                    <div className="animate-in fade-in slide-in-from-top-1 duration-200 space-y-2">
+                    <div className="animate-in space-y-2 duration-200 fade-in slide-in-from-top-1">
                         <div
                             className={`flex items-start gap-2 rounded-lg px-3 py-2 text-sm leading-relaxed ${
-                                verdict.is_valid
+                                verdict.isWrong
                                     ? 'bg-emerald-50 text-emerald-800'
                                     : 'bg-amber-50 text-amber-800'
                             }`}
                         >
-                            {verdict.is_valid ? (
+                            {verdict.isWrong ? (
                                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
                             ) : (
                                 <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                             )}
                             <div>
-                                <p className="mb-0.5 text-[11px] font-bold uppercase tracking-wide">
-                                    {verdict.is_valid ? t.validTitle : t.invalidTitle}
+                                <p className="mb-0.5 text-[11px] font-bold tracking-wide uppercase">
+                                    {verdict.isWrong
+                                        ? t.validTitle
+                                        : t.invalidTitle}
                                 </p>
-                                <p>{verdict.feedback}</p>
+                                <p>{verdict.message}</p>
                             </div>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                            {verdict.is_valid ? (
+                            {verdict.isWrong ? (
                                 <button
                                     type="button"
                                     onClick={onValidated}

@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
-import { BookOpen, Brain, MessageSquare, Trophy } from 'lucide-react';
+import { BookOpen, Brain, MessageSquare, Trophy, Globe, Bookmark } from 'lucide-react';
+import { reactLang } from '@erag/lang-sync-inertia';
 import { AppHeaderForUnlogin } from '@/components/app-header-for-unlogin';
 import { Button } from '@/components/ui/button';
 import { login, register } from '@/routes';
@@ -9,44 +10,22 @@ type LandingPageProps = {
 };
 
 const highlights = [
-    {
-        title: 'Study Materials That Stay Organized',
-        description: 'Share notes, learning materials, and quizzes in one clean place for every subject.',
-        icon: BookOpen,
-    },
-    {
-        title: 'Ask Questions and Get Better Answers',
-        description: 'Post academic questions, join comment discussions, and learn from your peers faster.',
-        icon: MessageSquare,
-    },
-    {
-        title: 'Track Progress and Achievements',
-        description: 'Monitor learning progress, quiz outcomes, and points to stay motivated consistently.',
-        icon: Trophy,
-    },
-    {
-        title: 'AI-Assisted Learning Support',
-        description: 'Use AI-assisted tools to understand concepts and review difficult content more effectively.',
-        icon: Brain,
-    },
+    { title: 'landing.features.ai_learning.title', description: 'landing.features.ai_learning.description', icon: Brain },
+    { title: 'landing.features.resource_sharing.title', description: 'landing.features.resource_sharing.description', icon: BookOpen },
+    { title: 'landing.features.qna_community.title', description: 'landing.features.qna_community.description', icon: MessageSquare },
+    { title: 'landing.features.achievements.title', description: 'landing.features.achievements.description', icon: Trophy },
+    { title: 'landing.features.multilingual_support.title', description: 'landing.features.multilingual_support.description', icon: Globe },
+    { title: 'landing.features.save_follow.title', description: 'landing.features.save_follow.description', icon: Bookmark },
 ];
 
 const faqs = [
-    {
-        question: 'Who is this platform for?',
-        answer: 'This platform is built for students and educators who want to share learning content and collaborate in one community.',
-    },
-    {
-        question: 'Do I need an account to use all features?',
-        answer: 'Yes. You can browse this landing page publicly, but posting, saving, and progress tracking require an account.',
-    },
-    {
-        question: 'Can I log in with Google?',
-        answer: 'Yes. Google sign-in is available so you can get started quickly.',
-    },
+    { question: 'landing.faqs.q1.question', answer: 'landing.faqs.q1.answer' },
+    { question: 'landing.faqs.q2.question', answer: 'landing.faqs.q2.answer' },
+    { question: 'landing.faqs.q3.question', answer: 'landing.faqs.q3.answer' },
 ];
 
 export default function LandingPage({ canRegister }: LandingPageProps) {
+    const { trans } = reactLang();
     return (
         <>
             <Head>
@@ -70,16 +49,13 @@ export default function LandingPage({ canRegister }: LandingPageProps) {
                         <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-16 md:px-8 md:py-24">
                             <div className="max-w-3xl">
                                 <h1 className="text-4xl font-black leading-tight tracking-tight sm:text-5xl md:text-6xl">
-                                    Turn Study Notes into
-                                    <span className="text-[#d6597a]"> Shared Learning Momentum</span>
+                                    <span className="text-[#d6597a]">{trans('landing.hero_title')}</span>
                                 </h1>
-                                <p className="mt-6 max-w-2xl text-base text-zinc-700 sm:text-lg">
-                                    Create materials, discuss difficult questions, and track progress across your courses in one focused platform.
-                                </p>
+                                <p className="mt-6 max-w-2xl text-base text-zinc-700 sm:text-lg">{trans('landing.hero_subtitle')}</p>
 
                                 <div className="mt-8 flex flex-wrap items-center gap-3">
                                     <Button asChild className="h-11 bg-[#d6597a] px-6 text-sm font-semibold hover:bg-[#c84e6f]">
-                                        <Link href={login()}>Start Learning</Link>
+                                        <Link href={login()}>{trans('landing.start_learning')}</Link>
                                     </Button>
                                     {canRegister ? (
                                         <Button
@@ -87,7 +63,7 @@ export default function LandingPage({ canRegister }: LandingPageProps) {
                                             variant="outline"
                                             className="h-11 border-zinc-300 bg-white px-6 text-sm font-semibold"
                                         >
-                                            <Link href={register()}>Create Free Account</Link>
+                                            <Link href={register()}>{trans('landing.create_account')}</Link>
                                         </Button>
                                     ) : null}
                                 </div>
@@ -107,8 +83,8 @@ export default function LandingPage({ canRegister }: LandingPageProps) {
                                         <div className="mb-4 inline-flex rounded-xl bg-[#fff0ea] p-2.5 text-[#d6597a]">
                                             <Icon className="h-5 w-5" />
                                         </div>
-                                        <h2 className="text-lg font-bold tracking-tight">{item.title}</h2>
-                                        <p className="mt-2 text-sm leading-relaxed text-zinc-600">{item.description}</p>
+                                        <h2 className="text-lg font-bold tracking-tight">{trans(item.title)}</h2>
+                                        <p className="mt-2 text-sm leading-relaxed text-zinc-600">{trans(item.description)}</p>
                                     </article>
                                 );
                             })}
@@ -117,12 +93,12 @@ export default function LandingPage({ canRegister }: LandingPageProps) {
 
                     <section className="border-y border-zinc-200 bg-[#fff7f2]">
                         <div className="mx-auto w-full max-w-6xl px-4 py-14 md:px-8 md:py-18">
-                            <h2 className="text-2xl font-black tracking-tight sm:text-3xl">Frequently Asked Questions</h2>
+                            <h2 className="text-2xl font-black tracking-tight sm:text-3xl">{trans('landing.faqs.title')}</h2>
                             <div className="mt-6 space-y-4">
                                 {faqs.map((faq) => (
                                     <article key={faq.question} className="rounded-xl border border-zinc-200 bg-white p-5">
-                                        <h3 className="text-base font-semibold">{faq.question}</h3>
-                                        <p className="mt-2 text-sm text-zinc-600">{faq.answer}</p>
+                                        <h3 className="text-base font-semibold">{trans(faq.question)}</h3>
+                                        <p className="mt-2 text-sm text-zinc-600">{trans(faq.answer)}</p>
                                     </article>
                                 ))}
                             </div>

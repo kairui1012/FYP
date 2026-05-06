@@ -195,7 +195,7 @@ export function useLearningTrendsController({
         }));
 
         try {
-            const response = await fetch(`/posts/${postId}/save`, {
+            const response = await fetch(`/posts/${postId}/bookmark`, {
                 method: 'POST',
                 headers: csrfHeaders(),
             });

@@ -9,6 +9,7 @@ import {
     UsersRound,
 } from 'lucide-react';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
+import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { PostAttachments } from '@/components/post-attachments';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnComment } from '@/components/ui/btn-comment';
@@ -361,7 +362,7 @@ export function HomeFeedSection({
                                                             ? `/profilePage/${post.user.id}`
                                                             : '/profilePage'
                                                     }
-                                                    className="cursor-pointer font-semibold text-zinc-900 transition-colors peer-hover:text-[#e27193] hover:text-[#e27193]"
+                                                    className={`cursor-pointer font-semibold transition-colors peer-hover:text-[#e27193] hover:text-[#e27193] ${post.user?.is_verified ? 'text-blue-600' : 'text-zinc-900'}`}
                                                     onClick={(event) =>
                                                         event.stopPropagation()
                                                     }
@@ -369,6 +370,9 @@ export function HomeFeedSection({
                                                     {post.user?.name ??
                                                         text.unknownUser}
                                                 </Link>
+                                                {post.user?.is_verified && (
+                                                    <VerifiedTeacherBadge />
+                                                )}
                                                 <LeaderboardTitleBadge
                                                     title={
                                                         post.user

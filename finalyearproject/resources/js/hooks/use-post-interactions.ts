@@ -112,7 +112,7 @@ export function usePostInteractions(posts: PostItem[]) {
             document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
 
         try {
-            const response = await fetch(`/posts/${postId}/save`, {
+            const response = await fetch(`/posts/${postId}/bookmark`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',

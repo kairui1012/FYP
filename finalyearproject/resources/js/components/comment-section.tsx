@@ -180,6 +180,11 @@ export function CommentSection({
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+    const closeReactionPanels = () => {
+        setActiveDoubtCommentId(null);
+        setActiveWrongCommentId(null);
+    };
+
     useEffect(() => {
         setComments(post.comments ?? []);
     }, [post.comments]);
@@ -643,6 +648,16 @@ export function CommentSection({
             ? replies
             : replies.slice(0, REPLY_LIMIT);
         const hiddenCount = replies.length - REPLY_LIMIT;
+        const canShowReactionPanels =
+            isRoot && variant === 'qna' && !isBestAnswerPreview;
+        const isDoubtPanelActive =
+            canShowReactionPanels &&
+            activeDoubtCommentId !== null &&
+            Number(activeDoubtCommentId) === Number(comment.id);
+        const isWrongPanelActive =
+            canShowReactionPanels &&
+            activeWrongCommentId !== null &&
+            Number(activeWrongCommentId) === Number(comment.id);
 
         return (
             <div key={comment.id}>
@@ -671,51 +686,55 @@ export function CommentSection({
                         isBestAnswer={isBestAnswerPreview}
                         isReply={!isRoot}
                         onReply={() => handleReplyClick(comment)}
-                        onUpvote={() =>
-                            void handleToggleCommentVote(comment.id, 'up')
-                        }
+                        onUpvote={() => {
+                            closeReactionPanels();
+                            void handleToggleCommentVote(comment.id, 'up');
+                        }}
                         onDownvote={() => {
-                            const currentlyDownvoted =
-                                Number(comment.user_vote ?? 0) === -1 ||
-                                comment.is_downvoted === true;
-                            void handleToggleCommentVote(comment.id, 'down');
-                            if (variant === 'qna') {
-                                if (!currentlyDownvoted) {
-                                    setActiveDoubtCommentId(comment.id);
-                                } else {
-                                    setActiveDoubtCommentId((prev) =>
-                                        prev === comment.id ? null : prev,
-                                    );
-                                }
+                            if (canShowReactionPanels) {
+                                setActiveWrongCommentId(null);
+                                setActiveDoubtCommentId((prev) =>
+                                    Number(prev) === Number(comment.id)
+                                        ? null
+                                        : comment.id,
+                                );
+                                return;
                             }
+
+                            closeReactionPanels();
+                            void handleToggleCommentVote(comment.id, 'down');
                         }}
                         onWrong={() => {
                             const currentlyWrong =
                                 Number(comment.user_vote ?? 0) === -2 ||
                                 comment.is_wrong === true;
-                            if (variant === 'qna') {
+                            if (canShowReactionPanels) {
+                                setActiveDoubtCommentId(null);
                                 if (currentlyWrong) {
                                     void handleToggleCommentVote(
                                         comment.id,
                                         'wrong',
                                     );
                                     setActiveWrongCommentId((prev) =>
-                                        prev === comment.id ? null : prev,
+                                        Number(prev) === Number(comment.id)
+                                            ? null
+                                            : prev,
                                     );
                                 } else {
                                     setActiveWrongCommentId(comment.id);
-                                    setActiveDoubtCommentId((prev) =>
-                                        prev === comment.id ? null : prev,
-                                    );
                                 }
                             } else {
+                                closeReactionPanels();
                                 void handleToggleCommentVote(
                                     comment.id,
                                     'wrong',
                                 );
                             }
                         }}
-                        onReport={() => void handleReport(comment.id)}
+                        onReport={() => {
+                            closeReactionPanels();
+                            void handleReport(comment.id);
+                        }}
                         onStartEdit={() => {
                             setEditingCommentId(comment.id);
                             setEditingContent(comment.content);
@@ -753,22 +772,37 @@ export function CommentSection({
                 </div>
 
                 {/* AI doubt panel — shown when user marks answer as confusing (Q&A only) */}
-                {!isBestAnswerPreview &&
-                variant === 'qna' &&
-                activeDoubtCommentId === comment.id ? (
+                {isDoubtPanelActive ? (
                     <CommentAiDoubtPanel
                         page={page}
                         trans={trans}
                         postTitle={post.title}
                         postContent={post.content ?? ''}
                         answerContent={comment.content}
+                        onConfusionSubmitted={() => {
+                            if (!isCommentDownvoted(comment)) {
+                                void handleToggleCommentVote(
+                                    comment.id,
+                                    'down',
+                                );
+                            }
+                        }}
+                        onResolved={() => {
+                            if (isCommentDownvoted(comment)) {
+                                void handleToggleCommentVote(
+                                    comment.id,
+                                    'down',
+                                );
+                            }
+                            setActiveDoubtCommentId(null);
+                        }}
+                        onStillUnresolved={() => setActiveDoubtCommentId(null)}
+                        onCancel={() => setActiveDoubtCommentId(null)}
                     />
                 ) : null}
 
                 {/* AI wrong-answer validation panel — shown before submitting wrong vote (Q&A only) */}
-                {!isBestAnswerPreview &&
-                variant === 'qna' &&
-                activeWrongCommentId === comment.id ? (
+                {isWrongPanelActive ? (
                     <CommentAiWrongPanel
                         page={page}
                         trans={trans}
@@ -785,14 +819,14 @@ export function CommentSection({
 
                 {/* Nested replies */}
                 {!isBestAnswerPreview && replies.length > 0 ? (
-                    <div className="relative ml-4 pl-5 before:absolute before:top-0 before:bottom-4 before:left-0 before:w-px before:bg-zinc-200">
+                    <div className="relative -mt-1 ml-4 pl-5 before:absolute before:top-1 before:bottom-3 before:left-0 before:w-px before:bg-zinc-200">
                         {visibleReplies.map((reply) =>
                             renderCommentBranch(reply, false),
                         )}
 
                         {/* Show more / hide replies toggle */}
                         {replies.length > REPLY_LIMIT && (
-                            <div className="py-1">
+                            <div className="py-0.5">
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -1052,12 +1086,17 @@ function CommentCard({
     return (
         <article
             className={cn(
-                'group/comment pb-4',
-                !isReply ? 'pt-4' : 'pt-3',
+                'group/comment',
+                !isReply ? 'pt-4 pb-4' : 'pt-1.5 pb-2',
                 className,
             )}
         >
-            <div className="flex items-start gap-3">
+            <div
+                className={cn(
+                    'flex items-start',
+                    isReply ? 'gap-2.5' : 'gap-3',
+                )}
+            >
                 <Link
                     href={
                         comment.user?.id
@@ -1076,7 +1115,12 @@ function CommentCard({
                     />
                 </Link>
 
-                <div className="min-w-0 flex-1 pb-4">
+                <div
+                    className={cn(
+                        'min-w-0 flex-1',
+                        isReply ? 'pb-1.5' : 'pb-4',
+                    )}
+                >
                     {/* Header */}
                     <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -1187,9 +1231,14 @@ function CommentCard({
                     )}
 
                     {/* Action bar */}
-                    <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                    <div
+                        className={cn(
+                            'flex flex-wrap items-center justify-between',
+                            isReply ? 'mt-1.5 gap-2' : 'mt-3 gap-3',
+                        )}
+                    >
                         <div className="flex min-w-0 flex-wrap items-center gap-2">
-                            {!isBestAnswer ? (
+                            {!isBestAnswer && !isReply ? (
                                 <>
                                     <FeedbackActionButton
                                         active={isUpvoted}
@@ -1243,7 +1292,7 @@ function CommentCard({
 
                     {/* Reply composer */}
                     {replying ? (
-                        <div className="mt-3">
+                        <div className={cn(isReply ? 'mt-2' : 'mt-3')}>
                             <div className="mb-1.5 px-1 text-xs text-zinc-400">
                                 {trans(page, 'comment.replying_to', {
                                     name: userName,
@@ -1524,6 +1573,13 @@ function getCommentScore(comment: CommentItem): number {
     const down = comment.downvotes_count ?? 0;
     const wrong = comment.wrong_votes_count ?? 0;
     return up - down - 2 * wrong;
+}
+
+function isCommentDownvoted(comment: CommentItem): boolean {
+    return (
+        Number(comment.user_vote ?? 0) === -1 ||
+        toStrictBoolean(comment.is_downvoted)
+    );
 }
 
 function sortCommentTreeByMode(

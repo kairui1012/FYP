@@ -1,9 +1,17 @@
 import { Link } from '@inertiajs/react';
 import { ExternalLink } from 'lucide-react';
 import { lazy, Suspense } from 'react';
+import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { BtnSave } from '@/components/ui/btn-save';
 import { MaterialLearningStateBadge } from '@/components/ui/material-learning-state-badge';
 import { QuizStatusBadge } from '@/components/ui/quiz-status-badge';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { formatFormulaText } from '@/lib/formula-display';
 import {
     formatTimeAgo,
@@ -88,16 +96,21 @@ export function PostCard({
                             Anonymous User
                         </span>
                     ) : (
-                        <Link
-                            href={
-                                post.user?.id
-                                    ? `/profilePage/${post.user.id}`
-                                    : '/profilePage'
-                            }
-                            className="truncate font-semibold text-zinc-800 transition hover:text-zinc-950"
-                        >
-                            {post.user?.name ?? trans('bookmark.unknown_user')}
-                        </Link>
+                        <>
+                            <Link
+                                href={
+                                    post.user?.id
+                                        ? `/profilePage/${post.user.id}`
+                                        : '/profilePage'
+                                }
+                                className={`truncate font-semibold transition ${post.user?.is_verified ? 'text-blue-600 hover:text-blue-700' : 'text-zinc-800 hover:text-zinc-950'}`}
+                            >
+                                {post.user?.name ?? trans('bookmark.unknown_user')}
+                            </Link>
+                            {post.user?.is_verified && (
+                                <VerifiedTeacherBadge />
+                            )}
+                        </>
                     )}
                     <span>•</span>
                     <span className="shrink-0">
@@ -107,25 +120,31 @@ export function PostCard({
 
                 <div className="flex flex-wrap items-center gap-2">
                     {showFolderSelect && folders.length > 0 ? (
-                        <select
+                        <Select
                             value={
-                                post.bookmark_folder_id ?? activeFolderId ?? ''
+                                String(
+                                    post.bookmark_folder_id ?? activeFolderId ?? '',
+                                )
                             }
                             disabled={movingPostIds.includes(post.id)}
-                            onChange={(event) => {
-                                void onMove(
-                                    post.id,
-                                    Number(event.target.value),
-                                );
+                            onValueChange={(value) => {
+                                void onMove(post.id, Number(value));
                             }}
-                            className="rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-600 transition outline-none focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100 disabled:cursor-not-allowed disabled:opacity-70"
                         >
-                            {folders.map((folder) => (
-                                <option key={folder.id} value={folder.id}>
-                                    {folder.name}
-                                </option>
-                            ))}
-                        </select>
+                            <SelectTrigger className="w-fit">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {folders.map((folder) => (
+                                    <SelectItem
+                                        key={folder.id}
+                                        value={String(folder.id)}
+                                    >
+                                        {folder.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     ) : null}
 
                     <BtnSave

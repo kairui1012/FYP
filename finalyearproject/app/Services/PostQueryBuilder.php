@@ -21,7 +21,7 @@ class PostQueryBuilder
     public function withStandardRelations(): self
     {
         $this->query->with([
-            'user:id,name,role',
+            'user:id,name,role,is_verified',
             'user.socialAccounts:id,user_id,avatar',
             'subject:id,name',
             'lesson:id,title,sequence',

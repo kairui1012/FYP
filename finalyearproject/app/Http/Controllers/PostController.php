@@ -783,17 +783,17 @@ class PostController extends Controller
     private function loadPostWithComments(Post $post, ?int $userId, bool $supportsCommentVotes): void
     {
         $post->load([
-            'user:id,name,role',
+            'user:id,name,role,is_verified',
             'user.socialAccounts:id,user_id,avatar',
             'subject:id,name',
             'lesson:id,title,sequence',
             'language:id,code,name',
             'comments' => function ($query) use ($userId, $supportsCommentVotes) {
                 $query->with([
-                    'user:id,name',
+                    'user:id,name,is_verified',
                     'user.socialAccounts:id,user_id,avatar',
                     'parent:id,user_id',
-                    'parent.user:id,name',
+                    'parent.user:id,name,is_verified',
                     'parent.user.socialAccounts:id,user_id,avatar',
                 ]);
 
@@ -1086,7 +1086,7 @@ class PostController extends Controller
         $quizzes = Post::query()
             ->where('parent_material_id', $post->id)
             ->where('post_type', 'quiz')
-            ->with(['user:id,name,role', 'user.socialAccounts:id,user_id,avatar', 'subject:id,name', 'language:id,code,name'])
+            ->with(['user:id,name,role,is_verified', 'user.socialAccounts:id,user_id,avatar', 'subject:id,name', 'language:id,code,name'])
             ->withCount(['likes', 'comments', 'bookmarkItems as saves_count'])
             ->latest()
             ->get();
