@@ -19,23 +19,24 @@ return new class extends Migration
 
         if ($driver === 'mysql') {
             $indexes = DB::select(
-                'SELECT INDEX_NAME AS index_name, GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) AS columns
+                'SELECT INDEX_NAME AS index_name, NON_UNIQUE AS non_unique, GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) AS columns
                  FROM INFORMATION_SCHEMA.STATISTICS
                  WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
-                 GROUP BY INDEX_NAME',
+                 GROUP BY INDEX_NAME, NON_UNIQUE',
                 [$database, 'post_reports']
             );
 
             foreach ($indexes as $index) {
                 $name = (string) ($index->index_name ?? '');
                 $columns = strtolower((string) ($index->columns ?? ''));
+                $isUnique = (int) ($index->non_unique ?? 1) === 0;
 
                 if ($name === 'PRIMARY') {
                     continue;
                 }
 
                 // Remove legacy/incorrect unique indexes on post_id only.
-                if ($columns === 'post_id') {
+                if ($isUnique && $columns === 'post_id') {
                     Schema::table('post_reports', function (Blueprint $table) use ($name): void {
                         $table->dropUnique($name);
                     });
@@ -83,4 +84,3 @@ return new class extends Migration
         return false;
     }
 };
-
