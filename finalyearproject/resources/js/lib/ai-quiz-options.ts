@@ -4,7 +4,6 @@ export interface QuizOptionsResult {
     options: string[];
     answerIndex: number;
     explanation: string;
-    provider: 'deepseek' | 'gemini';
 }
 
 export interface QuizOptionsParams {
@@ -53,7 +52,6 @@ function parseQuizOptionsPayload(
 
 async function requestQuizOptionsWithProvider(
     params: QuizOptionsParams,
-    provider: 'deepseek' | 'gemini',
 ): Promise<QuizOptionsResult> {
     const normalizedLanguageCode =
         typeof params.languageCode === 'string' &&
@@ -80,19 +78,18 @@ async function requestQuizOptionsWithProvider(
             language_code: normalizedLanguageCode,
             existing_options: params.existingOptions ?? [],
             answer_placement: params.answerPlacementPreference ?? 'random',
-            provider,
         }),
     });
 
     if (!res.ok) {
-        let errorMessage = `${provider} failed: ${res.status}`;
+        let errorMessage = `Failed: ${res.status}`;
         try {
             const errorData = await res.json();
             if (
                 typeof errorData?.error === 'string' &&
                 errorData.error.trim() !== ''
             ) {
-                errorMessage = `${provider} failed: ${errorData.error}`;
+                errorMessage = `Failed: ${errorData.error}`;
             } else if (
                 errorData?.errors &&
                 typeof errorData.errors === 'object'
@@ -112,7 +109,7 @@ async function requestQuizOptionsWithProvider(
                     .at(0);
 
                 if (firstError) {
-                    errorMessage = `${provider} failed: ${firstError}`;
+                    errorMessage = `Failed: ${firstError}`;
                 }
             }
         } catch {
@@ -128,15 +125,12 @@ async function requestQuizOptionsWithProvider(
         typeof payload !== 'object' ||
         !('quiz_options' in payload)
     ) {
-        throw new Error(`${provider} failed: invalid quiz options response`);
+        throw new Error(`Failed: invalid quiz options response`);
     }
 
-    return {
-        ...parseQuizOptionsPayload(
-            (payload as { quiz_options?: unknown }).quiz_options,
-        ),
-        provider,
-    };
+    return parseQuizOptionsPayload(
+        (payload as { quiz_options?: unknown }).quiz_options,
+    );
 }
 
 const formatQuizOptionsError = (error: unknown): Error => {
@@ -145,10 +139,7 @@ const formatQuizOptionsError = (error: unknown): Error => {
             ? error.message
             : 'AI options generation failed.';
 
-    if (
-        rawMessage.includes('Gemini error: 403') ||
-        rawMessage.includes('DeepSeek error: 403')
-    ) {
+    if (rawMessage.includes('failed: 403')) {
         return new Error(
             'AI provider authorization failed (403). Please fill options manually for now.',
         );
@@ -166,25 +157,5 @@ const formatQuizOptionsError = (error: unknown): Error => {
 export async function requestQuizOptions(
     params: QuizOptionsParams,
 ): Promise<QuizOptionsResult> {
-    try {
-        return await requestQuizOptionsWithProvider(params, 'deepseek');
-    } catch (deepseekErr) {
-        console.warn(
-            '[aiQuizOptions] DeepSeek failed, falling back to Gemini:',
-            deepseekErr,
-        );
-        try {
-            return await requestQuizOptionsWithProvider(params, 'gemini');
-        } catch (geminiErr) {
-            const formattedGeminiError = formatQuizOptionsError(geminiErr);
-            const deepseekMessage =
-                deepseekErr instanceof Error && deepseekErr.message.trim() !== ''
-                    ? deepseekErr.message
-                    : 'deepseek failed';
-
-            throw new Error(
-                `${formattedGeminiError.message} (DeepSeek: ${deepseekMessage})`,
-            );
-        }
-    }
+    return await requestQuizOptionsWithProvider(params);
 }

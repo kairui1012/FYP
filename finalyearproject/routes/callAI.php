@@ -10,40 +10,13 @@ use Illuminate\Http\Request;
 use Laravel\Fortify\Features;
 use Illuminate\Support\Facades\Http;
 
-$callGemini = function (array $payload, int $timeout = 20) {
-    $apiKey = trim((string) config('services.gemini.key'));
-    if ($apiKey === '') {
-        throw new \Exception('Gemini API key is missing. Set GEMINI_API_KEY in .env.');
-    }
-
-    $endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-    $res = Http::withHeaders(['x-goog-api-key' => $apiKey])
-        ->acceptJson()
-        ->timeout($timeout)
-        ->post($endpoint, $payload);
-
-    if (!$res->successful()) {
-        $errorBody = $res->json('error.message') ?? $res->body();
-        throw new \Exception('Gemini error: ' . $res->status() . ' - ' . str($errorBody)->limit(220));
-    }
-
-    $text = $res->json('candidates.0.content.parts.0.text');
-    if (!is_string($text) || trim($text) === '') {
-        throw new \Exception('Gemini returned empty content');
-    }
-
-    return $text;
-};
-
-Route::post('/translate', function (Request $request) use ($callGemini) {
+Route::post('/translate', function (Request $request) {
     $request->validate([
         'texts'    => 'required|array|max:200',
         'texts.*'  => 'string|max:500',
-        'provider' => 'required|in:deepseek,gemini',
     ]);
 
     $texts    = $request->input('texts');
-    $provider = $request->input('provider');
     $currentLocale = app()->getLocale();
     $targetLanguage = match ($currentLocale) {
         'zh' => 'Chinese (Simplified)',
@@ -60,103 +33,65 @@ Route::post('/translate', function (Request $request) use ($callGemini) {
         . json_encode($texts, JSON_UNESCAPED_UNICODE);
 
     try {
-        $translations = match ($provider) {
+        $res = Http::withToken(config('services.deepseek.key'))
+            ->timeout(15)
+            ->post('https://api.deepseek.com/v1/chat/completions', [
+                'model'           => 'deepseek-chat',
+                'messages'        => [
+                    ['role' => 'system', 'content' => 'You are a professional translator. Always respond with valid JSON only, no markdown.'],
+                    ['role' => 'user',   'content' => $prompt],
+                ],
+                'temperature'     => 0.2,
+                'response_format' => ['type' => 'json_object'],
+            ]);
 
-            'deepseek' => (function () use ($prompt) {
-                $res = Http::withToken(config('services.deepseek.key'))
-                    ->timeout(15)
-                    ->post('https://api.deepseek.com/v1/chat/completions', [
-                        'model'           => 'deepseek-chat',
-                        'messages'        => [
-                            ['role' => 'system', 'content' => 'You are a professional translator. Always respond with valid JSON only, no markdown.'],
-                            ['role' => 'user',   'content' => $prompt],
-                        ],
-                        'temperature'     => 0.2,
-                        'response_format' => ['type' => 'json_object'],
-                    ]);
+        if (!$res->successful()) {
+            throw new \Exception('DeepSeek error: ' . $res->status());
+        }
 
-                if (!$res->successful()) {
-                    throw new \Exception('DeepSeek error: ' . $res->status());
-                }
+        $decoded = json_decode($res->json('choices.0.message.content'), true);
 
-                $decoded = json_decode($res->json('choices.0.message.content'), true);
+        if (!is_array($decoded)) {
+            throw new \Exception('DeepSeek returned invalid JSON structure');
+        }
 
-                if (!is_array($decoded)) {
-                    throw new \Exception('DeepSeek returned invalid JSON structure');
-                }
+        if (isset($decoded['error']) && is_string($decoded['error'])) {
+            throw new \Exception('DeepSeek blocked content: ' . $decoded['error']);
+        }
 
-                if (isset($decoded['error']) && is_string($decoded['error'])) {
-                    throw new \Exception('DeepSeek blocked content: ' . $decoded['error']);
-                }
-
-                foreach ($decoded as $value) {
-                    if (!is_string($value)) {
-                        throw new \Exception('DeepSeek returned non-string translation value');
-                    }
-                }
-
-                return $decoded;
-            })(),
-
-            'gemini' => (function () use ($prompt, $callGemini) {
-                $text = $callGemini([
-                    'contents' => [
-                        ['parts' => [['text' => $prompt]]],
-                    ],
-                    'generationConfig' => [
-                        'responseMimeType' => 'application/json',
-                        'temperature'      => 0.2,
-                    ],
-                ], 15);
-                $decoded = json_decode($text, true);
-
-                if (!is_array($decoded)) {
-                    throw new \Exception('Gemini returned invalid JSON structure');
-                }
-
-                if (isset($decoded['error']) && is_string($decoded['error'])) {
-                    throw new \Exception('Gemini blocked content: ' . $decoded['error']);
-                }
-
-                foreach ($decoded as $value) {
-                    if (!is_string($value)) {
-                        throw new \Exception('Gemini returned non-string translation value');
-                    }
-                }
-
-                return $decoded;
-            })(),
-        };
+        foreach ($decoded as $value) {
+            if (!is_string($value)) {
+                throw new \Exception('DeepSeek returned non-string translation value');
+            }
+        }
 
         return response()->json([
-            'translations' => $translations,
-            'provider'     => $provider,
+            'translations' => $decoded,
+            'provider'     => 'deepseek',
         ]);
 
     } catch (\Exception $e) {
         return response()->json([
-            'error'   => $e->getMessage(),
-            'provider' => $provider,
+            'error'    => $e->getMessage(),
+            'provider' => 'deepseek',
         ], 502);
     }
 
 })->middleware(['web', 'throttle:30,1']);
 
-Route::post('/ai-explain', function (Request $request) use ($callGemini) {
+Route::post('/ai-explain', function (Request $request) {
     $request->validate([
         'question'    => 'required|string|max:500',
         'options'     => 'required|array|min:2|max:8',
         'options.*'   => 'required|string|max:300',
         'user_answer' => 'required|string|max:300',
         'creator_answer' => 'required|string|max:300',
-        'provider'    => 'required|in:deepseek,gemini',
     ]);
 
     $question   = $request->input('question');
     $options    = array_values(array_filter($request->input('options'), fn ($option) => is_string($option) && trim($option) !== ''));
     $userAnswer = $request->input('user_answer');
     $creatorAnswer = $request->input('creator_answer');
-    $provider   = $request->input('provider');
 
     $currentLocale = app()->getLocale();
     $lang = match ($currentLocale) {
@@ -214,46 +149,28 @@ Route::post('/ai-explain', function (Request $request) use ($callGemini) {
     };
 
     try {
-        $analysis = match ($provider) {
+        $res = Http::withToken(config('services.deepseek.key'))
+            ->timeout(20)
+            ->post('https://api.deepseek.com/v1/chat/completions', [
+                'model'       => 'deepseek-chat',
+                'messages'    => [
+                    ['role' => 'system', 'content' => 'You are an expert quiz tutor. Always respond with valid JSON only.'],
+                    ['role' => 'user',   'content' => $prompt],
+                ],
+                'temperature' => 0.4,
+            ]);
 
-            'deepseek' => (function () use ($prompt) {
-                $res = Http::withToken(config('services.deepseek.key'))
-                    ->timeout(20)
-                    ->post('https://api.deepseek.com/v1/chat/completions', [
-                        'model'       => 'deepseek-chat',
-                        'messages'    => [
-                            ['role' => 'system', 'content' => 'You are an expert quiz tutor. Always respond with valid JSON only.'],
-                            ['role' => 'user',   'content' => $prompt],
-                        ],
-                        'temperature' => 0.4,
-                    ]);
+        if (!$res->successful()) {
+            throw new \Exception('DeepSeek error: ' . $res->status());
+        }
 
-                if (!$res->successful()) {
-                    throw new \Exception('DeepSeek error: ' . $res->status());
-                }
+        $text = $res->json('choices.0.message.content');
 
-                $text = $res->json('choices.0.message.content');
+        if (!is_string($text) || trim($text) === '') {
+            throw new \Exception('DeepSeek returned empty analysis');
+        }
 
-                if (!is_string($text) || trim($text) === '') {
-                    throw new \Exception('DeepSeek returned empty analysis');
-                }
-
-                return $text;
-            })(),
-
-            'gemini' => (function () use ($prompt, $callGemini) {
-                return $callGemini([
-                    'contents' => [
-                        ['parts' => [['text' => $prompt]]],
-                    ],
-                    'generationConfig' => [
-                        'temperature' => 0.4,
-                    ],
-                ], 20);
-            })(),
-        };
-
-        $decoded = $decodeAnalysis($analysis);
+        $decoded = $decodeAnalysis($text);
 
         $normalizeAnswer = function ($value) {
             if (!is_string($value)) {
@@ -338,13 +255,13 @@ Route::post('/ai-explain', function (Request $request) use ($callGemini) {
                 'userAnswer' => trim($userAnswer),
                 'creatorAnswer' => trim($creatorAnswer),
             ],
-            'provider' => $provider,
+            'provider' => 'deepseek',
         ]);
 
     } catch (\Exception $e) {
         return response()->json([
-            'error' => $e->getMessage(),
-            'provider' => $provider,
+            'error'    => $e->getMessage(),
+            'provider' => 'deepseek',
         ], 502);
     }
 
@@ -366,14 +283,12 @@ Route::post('/ai-quiz-options', function (Request $request) {
         'existing_options' => 'nullable|array|max:8',
         'existing_options.*' => 'nullable|string|max:255',
         'answer_placement' => 'nullable|in:A,B,C,D,random',
-        'provider'         => 'required|in:deepseek,gemini',
     ]);
 
     $question = trim($request->input('question'));
     $subject = trim((string) $request->input('subject', ''));
     $languageCode = (string) ($request->input('language_code') ?: app()->getLocale());
     $answerPlacement = (string) ($request->input('answer_placement') ?: 'random');
-    $provider = $request->input('provider');
     $existingOptions = collect($request->input('existing_options', []))
         ->filter(fn ($option) => is_string($option) && trim($option) !== '')
         ->map(fn ($option) => trim($option))
@@ -446,57 +361,30 @@ Route::post('/ai-quiz-options', function (Request $request) {
     };
 
     try {
-        $raw = match ($provider) {
-            'deepseek' => (function () use ($prompt) {
-                $res = Http::withToken(config('services.deepseek.key'))
-                    ->timeout(25)
-                    ->post('https://api.deepseek.com/v1/chat/completions', [
-                        'model' => 'deepseek-chat',
-                        'messages' => [
-                            ['role' => 'system', 'content' => 'You are an expert quiz writer. Always respond with valid JSON only.'],
-                            ['role' => 'user', 'content' => $prompt],
-                        ],
-                        'temperature' => 0.45,
-                        'response_format' => ['type' => 'json_object'],
-                    ]);
+        $raw = (function () use ($prompt) {
+            $res = Http::withToken(config('services.deepseek.key'))
+                ->timeout(25)
+                ->post('https://api.deepseek.com/v1/chat/completions', [
+                    'model' => 'deepseek-chat',
+                    'messages' => [
+                        ['role' => 'system', 'content' => 'You are an expert quiz writer. Always respond with valid JSON only.'],
+                        ['role' => 'user', 'content' => $prompt],
+                    ],
+                    'temperature' => 0.45,
+                    'response_format' => ['type' => 'json_object'],
+                ]);
 
-                if (! $res->successful()) {
-                    throw new \Exception('DeepSeek error: ' . $res->status());
-                }
+            if (! $res->successful()) {
+                throw new \Exception('DeepSeek error: ' . $res->status());
+            }
 
-                $text = $res->json('choices.0.message.content');
-                if (! is_string($text) || trim($text) === '') {
-                    throw new \Exception('DeepSeek returned empty quiz options');
-                }
+            $text = $res->json('choices.0.message.content');
+            if (! is_string($text) || trim($text) === '') {
+                throw new \Exception('DeepSeek returned empty quiz options');
+            }
 
-                return $text;
-            })(),
-
-            'gemini' => (function () use ($prompt) {
-                $res = Http::withQueryParameters(['key' => config('services.gemini.key')])
-                    ->timeout(25)
-                    ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', [
-                        'contents' => [
-                            ['parts' => [['text' => $prompt]]],
-                        ],
-                        'generationConfig' => [
-                            'responseMimeType' => 'application/json',
-                            'temperature' => 0.45,
-                        ],
-                    ]);
-
-                if (! $res->successful()) {
-                    throw new \Exception('Gemini error: ' . $res->status());
-                }
-
-                $text = $res->json('candidates.0.content.parts.0.text');
-                if (! is_string($text) || trim($text) === '') {
-                    throw new \Exception('Gemini returned empty quiz options');
-                }
-
-                return $text;
-            })(),
-        };
+            return $text;
+        })();
 
         $decoded = $decodeResult($raw);
         $normalizeOption = function ($option) {
@@ -601,13 +489,13 @@ Route::post('/ai-quiz-options', function (Request $request) {
                 'answerIndex' => $answerIndex,
                 'explanation' => $explanation,
             ],
-            'provider' => $provider,
+            'provider' => 'deepseek',
         ]);
 
     } catch (\Exception $e) {
         return response()->json([
-            'error' => $e->getMessage(),
-            'provider' => $provider,
+            'error'    => $e->getMessage(),
+            'provider' => 'deepseek',
         ], 502);
     }
 })->middleware(['web', 'throttle:20,1']);
@@ -619,7 +507,6 @@ Route::post('/ai-material-quiz', function (Request $request) {
         'subject' => 'nullable|string|max:120',
         'language_code' => 'nullable|string|max:10',
         'question_count' => 'nullable|integer|min:1|max:1',
-        'provider' => 'required|in:deepseek,gemini',
     ]);
 
     $materialTitle = trim($request->input('material_title'));
@@ -627,7 +514,6 @@ Route::post('/ai-material-quiz', function (Request $request) {
     $subject = trim((string) $request->input('subject', ''));
     $languageCode = (string) ($request->input('language_code') ?: app()->getLocale());
     $questionCount = 1;
-    $provider = $request->input('provider');
 
     $targetLanguage = match ($languageCode) {
         'zh' => 'Chinese (Simplified)',
@@ -677,57 +563,30 @@ Route::post('/ai-material-quiz', function (Request $request) {
     };
 
     try {
-        $raw = match ($provider) {
-            'deepseek' => (function () use ($prompt) {
-                $res = Http::withToken(config('services.deepseek.key'))
-                    ->timeout(30)
-                    ->post('https://api.deepseek.com/v1/chat/completions', [
-                        'model' => 'deepseek-chat',
-                        'messages' => [
-                            ['role' => 'system', 'content' => 'You are an expert quiz writer. Always respond with valid JSON only.'],
-                            ['role' => 'user', 'content' => $prompt],
-                        ],
-                        'temperature' => 0.35,
-                        'response_format' => ['type' => 'json_object'],
-                    ]);
+        $raw = (function () use ($prompt) {
+            $res = Http::withToken(config('services.deepseek.key'))
+                ->timeout(30)
+                ->post('https://api.deepseek.com/v1/chat/completions', [
+                    'model' => 'deepseek-chat',
+                    'messages' => [
+                        ['role' => 'system', 'content' => 'You are an expert quiz writer. Always respond with valid JSON only.'],
+                        ['role' => 'user', 'content' => $prompt],
+                    ],
+                    'temperature' => 0.35,
+                    'response_format' => ['type' => 'json_object'],
+                ]);
 
-                if (! $res->successful()) {
-                    throw new \Exception('DeepSeek error: ' . $res->status());
-                }
+            if (! $res->successful()) {
+                throw new \Exception('DeepSeek error: ' . $res->status());
+            }
 
-                $text = $res->json('choices.0.message.content');
-                if (! is_string($text) || trim($text) === '') {
-                    throw new \Exception('DeepSeek returned empty material quiz');
-                }
+            $text = $res->json('choices.0.message.content');
+            if (! is_string($text) || trim($text) === '') {
+                throw new \Exception('DeepSeek returned empty material quiz');
+            }
 
-                return $text;
-            })(),
-
-            'gemini' => (function () use ($prompt) {
-                $res = Http::withQueryParameters(['key' => config('services.gemini.key')])
-                    ->timeout(30)
-                    ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', [
-                        'contents' => [
-                            ['parts' => [['text' => $prompt]]],
-                        ],
-                        'generationConfig' => [
-                            'responseMimeType' => 'application/json',
-                            'temperature' => 0.35,
-                        ],
-                    ]);
-
-                if (! $res->successful()) {
-                    throw new \Exception('Gemini error: ' . $res->status());
-                }
-
-                $text = $res->json('candidates.0.content.parts.0.text');
-                if (! is_string($text) || trim($text) === '') {
-                    throw new \Exception('Gemini returned empty material quiz');
-                }
-
-                return $text;
-            })(),
-        };
+            return $text;
+        })();
 
         $decoded = $decodeResult($raw);
         $questions = collect($decoded['questions'] ?? [])
@@ -766,12 +625,12 @@ Route::post('/ai-material-quiz', function (Request $request) {
             'quiz' => [
                 'questions' => array_slice($questions, 0, $questionCount),
             ],
-            'provider' => $provider,
+            'provider' => 'deepseek',
         ]);
     } catch (\Exception $e) {
         return response()->json([
-            'error' => $e->getMessage(),
-            'provider' => $provider,
+            'error'    => $e->getMessage(),
+            'provider' => 'deepseek',
         ], 502);
     }
 })->middleware(['web', 'throttle:12,1']);
@@ -836,52 +695,29 @@ Route::post('/ai-best-answer', function (Request $request) {
     };
 
     try {
-        $raw = match ($provider) {
+        $raw = (function () use ($prompt) {
+            $res = Http::withToken(config('services.deepseek.key'))
+                ->timeout(25)
+                ->post('https://api.deepseek.com/v1/chat/completions', [
+                    'model'       => 'deepseek-chat',
+                    'messages'    => [
+                        ['role' => 'system', 'content' => 'You are an expert tutor. Always respond with valid JSON only.'],
+                        ['role' => 'user',   'content' => $prompt],
+                    ],
+                    'temperature' => 0.5,
+                ]);
 
-            'deepseek' => (function () use ($prompt) {
-                $res = Http::withToken(config('services.deepseek.key'))
-                    ->timeout(25)
-                    ->post('https://api.deepseek.com/v1/chat/completions', [
-                        'model'       => 'deepseek-chat',
-                        'messages'    => [
-                            ['role' => 'system', 'content' => 'You are an expert tutor. Always respond with valid JSON only.'],
-                            ['role' => 'user',   'content' => $prompt],
-                        ],
-                        'temperature' => 0.5,
-                    ]);
+            if (!$res->successful()) {
+                throw new \Exception('DeepSeek error: ' . $res->status());
+            }
 
-                if (!$res->successful()) {
-                    throw new \Exception('DeepSeek error: ' . $res->status());
-                }
+            $text = $res->json('choices.0.message.content');
+            if (!is_string($text) || trim($text) === '') {
+                throw new \Exception('DeepSeek returned empty response');
+            }
 
-                $text = $res->json('choices.0.message.content');
-                if (!is_string($text) || trim($text) === '') {
-                    throw new \Exception('DeepSeek returned empty response');
-                }
-
-                return $text;
-            })(),
-
-            'gemini' => (function () use ($prompt) {
-                $res = Http::withQueryParameters(['key' => config('services.gemini.key')])
-                    ->timeout(25)
-                    ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', [
-                        'contents'         => [['parts' => [['text' => $prompt]]]],
-                        'generationConfig' => ['temperature' => 0.5],
-                    ]);
-
-                if (!$res->successful()) {
-                    throw new \Exception('Gemini error: ' . $res->status());
-                }
-
-                $text = $res->json('candidates.0.content.parts.0.text');
-                if (!is_string($text) || trim($text) === '') {
-                    throw new \Exception('Gemini returned empty response');
-                }
-
-                return $text;
-            })(),
-        };
+            return $text;
+        })();
 
         $decoded     = $decodeResult($raw);
         $explanation = isset($decoded['explanation']) && is_string($decoded['explanation']) ? trim($decoded['explanation']) : '';
@@ -900,13 +736,12 @@ Route::post('/ai-best-answer', function (Request $request) {
                 'key_points'  => $keyPoints,
                 'summary'     => $summary,
             ],
-            'provider' => $provider,
+            'provider' => 'deepseek',
         ]);
 
     } catch (\Exception $e) {
         return response()->json([
             'error'    => $e->getMessage(),
-            'provider' => $provider,
         ], 502);
     }
 
@@ -974,52 +809,29 @@ Route::post('/ai-answer-feedback', function (Request $request) {
     };
 
     try {
-        $raw = match ($provider) {
+        $raw = (function () use ($prompt) {
+            $res = Http::withToken(config('services.deepseek.key'))
+                ->timeout(25)
+                ->post('https://api.deepseek.com/v1/chat/completions', [
+                    'model'       => 'deepseek-chat',
+                    'messages'    => [
+                        ['role' => 'system', 'content' => 'You are an expert tutor. Always respond with valid JSON only.'],
+                        ['role' => 'user',   'content' => $prompt],
+                    ],
+                    'temperature' => 0.35,
+                ]);
 
-            'deepseek' => (function () use ($prompt) {
-                $res = Http::withToken(config('services.deepseek.key'))
-                    ->timeout(25)
-                    ->post('https://api.deepseek.com/v1/chat/completions', [
-                        'model'       => 'deepseek-chat',
-                        'messages'    => [
-                            ['role' => 'system', 'content' => 'You are an expert tutor. Always respond with valid JSON only.'],
-                            ['role' => 'user',   'content' => $prompt],
-                        ],
-                        'temperature' => 0.35,
-                    ]);
+            if (!$res->successful()) {
+                throw new \Exception('DeepSeek error: ' . $res->status());
+            }
 
-                if (!$res->successful()) {
-                    throw new \Exception('DeepSeek error: ' . $res->status());
-                }
+            $text = $res->json('choices.0.message.content');
+            if (!is_string($text) || trim($text) === '') {
+                throw new \Exception('DeepSeek returned empty feedback');
+            }
 
-                $text = $res->json('choices.0.message.content');
-                if (!is_string($text) || trim($text) === '') {
-                    throw new \Exception('DeepSeek returned empty feedback');
-                }
-
-                return $text;
-            })(),
-
-            'gemini' => (function () use ($prompt) {
-                $res = Http::withQueryParameters(['key' => config('services.gemini.key')])
-                    ->timeout(25)
-                    ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', [
-                        'contents'         => [['parts' => [['text' => $prompt]]]],
-                        'generationConfig' => ['temperature' => 0.35],
-                    ]);
-
-                if (!$res->successful()) {
-                    throw new \Exception('Gemini error: ' . $res->status());
-                }
-
-                $text = $res->json('candidates.0.content.parts.0.text');
-                if (!is_string($text) || trim($text) === '') {
-                    throw new \Exception('Gemini returned empty feedback');
-                }
-
-                return $text;
-            })(),
-        };
+            return $text;
+        })();
 
         $decoded = $decodeResult($raw);
 
@@ -1067,13 +879,12 @@ Route::post('/ai-answer-feedback', function (Request $request) {
                 'next_step'    => $nextStep,
                 'confidence'   => $confidence,
             ],
-            'provider' => $provider,
+            'provider' => 'deepseek',
         ]);
 
     } catch (\Exception $e) {
         return response()->json([
             'error'    => $e->getMessage(),
-            'provider' => $provider,
         ], 502);
     }
 
@@ -1084,13 +895,11 @@ Route::post('/ai-learning-objectives', function (Request $request) {
         'post_title'   => 'required|string|max:300',
         'post_content' => 'nullable|string|max:3000',
         'post_type'    => 'nullable|string|in:material,question,quiz,sharing',
-        'provider'     => 'required|in:deepseek,gemini',
     ]);
 
     $postTitle   = $request->input('post_title');
     $postContent = $request->input('post_content', '');
     $postType    = $request->input('post_type', 'sharing');
-    $provider    = $request->input('provider');
 
     $currentLocale = app()->getLocale();
     $lang = match ($currentLocale) {
@@ -1146,56 +955,30 @@ Route::post('/ai-learning-objectives', function (Request $request) {
     };
 
     try {
-        $raw = match ($provider) {
+        $raw = (function () use ($prompt) {
+            $res = Http::withToken(config('services.deepseek.key'))
+                ->timeout(25)
+                ->post('https://api.deepseek.com/v1/chat/completions', [
+                    'model'           => 'deepseek-chat',
+                    'messages'        => [
+                        ['role' => 'system', 'content' => 'You are an expert educational designer. Always respond with valid JSON only.'],
+                        ['role' => 'user',   'content' => $prompt],
+                    ],
+                    'temperature'     => 0.4,
+                    'response_format' => ['type' => 'json_object'],
+                ]);
 
-            'deepseek' => (function () use ($prompt) {
-                $res = Http::withToken(config('services.deepseek.key'))
-                    ->timeout(25)
-                    ->post('https://api.deepseek.com/v1/chat/completions', [
-                        'model'           => 'deepseek-chat',
-                        'messages'        => [
-                            ['role' => 'system', 'content' => 'You are an expert educational designer. Always respond with valid JSON only.'],
-                            ['role' => 'user',   'content' => $prompt],
-                        ],
-                        'temperature'     => 0.4,
-                        'response_format' => ['type' => 'json_object'],
-                    ]);
+            if (!$res->successful()) {
+                throw new \Exception('DeepSeek error: ' . $res->status());
+            }
 
-                if (!$res->successful()) {
-                    throw new \Exception('DeepSeek error: ' . $res->status());
-                }
+            $text = $res->json('choices.0.message.content');
+            if (!is_string($text) || trim($text) === '') {
+                throw new \Exception('DeepSeek returned empty response');
+            }
 
-                $text = $res->json('choices.0.message.content');
-                if (!is_string($text) || trim($text) === '') {
-                    throw new \Exception('DeepSeek returned empty response');
-                }
-
-                return $text;
-            })(),
-
-            'gemini' => (function () use ($prompt) {
-                $res = Http::withQueryParameters(['key' => config('services.gemini.key')])
-                    ->timeout(25)
-                    ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', [
-                        'contents'         => [['parts' => [['text' => $prompt]]]],
-                        'generationConfig' => [
-                            'responseMimeType' => 'application/json',
-                            'temperature'      => 0.4,
-                        ],
-                    ]);
-
-                if (!$res->successful()) {
-                    throw new \Exception('Gemini error: ' . $res->status());
-                }
-
-                $text = $res->json('candidates.0.content.parts.0.text');
-                if (!is_string($text) || trim($text) === '') {
-                    throw new \Exception('Gemini returned empty response');
-                }
-
-                return $text;
-            })(),
-        };
+            return $text;
+        })();
 
         $decoded    = $decodeResult($raw);
         $objectives = isset($decoded['objectives']) && is_array($decoded['objectives'])
@@ -1218,13 +1001,13 @@ Route::post('/ai-learning-objectives', function (Request $request) {
                 'difficulty'     => $difficulty,
                 'estimated_time' => $estimatedTime,
             ],
-            'provider' => $provider,
+            'provider' => 'deepseek',
         ]);
 
     } catch (\Exception $e) {
         return response()->json([
             'error'    => $e->getMessage(),
-            'provider' => $provider,
+            'provider' => 'deepseek',
         ], 502);
     }
 
@@ -1235,7 +1018,6 @@ Route::post('/ai-doubt-clarify', function (Request $request) {
         'post_title'     => 'required|string|max:300',
         'post_content'   => 'nullable|string|max:2000',
         'answer_content' => 'required|string|max:2000',
-        'provider'       => 'required|in:deepseek,gemini',
     ]);
 
     $postTitle     = $request->input('post_title');
@@ -1289,51 +1071,29 @@ Route::post('/ai-doubt-clarify', function (Request $request) {
     };
 
     try {
-        $raw = match ($provider) {
-            'deepseek' => (function () use ($prompt) {
-                $res = Http::withToken(config('services.deepseek.key'))
-                    ->timeout(20)
-                    ->post('https://api.deepseek.com/v1/chat/completions', [
-                        'model'       => 'deepseek-chat',
-                        'messages'    => [
-                            ['role' => 'system', 'content' => 'You are a supportive tutor. Always respond with valid JSON only.'],
-                            ['role' => 'user',   'content' => $prompt],
-                        ],
-                        'temperature' => 0.5,
-                    ]);
+        $raw = (function () use ($prompt) {
+            $res = Http::withToken(config('services.deepseek.key'))
+                ->timeout(20)
+                ->post('https://api.deepseek.com/v1/chat/completions', [
+                    'model'       => 'deepseek-chat',
+                    'messages'    => [
+                        ['role' => 'system', 'content' => 'You are a supportive tutor. Always respond with valid JSON only.'],
+                        ['role' => 'user',   'content' => $prompt],
+                    ],
+                    'temperature' => 0.5,
+                ]);
 
-                if (!$res->successful()) {
-                    throw new \Exception('DeepSeek error: ' . $res->status());
-                }
+            if (!$res->successful()) {
+                throw new \Exception('DeepSeek error: ' . $res->status());
+            }
 
-                $text = $res->json('choices.0.message.content');
-                if (!is_string($text) || trim($text) === '') {
-                    throw new \Exception('DeepSeek returned empty response');
-                }
+            $text = $res->json('choices.0.message.content');
+            if (!is_string($text) || trim($text) === '') {
+                throw new \Exception('DeepSeek returned empty response');
+            }
 
-                return $text;
-            })(),
-
-            'gemini' => (function () use ($prompt) {
-                $res = Http::withQueryParameters(['key' => config('services.gemini.key')])
-                    ->timeout(20)
-                    ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', [
-                        'contents'         => [['parts' => [['text' => $prompt]]]],
-                        'generationConfig' => ['temperature' => 0.5],
-                    ]);
-
-                if (!$res->successful()) {
-                    throw new \Exception('Gemini error: ' . $res->status());
-                }
-
-                $text = $res->json('candidates.0.content.parts.0.text');
-                if (!is_string($text) || trim($text) === '') {
-                    throw new \Exception('Gemini returned empty response');
-                }
-
-                return $text;
-            })(),
-        };
+            return $text;
+        })();
 
         $decoded     = $decodeResult($raw);
         $explanation = isset($decoded['explanation']) && is_string($decoded['explanation']) ? trim($decoded['explanation']) : '';
@@ -1345,13 +1105,13 @@ Route::post('/ai-doubt-clarify', function (Request $request) {
 
         return response()->json([
             'result'   => compact('explanation', 'guidance'),
-            'provider' => $provider,
+            'provider' => 'deepseek',
         ]);
 
     } catch (\Exception $e) {
         return response()->json([
             'error'    => $e->getMessage(),
-            'provider' => $provider,
+            'provider' => 'deepseek',
         ], 502);
     }
 
@@ -1363,14 +1123,12 @@ Route::post('/ai-validate-wrong', function (Request $request) {
         'post_content'   => 'nullable|string|max:2000',
         'answer_content' => 'required|string|max:2000',
         'user_reasoning' => 'required|string|min:10|max:1000',
-        'provider'       => 'required|in:deepseek,gemini',
     ]);
 
     $postTitle     = $request->input('post_title');
     $postContent   = $request->input('post_content', '');
     $answerContent = $request->input('answer_content');
     $userReasoning = $request->input('user_reasoning');
-    $provider      = $request->input('provider');
 
     $currentLocale = app()->getLocale();
     $lang = match ($currentLocale) {
@@ -1424,51 +1182,29 @@ Route::post('/ai-validate-wrong', function (Request $request) {
     };
 
     try {
-        $raw = match ($provider) {
-            'deepseek' => (function () use ($prompt) {
-                $res = Http::withToken(config('services.deepseek.key'))
-                    ->timeout(20)
-                    ->post('https://api.deepseek.com/v1/chat/completions', [
-                        'model'       => 'deepseek-chat',
-                        'messages'    => [
-                            ['role' => 'system', 'content' => 'You are a fair academic evaluator. Always respond with valid JSON only.'],
-                            ['role' => 'user',   'content' => $prompt],
-                        ],
-                        'temperature' => 0.3,
-                    ]);
+        $raw = (function () use ($prompt) {
+            $res = Http::withToken(config('services.deepseek.key'))
+                ->timeout(20)
+                ->post('https://api.deepseek.com/v1/chat/completions', [
+                    'model'       => 'deepseek-chat',
+                    'messages'    => [
+                        ['role' => 'system', 'content' => 'You are a fair academic evaluator. Always respond with valid JSON only.'],
+                        ['role' => 'user',   'content' => $prompt],
+                    ],
+                    'temperature' => 0.3,
+                ]);
 
-                if (!$res->successful()) {
-                    throw new \Exception('DeepSeek error: ' . $res->status());
-                }
+            if (!$res->successful()) {
+                throw new \Exception('DeepSeek error: ' . $res->status());
+            }
 
-                $text = $res->json('choices.0.message.content');
-                if (!is_string($text) || trim($text) === '') {
-                    throw new \Exception('DeepSeek returned empty response');
-                }
+            $text = $res->json('choices.0.message.content');
+            if (!is_string($text) || trim($text) === '') {
+                throw new \Exception('DeepSeek returned empty response');
+            }
 
-                return $text;
-            })(),
-
-            'gemini' => (function () use ($prompt) {
-                $res = Http::withQueryParameters(['key' => config('services.gemini.key')])
-                    ->timeout(20)
-                    ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', [
-                        'contents'         => [['parts' => [['text' => $prompt]]]],
-                        'generationConfig' => ['temperature' => 0.3],
-                    ]);
-
-                if (!$res->successful()) {
-                    throw new \Exception('Gemini error: ' . $res->status());
-                }
-
-                $text = $res->json('candidates.0.content.parts.0.text');
-                if (!is_string($text) || trim($text) === '') {
-                    throw new \Exception('Gemini returned empty response');
-                }
-
-                return $text;
-            })(),
-        };
+            return $text;
+        })();
 
         $decoded  = $decodeResult($raw);
         $isValid  = isset($decoded['is_valid']) && is_bool($decoded['is_valid']) ? $decoded['is_valid'] : false;
@@ -1480,13 +1216,12 @@ Route::post('/ai-validate-wrong', function (Request $request) {
 
         return response()->json([
             'result'   => ['is_valid' => $isValid, 'feedback' => $feedback],
-            'provider' => $provider,
+            'provider' => 'deepseek',
         ]);
 
     } catch (\Exception $e) {
         return response()->json([
             'error'    => $e->getMessage(),
-            'provider' => $provider,
         ], 502);
     }
 

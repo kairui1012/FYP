@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Achievement;
 use App\Models\Comment;
-use App\Models\PostSave;
-use App\Models\QuizMistake;
+use App\Models\BookmarkItem;
+use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Models\UserAchievement;
 use App\Models\UserProgress;
@@ -33,8 +33,8 @@ class AchievementsController extends Controller
         // Live metrics computed from DB
         $liveMetrics = [
             'comments_count'   => Comment::where('user_id', $user->id)->count(),
-            'saved_posts_count' => PostSave::where('user_id', $user->id)->count(),
-            'mistakes_reviewed' => QuizMistake::where('user_id', $user->id)->count(),
+            'saved_posts_count' => BookmarkItem::where('user_id', $user->id)->count(),
+            'mistakes_reviewed' => QuizAttempt::where('user_id', $user->id)->count(),
         ];
 
         // Evaluate new achievements now that we have live metrics in context

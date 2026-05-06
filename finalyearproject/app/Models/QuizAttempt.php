@@ -5,8 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class QuizMistake extends Model
+class QuizAttempt extends Model
 {
+    protected $table = 'quiz_mistakes';
+
     protected $fillable = [
         'user_id',
         'post_id',

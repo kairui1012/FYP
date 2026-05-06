@@ -4,7 +4,6 @@ export interface LearningObjectives {
     objectives: string[];
     difficulty: LearningObjectivesDifficulty;
     estimated_time: string;
-    provider: 'deepseek' | 'gemini';
 }
 
 export interface LearningObjectivesParams {
@@ -44,7 +43,7 @@ function parsePayload(payload: unknown): Omit<LearningObjectives, 'provider'> {
 
 async function requestWithProvider(
     params: LearningObjectivesParams,
-    provider: 'deepseek' | 'gemini',
+
 ): Promise<LearningObjectives> {
     const res = await fetch('/ai-learning-objectives', {
         method: 'POST',
@@ -58,12 +57,11 @@ async function requestWithProvider(
             post_title: params.postTitle,
             post_content: params.postContent ?? '',
             post_type: params.postType ?? 'sharing',
-            provider,
         }),
     });
 
     if (!res.ok) {
-        let msg = `${provider} failed: ${res.status}`;
+        let msg = `Failed: ${res.status}`;
         try {
             const err = await res.json();
             if (typeof err?.error === 'string' && err.error.trim() !== '') {
@@ -76,19 +74,11 @@ async function requestWithProvider(
     }
 
     const payload = await res.json();
-    return {
-        ...parsePayload((payload as { result?: unknown }).result),
-        provider,
-    };
+    return parsePayload((payload as { result?: unknown }).result);
 }
 
 export async function requestLearningObjectives(
     params: LearningObjectivesParams,
 ): Promise<LearningObjectives> {
-    try {
-        return await requestWithProvider(params, 'deepseek');
-    } catch (err) {
-        console.warn('[aiLearningObjectives] DeepSeek failed, falling back to Gemini:', err);
-        return await requestWithProvider(params, 'gemini');
-    }
+    return await requestWithProvider(params);
 }

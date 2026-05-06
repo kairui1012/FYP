@@ -70,7 +70,6 @@ function collectTextNodes(root: HTMLElement): Text[] {
 
 async function translateWithProvider(
     texts: string[],
-    provider: 'deepseek' | 'gemini',
 ): Promise<Record<string, string>> {
     const res = await fetch('/translate', {
         method: 'POST',
@@ -78,15 +77,15 @@ async function translateWithProvider(
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
         },
-        body: JSON.stringify({ texts, provider }),
+        body: JSON.stringify({ texts }),
     });
     if (!res.ok) {
-        let errorMessage = `${provider} failed: ${res.status}`;
+        let errorMessage = `Failed: ${res.status}`;
 
         try {
             const errorData = await res.json();
             if (typeof errorData?.error === 'string' && errorData.error.trim() !== '') {
-                errorMessage = `${provider} failed: ${errorData.error}`;
+                errorMessage = `Failed: ${errorData.error}`;
             }
         } catch {
             // Keep the default status-based message when response is not JSON.
@@ -98,7 +97,7 @@ async function translateWithProvider(
     const { translations } = await res.json();
 
     if (!translations || typeof translations !== 'object') {
-        throw new Error(`${provider} failed: invalid translation payload`);
+        throw new Error(`Failed: invalid translation payload`);
     }
 
     return translations;
@@ -106,13 +105,12 @@ async function translateWithProvider(
 
 async function translateInBatches(
     texts: string[],
-    provider: 'deepseek' | 'gemini',
 ): Promise<Record<string, string>> {
     const chunks = chunkArray(texts, MAX_TEXTS_PER_REQUEST);
     const mergedTranslations: Record<string, string> = {};
 
     for (const chunk of chunks) {
-        const chunkTranslations = await translateWithProvider(chunk, provider);
+        const chunkTranslations = await translateWithProvider(chunk);
         Object.assign(mergedTranslations, chunkTranslations);
     }
 
@@ -130,7 +128,6 @@ export function BtnAiTranslate({
     const { trans } = reactLang();
     const [loading, setLoading] = useState(false);
     const [translated, setTranslated] = useState(false);
-    const [usedProvider, setUsedProvider] = useState<'deepseek' | 'gemini' | null>(null);
     const [error, setError] = useState<string | null>(null);
     const locale = getCurrentLocale();
     const localeBadge = trans(`aiTranslate.badge_${locale}`);
@@ -146,23 +143,7 @@ export function BtnAiTranslate({
                 content,
                 ...(Array.isArray(texts) ? texts : []),
             ]);
-            let translations: Record<string, string>;
-            let provider: 'deepseek' | 'gemini';
-            try {
-                translations = await translateInBatches(
-                    textsToTranslate,
-                    'deepseek',
-                );
-                provider = 'deepseek';
-            } catch (deepseekErr) {
-                console.warn('[BtnAiTranslate] DeepSeek failed, falling back to Gemini:', deepseekErr);
-                translations = await translateInBatches(
-                    textsToTranslate,
-                    'gemini',
-                );
-                provider = 'gemini';
-            }
-            setUsedProvider(provider);
+            const translations = await translateInBatches(textsToTranslate);
             setTranslated(true);
             onTranslateTexts?.(translations);
             if (onTranslate) {
@@ -172,7 +153,6 @@ export function BtnAiTranslate({
                 });
             }
         } catch (err) {
-            console.error('[BtnAiTranslate] Both providers failed:', err);
             setError(
                 err instanceof Error
                     ? err.message
@@ -204,7 +184,7 @@ export function BtnAiTranslate({
             )}
             <span className="text-sm font-medium">
                 {loading ? trans('aiTranslate.loading')
-                : translated ? `${localeBadge} · ${usedProvider === 'gemini' ? 'Gemini' : 'DeepSeek'}`
+                : translated ? `${localeBadge} · DeepSeek`
                 : error ? trans('aiTranslate.retry')
                 : trans('aiTranslate.button')}
             </span>

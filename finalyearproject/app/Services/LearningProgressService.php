@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Achievement;
 use App\Models\Post;
 use App\Models\QuizCompletion;
-use App\Models\QuizMistake;
+use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Models\UserAchievement;
 use App\Models\UserProgress;
@@ -228,20 +228,20 @@ class LearningProgressService
             return [];
         }
 
-        return QuizMistake::query()
+        return QuizAttempt::query()
             ->where('user_id', $user->id)
             ->where('is_correct', false)
             ->with(['post:id,title,subject_id,quiz_data', 'post.subject:id,name'])
             ->orderByDesc('attempted_at')
             ->take(3)
             ->get()
-            ->map(fn (QuizMistake $mistake) => $this->serializeMistake($mistake))
+            ->map(fn (QuizAttempt $mistake) => $this->serializeMistake($mistake))
             ->filter()
             ->values()
             ->all();
     }
 
-    private function serializeMistake(QuizMistake $mistake): ?array
+    private function serializeMistake(QuizAttempt $mistake): ?array
     {
         $post = $mistake->post;
 

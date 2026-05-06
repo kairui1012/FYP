@@ -6,7 +6,7 @@ use App\Models\Language;
 use App\Models\MaterialQuizAttempt;
 use App\Models\Post;
 use App\Models\QuizCompletion;
-use App\Models\QuizMistake;
+use App\Models\QuizAttempt;
 use App\Models\StudyMaterialFeedback;
 use App\Models\StudyMaterialVersion;
 use App\Models\StudyMaterialView;
@@ -773,7 +773,7 @@ class PostController extends Controller
             'insights' => [
                 'low_rated_materials' => $this->buildLowRatedMaterialsInsights($materialId, $subjectId, $quizId, $since, $sort, $user->id),
                 'frequently_wrong_questions' => $this->buildFrequentlyWrongQuestionsInsights($materialId, $subjectId, $quizId, $since, $sort),
-                'material_versions' => $this->buildMaterialVersionHistoryInsights($materialId, $subjectId, $quizId, $since),
+                'material_versions' => $this->buildMaterialVersionHistoryInsights($materialId, $subjectId, $quizId, $since, $user->id),
                 'repeated_feedback' => $this->buildRepeatedFeedbackInsights($materialId, $subjectId, $quizId, $since, $sort),
             ],
             'generated_at' => now()->toISOString(),
@@ -860,12 +860,12 @@ class PostController extends Controller
             return [];
         }
 
-        return QuizMistake::query()
+        return QuizAttempt::query()
             ->where('user_id', $userId)
             ->where('post_id', $postId)
             ->orderBy('question_index')
             ->get(['question_index', 'selected_answer_index', 'is_correct'])
-            ->map(fn (QuizMistake $attempt) => [
+            ->map(fn (QuizAttempt $attempt) => [
                 'question_index' => (int) $attempt->question_index,
                 'selected_answer_index' => (int) $attempt->selected_answer_index,
                 'is_correct' => (bool) $attempt->is_correct,
@@ -1585,7 +1585,7 @@ class PostController extends Controller
         ];
     }
 
-    private function buildMaterialVersionHistoryInsights(?int $materialId, ?int $subjectId, ?int $quizId, ?CarbonInterface $since): array
+    private function buildMaterialVersionHistoryInsights(?int $materialId, ?int $subjectId, ?int $quizId, ?CarbonInterface $since, int $teacherId): array
     {
         if (! Schema::hasTable('study_material_versions')) {
             return [];
@@ -1611,6 +1611,7 @@ class PostController extends Controller
             ->select('study_material_versions.*')
             ->join('posts', 'posts.id', '=', 'study_material_versions.post_id')
             ->where('posts.post_type', 'material')
+            ->where('posts.user_id', $teacherId)
             ->with('post:id,title,subject_id');
 
         if ($resolvedMaterialId !== null) {

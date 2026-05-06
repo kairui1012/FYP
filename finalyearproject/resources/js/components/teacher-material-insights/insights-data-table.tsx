@@ -6,13 +6,14 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import type { ReactNode } from 'react';
 
 type TransFn = (key: string) => string;
 
 type Column<T> = {
     key: string;
     header: string;
-    render: (item: T) => string | number;
+    render: (item: T) => ReactNode;
     className?: string;
 };
 

@@ -4,9 +4,9 @@ namespace App\Services;
 
 use App\Models\Badge;
 use App\Models\Comment;
+use App\Models\BookmarkItem;
 use App\Models\Like;
-use App\Models\PostSave;
-use App\Models\QuizMistake;
+use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Models\UserAchievement;
 use App\Models\UserProgress;
@@ -94,8 +94,8 @@ class AchievementService
 
         // Live metrics computed from DB (no extra stored column needed)
         $commentsCount   = Comment::where('user_id', $user->id)->count();
-        $savedPostsCount = PostSave::where('user_id', $user->id)->count();
-        $mistakesReviewed = QuizMistake::where('user_id', $user->id)->count();
+        $savedPostsCount = BookmarkItem::where('user_id', $user->id)->count();
+        $mistakesReviewed = QuizAttempt::where('user_id', $user->id)->count();
 
         $conditions = [
             // ── Existing (preserved) ────────────────────────────────────────

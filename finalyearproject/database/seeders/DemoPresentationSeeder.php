@@ -4,10 +4,11 @@ namespace Database\Seeders;
 
 use App\Models\Comment;
 use App\Models\CommentLike;
+use App\Models\BookmarkFolder;
+use App\Models\BookmarkItem;
 use App\Models\Like;
 use App\Models\Post;
-use App\Models\PostSave;
-use App\Models\QuizMistake;
+use App\Models\QuizAttempt;
 use App\Models\SocialAccount;
 use App\Models\StudyMaterialFeedback;
 use App\Models\Subject;
@@ -50,6 +51,12 @@ class DemoPresentationSeeder extends Seeder
             ['email' => 'student.j@example.com', 'name' => 'Jasmine Low'],
             ['email' => 'student.k@example.com', 'name' => 'Kai Wen'],
             ['email' => 'student.l@example.com', 'name' => 'Liyana Omar'],
+            ['email' => 'student.m@example.com', 'name' => 'Mira Zahra'],
+            ['email' => 'student.n@example.com', 'name' => 'Naveen Raj'],
+            ['email' => 'student.o@example.com', 'name' => 'Olivia Poh'],
+            ['email' => 'student.p@example.com', 'name' => 'Puteri Sofea'],
+            ['email' => 'student.q@example.com', 'name' => 'Qing Yi'],
+            ['email' => 'student.r@example.com', 'name' => 'Rafiq Azlan'],
         ])->map(fn (array $reviewer) => $this->upsertUser($reviewer['email'], $reviewer['name'], 'student'));
 
         $allDemoUsers = collect([$teacher, $student])
@@ -99,6 +106,244 @@ class DemoPresentationSeeder extends Seeder
                 now()->subDays(12),
             ),
         ];
+
+        $teacherMediaMaterials = collect([
+            [
+                'title' => 'Algebra Basics: Expanding Single Brackets',
+                'paragraphs' => [
+                    'This lesson explains how to distribute terms correctly when expanding single brackets.',
+                    'Students should highlight sign changes before writing the final simplified expression.',
+                    'A two-line checking routine is included to reduce careless sign mistakes.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'image' => 'https://images.unsplash.com/photo-1509228468518-180dd4864904',
+                'created_at' => now()->subDays(9),
+            ],
+            [
+                'title' => 'Algebra Basics: Collecting Like Terms Efficiently',
+                'paragraphs' => [
+                    'This note trains students to group similar variables before combining coefficients.',
+                    'Use color-coding during early practice to improve term recognition speed.',
+                    'A mini drill is included to build fluency for exam conditions.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=2g811Eo7K8U',
+                'image' => 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40',
+                'created_at' => now()->subDays(8),
+            ],
+            [
+                'title' => 'Linear Equations: Balancing Method Step by Step',
+                'paragraphs' => [
+                    'Focus on doing the same operation to both sides while preserving equality.',
+                    'Students learn to isolate variables systematically without skipping steps.',
+                    'Common misconceptions are listed with quick correction tips.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=3Yv3gR6I2dA',
+                'image' => 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173',
+                'created_at' => now()->subDays(8),
+            ],
+            [
+                'title' => 'Fractions: Comparing and Ordering Quickly',
+                'paragraphs' => [
+                    'This guide compares denominator matching and benchmark strategies.',
+                    'Students practice deciding the fastest approach based on the question type.',
+                    'Error checks are included for numerator-denominator confusion.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=HfACrKJ_Y2w',
+                'image' => 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b',
+                'created_at' => now()->subDays(7),
+            ],
+            [
+                'title' => 'Percentages: Increase and Decrease Problems',
+                'paragraphs' => [
+                    'Students practise converting word problems into percentage multipliers.',
+                    'The lesson emphasises difference between percentage points and percent change.',
+                    'A short checklist helps avoid inverse-operation mistakes.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=3evj5m8lJ0w',
+                'image' => 'https://images.unsplash.com/photo-1523240795612-9a054b0db644',
+                'created_at' => now()->subDays(7),
+            ],
+            [
+                'title' => 'Ratio and Proportion: Model Method for Beginners',
+                'paragraphs' => [
+                    'This material introduces ratio tables and bar models for visual learners.',
+                    'Students practise translating text into ratio statements clearly.',
+                    'The final section compares direct and inverse proportion patterns.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=X2nYl8Q9L2k',
+                'image' => 'https://images.unsplash.com/photo-1498079022511-d15614cb1c02',
+                'created_at' => now()->subDays(6),
+            ],
+            [
+                'title' => 'Geometry: Interior Angles of Triangles and Polygons',
+                'paragraphs' => [
+                    'Students review angle sum facts and apply them to multi-step diagrams.',
+                    'The material teaches annotation habits before solving.',
+                    'A quick challenge set builds confidence for structured questions.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=b7LqzH6o8zU',
+                'image' => 'https://images.unsplash.com/photo-1513258496099-48168024aec0',
+                'created_at' => now()->subDays(6),
+            ],
+            [
+                'title' => 'Coordinate Geometry: Midpoint and Distance',
+                'paragraphs' => [
+                    'This lesson connects formulas to visual movement on the Cartesian plane.',
+                    'Students practise plotting points before substituting into formulas.',
+                    'A diagnostic section targets common substitution and sign errors.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=QVKj3LADCnA',
+                'image' => 'https://images.unsplash.com/photo-1460518451285-97b6aa326961',
+                'created_at' => now()->subDays(5),
+            ],
+            [
+                'title' => 'Statistics: Mean, Median, Mode in Context',
+                'paragraphs' => [
+                    'The note compares which measure is most suitable in different data sets.',
+                    'Students evaluate outliers before selecting an answer.',
+                    'Realistic school-based examples improve interpretation skills.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=xxpc-HPKN28',
+                'image' => 'https://images.unsplash.com/photo-1551288049-bebda4e38f71',
+                'created_at' => now()->subDays(5),
+            ],
+            [
+                'title' => 'Probability: Listing Outcomes Systematically',
+                'paragraphs' => [
+                    'Students learn to use tables and tree diagrams for sample spaces.',
+                    'The lesson reinforces probability values between 0 and 1.',
+                    'Checking strategies are included for complete outcome listing.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=SkidyDQuupA',
+                'image' => 'https://images.unsplash.com/photo-1519452575417-564c1401ecc0',
+                'created_at' => now()->subDays(4),
+            ],
+            [
+                'title' => 'Chinese Writing Skills: 强化议论文论证结构',
+                'paragraphs' => [
+                    '本课重点是“论点-论据-论证”三段式结构。',
+                    '学生将练习把事实例子和观点紧密连接。',
+                    '附上常见逻辑跳跃问题与修正方式。',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=5MgBikgcWnY',
+                'image' => 'https://images.unsplash.com/photo-1456324504439-367cee3b3c32',
+                'created_at' => now()->subDays(4),
+            ],
+            [
+                'title' => 'Bahasa Melayu: Teknik Huraian Isi Karangan',
+                'paragraphs' => [
+                    'Modul ini membina huraian isi menggunakan formula isi-sebab-contoh-kesan.',
+                    'Pelajar belajar menambah nilai hujah tanpa mengulang ayat yang sama.',
+                    'Disertakan latihan ringkas untuk semakan kendiri.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=YQHsXMglC9A',
+                'image' => 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e',
+                'created_at' => now()->subDays(3),
+            ],
+            [
+                'title' => 'Exam Strategy: 30-Minute Revision Sprint Plan',
+                'paragraphs' => [
+                    'This material provides a fast revision framework for weak topics.',
+                    'Students allocate time between concept recap and error correction drills.',
+                    'A priority matrix helps decide what to revise first.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=ZXsQAXx_ao0',
+                'image' => 'https://images.unsplash.com/photo-1455390582262-044cdead277a',
+                'created_at' => now()->subDays(2),
+            ],
+            [
+                'title' => 'Common Mistakes Clinic: Quadratic Sign Errors',
+                'paragraphs' => [
+                    'This post compiles frequent sign-related mistakes in quadratic manipulation.',
+                    'Students compare wrong and corrected solutions side by side.',
+                    'A 60-second final check routine is included.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=R0eQGf_lxA0',
+                'image' => 'https://images.unsplash.com/photo-1484417894907-623942c8ee29',
+                'created_at' => now()->subDays(2),
+            ],
+            [
+                'title' => 'Study Skills: Error Log Template for Weekly Reflection',
+                'paragraphs' => [
+                    'Students record mistakes by topic, cause, and correction plan.',
+                    'The reflection section encourages deliberate weekly improvements.',
+                    'Teachers can use it to give focused feedback quickly.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=0KSOMA3QBU0',
+                'image' => 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6',
+                'created_at' => now()->subDay(),
+            ],
+            [
+                'title' => 'Learning Motivation: Building Consistency Before Exams',
+                'paragraphs' => [
+                    'This final support note discusses small daily habits for better retention.',
+                    'Students learn a realistic consistency model instead of last-minute cramming.',
+                    'Includes a printable daily tracker format.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=JGwWNGJdvx8',
+                'image' => 'https://images.unsplash.com/photo-1472289065668-ce650ac443d2',
+                'created_at' => now()->subDay(),
+            ],
+            [
+                'title' => 'Quick Drill: Five-Minute Mental Math Routine',
+                'paragraphs' => [
+                    'A short routine to strengthen arithmetic fluency before problem-solving.',
+                    'Students practise estimation first, then exact calculation.',
+                    'The final tip section reduces rushed-answer errors.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=hT_nvWreIhg',
+                'image' => 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570',
+                'created_at' => now()->subDay(),
+            ],
+            [
+                'title' => 'Word Problems: Translating Sentences Into Equations',
+                'paragraphs' => [
+                    'Students identify keywords and unknowns before building equations.',
+                    'This lesson separates relevant from distracting information.',
+                    'A worked checklist is provided for structured responses.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=fLexgOxsZu0',
+                'image' => 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846',
+                'created_at' => now()->subDay(),
+            ],
+            [
+                'title' => 'Graph Interpretation: Reading Trends from Curves',
+                'paragraphs' => [
+                    'The material trains students to describe increasing/decreasing intervals precisely.',
+                    'Students connect gradient behavior to real-world interpretation.',
+                    'Sentence stems are included for exam-style explanation questions.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=09R8_2nJtjg',
+                'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f',
+                'created_at' => now()->subDay(),
+            ],
+            [
+                'title' => 'Final Revision Pack: Targeted Practice by Weakness',
+                'paragraphs' => [
+                    'This capstone post organises practice questions by common weakness areas.',
+                    'Students choose one corrective set and one mastery set each day.',
+                    'The progress tracker links effort directly to measurable outcomes.',
+                ],
+                'video_url' => 'https://www.youtube.com/watch?v=60ItHLz5WEA',
+                'image' => 'https://images.unsplash.com/photo-1509062522246-3755977927d7',
+                'created_at' => now(),
+            ],
+        ])->map(function (array $material) use ($teacher, $mathId, $englishId, $chineseId, $malayId, $chineseSubjectId, $malaySubjectId) {
+            $subjectId = str_contains($material['title'], 'Chinese') || str_contains($material['title'], '华文') ? $chineseSubjectId : (str_contains($material['title'], 'Bahasa Melayu') ? $malaySubjectId : $mathId);
+            $languageId = str_contains($material['title'], 'Chinese') || str_contains($material['title'], '华文') ? $chineseId : (str_contains($material['title'], 'Bahasa Melayu') ? $malayId : $englishId);
+
+            return $this->createMaterial(
+                $teacher,
+                $subjectId,
+                $languageId,
+                $material['title'],
+                $material['paragraphs'],
+                true,
+                $material['created_at'],
+                $material['image'],
+                $material['video_url'],
+            );
+        });
 
         $quizzes = [
             'vertex' => $this->createQuiz(
@@ -279,6 +524,62 @@ class DemoPresentationSeeder extends Seeder
                 'language_id' => $englishId,
                 'created_at' => now()->subDays(5),
             ],
+            [
+                'title' => 'Secondary Mathematics: How do I check if my quadratic sketch is accurate?',
+                'content' => 'Sometimes my graph shape is correct but the position is wrong. What is the quickest self-check?',
+                'subject_id' => $mathId,
+                'language_id' => $englishId,
+                'created_at' => now()->subDays(4),
+            ],
+            [
+                'title' => 'Secondary Mathematics: Completing the square feels too long, when is it worth using?',
+                'content' => 'I can factorise some questions but not all. How do I decide the faster method in exams?',
+                'subject_id' => $mathId,
+                'language_id' => $englishId,
+                'created_at' => now()->subDays(4),
+            ],
+            [
+                'title' => '中学华文：如何在说明文里加入更具体的例子？',
+                'content' => '我写出来的内容太笼统，老师说缺乏细节。有没有一个检查清单？',
+                'subject_id' => $chineseSubjectId,
+                'language_id' => $chineseId,
+                'created_at' => now()->subDays(3),
+            ],
+            [
+                'title' => 'Bahasa Melayu Menengah: Cara menulis pendahuluan karangan yang matang',
+                'content' => 'Saya mahu elakkan pendahuluan yang terlalu umum. Frasa pembuka apa yang sesuai untuk isu semasa?',
+                'subject_id' => $malaySubjectId,
+                'language_id' => $malayId,
+                'created_at' => now()->subDays(3),
+            ],
+            [
+                'title' => 'Secondary Mathematics: How does the discriminant connect to graph sketching?',
+                'content' => 'I know b^2 - 4ac tells number of roots, but I am not sure how to use it during graph questions.',
+                'subject_id' => $mathId,
+                'language_id' => $englishId,
+                'created_at' => now()->subDays(2),
+            ],
+            [
+                'title' => '初中华文：如何把段落衔接写得更自然？',
+                'content' => '每一段好像独立的内容，读起来不顺。有没有常用的过渡句型？',
+                'subject_id' => $chineseSubjectId,
+                'language_id' => $chineseId,
+                'created_at' => now()->subDays(2),
+            ],
+            [
+                'title' => 'Bahasa Melayu: Tip cepat bezakan isi utama dan huraian',
+                'content' => 'Semasa latihan, saya selalu gabungkan kedua-duanya dalam satu ayat. Macam mana nak susun dengan kemas?',
+                'subject_id' => $malaySubjectId,
+                'language_id' => $malayId,
+                'created_at' => now()->subDays(1),
+            ],
+            [
+                'title' => 'Secondary Mathematics: Any memory trick for signs when solving quadratics?',
+                'content' => 'I often make sign mistakes after expanding brackets. I need a short checking routine.',
+                'subject_id' => $mathId,
+                'language_id' => $englishId,
+                'created_at' => now()->subDay(),
+            ],
         ])->map(function (array $post) use ($student) {
             return $this->createQuestion(
                 $student,
@@ -299,7 +600,7 @@ class DemoPresentationSeeder extends Seeder
             now()->subDays(4),
         );
 
-        $likedStudentPosts = $questionPosts->take(3)->push($studentReflection);
+        $likedStudentPosts = $questionPosts->take(6)->push($studentReflection);
         foreach ($reviewers as $reviewer) {
             foreach ($likedStudentPosts as $post) {
                 Like::query()->create([
@@ -318,7 +619,8 @@ class DemoPresentationSeeder extends Seeder
             $quizzes['vertex'],
             $quizzes['factorisation'],
             $quizzes['graphs'],
-            ...$questionPosts->take(8)->all(),
+            ...$teacherMediaMaterials->take(12)->all(),
+            ...$questionPosts->take(14)->all(),
             $studentReflection,
         ];
 
@@ -335,6 +637,12 @@ class DemoPresentationSeeder extends Seeder
             'The examples are useful because they show the common mistakes clearly.',
             'I think one more non-factorisable graph example would help weaker students.',
             'The linked quizzes make the materials easier to revise independently.',
+            'The discussion examples are practical and match school exam style.',
+            'I like how the explanations are short but still complete.',
+            'The content is suitable for self-study and group revision.',
+            'This helped me explain my method more clearly in class.',
+            'The revision order is helpful for students who are weak in basics.',
+            'The mistakes section made me more careful with sign errors.',
         ];
 
         $rootComments = collect();
@@ -363,6 +671,9 @@ class DemoPresentationSeeder extends Seeder
             'Good point. I had the same confusion last week.',
             'The linked quiz feedback helped me fix my mistakes quickly.',
             'I think this should be pinned for our next study session.',
+            'This answer is clear. I will use this method tonight.',
+            'The worked examples look simple, but the strategy is solid.',
+            'I like this because it explains both concept and exam technique.',
         ];
 
         foreach ($rootComments as $index => $rootComment) {
@@ -422,9 +733,12 @@ class DemoPresentationSeeder extends Seeder
             }
         }
 
+        $defaultFolder = BookmarkFolder::defaultFor($student);
+
         foreach ($commentTargets as $post) {
-            PostSave::query()->create([
+            BookmarkItem::query()->create([
                 'user_id' => $student->id,
+                'bookmark_folder_id' => $defaultFolder->id,
                 'post_id' => $post->id,
                 'created_at' => now()->subDays(2),
                 'updated_at' => now()->subDays(2),
@@ -442,6 +756,11 @@ class DemoPresentationSeeder extends Seeder
             [$reviewers[0], $materials['graphs'], 1, 4, 'Useful for quick revision because the key features are organised clearly.'],
             [$reviewers[1], $materials['graphs'], 1, 4, 'The graph sketch checklist is practical and easy to remember.'],
             [$reviewers[2], $materials['graphs'], 1, 5, 'Very suitable for revision night because the sketching method is concise.'],
+            [$reviewers[5], $materials['vertex'], 1, 5, 'Great for students who need a quick recap before trying harder exercises.'],
+            [$reviewers[6], $materials['factorisation'], -1, 3, 'The topic is useful but needs one more example with larger coefficients.'],
+            [$reviewers[7], $materials['graphs'], 1, 4, 'The feature-based sketching flow is easy to apply in timed practice.'],
+            [$reviewers[8], $materials['vertex'], 1, 4, 'Clear enough for weaker students and still relevant for revision drills.'],
+            [$reviewers[9], $materials['factorisation'], 1, 3, 'The method is okay after repeated practice, but one extra challenge set would help.'],
         ];
 
         foreach ($feedbackRows as [$user, $material, $vote, $rating, $feedback]) {
@@ -481,23 +800,28 @@ class DemoPresentationSeeder extends Seeder
         }
 
         $attemptRows = [
-            [$student, $quizzes['vertex'], $materials['vertex'], 2, 3, now()->subDays(8)],
-            [$student, $quizzes['factorisation'], $materials['factorisation'], 1, 3, now()->subDays(7)],
-            [$student, $quizzes['graphs'], $materials['graphs'], 2, 3, now()->subDays(6)],
-            [$reviewers[0], $quizzes['vertex'], $materials['vertex'], 3, 3, now()->subDays(6)],
-            [$reviewers[1], $quizzes['factorisation'], $materials['factorisation'], 1, 3, now()->subDays(5)],
-            [$reviewers[2], $quizzes['factorisation'], $materials['factorisation'], 2, 3, now()->subDays(4)],
-            [$reviewers[3], $quizzes['graphs'], $materials['graphs'], 3, 3, now()->subDays(4)],
-            [$reviewers[4], $quizzes['factorisation'], $materials['factorisation'], 1, 3, now()->subDays(3)],
+            [$student, $quizzes['vertex'], $materials['vertex'], 2.0, true, now()->subDays(8)],
+            [$student, $quizzes['factorisation'], $materials['factorisation'], 1.0, false, now()->subDays(7)],
+            [$student, $quizzes['graphs'], $materials['graphs'], 2.0, true, now()->subDays(6)],
+            [$reviewers[0], $quizzes['vertex'], $materials['vertex'], 3.0, true, now()->subDays(6)],
+            [$reviewers[1], $quizzes['factorisation'], $materials['factorisation'], 1.0, false, now()->subDays(5)],
+            [$reviewers[2], $quizzes['factorisation'], $materials['factorisation'], 2.0, true, now()->subDays(4)],
+            [$reviewers[3], $quizzes['graphs'], $materials['graphs'], 3.0, true, now()->subDays(4)],
+            [$reviewers[4], $quizzes['factorisation'], $materials['factorisation'], 1.0, false, now()->subDays(3)],
+            [$reviewers[5], $quizzes['vertex'], $materials['vertex'], 3.0, true, now()->subDays(3)],
+            [$reviewers[6], $quizzes['graphs'], $materials['graphs'], 2.0, true, now()->subDays(2)],
+            [$reviewers[7], $quizzes['factorisation'], $materials['factorisation'], 1.0, false, now()->subDays(2)],
+            [$reviewers[8], $quizzes['vertex'], $materials['vertex'], 2.0, true, now()->subDays(2)],
+            [$reviewers[9], $quizzes['factorisation'], $materials['factorisation'], 2.0, true, now()->subDay()],
+            [$reviewers[10], $quizzes['graphs'], $materials['graphs'], 3.0, true, now()->subDay()],
         ];
 
-        foreach ($attemptRows as [$user, $quiz, $material, $score, $totalQuestions, $createdAt]) {
+        foreach ($attemptRows as [$user, $quiz, $material, $score, $passed, $createdAt]) {
             DB::table('material_quiz_attempts')->insert([
                 'user_id' => $user->id,
                 'post_id' => $quiz->id,
-                'material_id' => $material->id,
                 'score' => $score,
-                'total_questions' => $totalQuestions,
+                'passed' => $passed,
                 'created_at' => $createdAt,
                 'updated_at' => $createdAt,
             ]);
@@ -512,10 +836,15 @@ class DemoPresentationSeeder extends Seeder
             [$reviewers[2], $quizzes['factorisation']->id, 2, 3, false, now()->subDays(4)],
             [$reviewers[3], $quizzes['graphs']->id, 1, 1, false, now()->subDays(4)],
             [$reviewers[4], $quizzes['factorisation']->id, 1, 3, false, now()->subDays(3)],
+            [$reviewers[5], $quizzes['vertex']->id, 2, 2, false, now()->subDays(3)],
+            [$reviewers[6], $quizzes['graphs']->id, 2, 2, false, now()->subDays(2)],
+            [$reviewers[7], $quizzes['factorisation']->id, 2, 1, false, now()->subDays(2)],
+            [$reviewers[8], $quizzes['vertex']->id, 1, 3, false, now()->subDays(2)],
+            [$reviewers[9], $quizzes['factorisation']->id, 1, 1, false, now()->subDay()],
         ];
 
         foreach ($mistakeRows as [$user, $quizId, $questionIndex, $selectedAnswerIndex, $isCorrect, $attemptedAt]) {
-            QuizMistake::query()->create([
+            QuizAttempt::query()->create([
                 'user_id' => $user->id,
                 'post_id' => $quizId,
                 'question_index' => $questionIndex,
@@ -548,7 +877,7 @@ class DemoPresentationSeeder extends Seeder
             'user_id' => $teacher->id,
             'total_questions_answered' => 0,
             'total_questions_posted' => 0,
-            'total_post_posted' => 3,
+            'total_post_posted' => 3 + $teacherMediaMaterials->count(),
             'quizzes_completed' => 0,
             'correct_answers_count' => 0,
             'total_likes_received' => 0,
@@ -559,22 +888,20 @@ class DemoPresentationSeeder extends Seeder
         ]);
 
         $versionRows = [
-            [$materials['vertex']->id, 1, $materials['vertex']->title, 4.3, 3, 3, 3, 100, now()->subDays(18)],
-            [$materials['factorisation']->id, 1, $materials['factorisation']->title, 2.7, 2, 0, 2, 0, now()->subDays(16)],
-            [$materials['factorisation']->id, 2, $materials['factorisation']->title, 3.0, 4, 1, 4, 25, now()->subDays(6)],
-            [$materials['graphs']->id, 1, $materials['graphs']->title, 4.3, 3, 3, 3, 100, now()->subDays(12)],
+            [$materials['vertex']->id, 1, $student->id, $materials['vertex']->title, 'Initial version', now()->subDays(18)],
+            [$materials['factorisation']->id, 1, $student->id, $materials['factorisation']->title, 'Initial version', now()->subDays(16)],
+            [$materials['factorisation']->id, 2, $student->id, $materials['factorisation']->title, 'Updated with examples', now()->subDays(6)],
+            [$materials['graphs']->id, 1, $student->id, $materials['graphs']->title, 'Initial version', now()->subDays(12)],
         ];
 
-        foreach ($versionRows as [$postId, $versionNumber, $title, $averageRating, $ratingCount, $recommendedCount, $totalVotes, $recommendationRate, $createdAt]) {
+        foreach ($versionRows as [$postId, $versionNumber, $userId, $title, $changeSummary, $createdAt]) {
             DB::table('study_material_versions')->insert([
                 'post_id' => $postId,
+                'user_id' => $userId,
                 'version_number' => $versionNumber,
                 'title' => $title,
-                'average_rating' => $averageRating,
-                'rating_count' => $ratingCount,
-                'recommended_count' => $recommendedCount,
-                'total_votes' => $totalVotes,
-                'recommendation_rate' => $recommendationRate,
+                'content' => 'Content for version ' . $versionNumber,
+                'change_summary' => $changeSummary,
                 'created_at' => $createdAt,
                 'updated_at' => now()->subDay(),
             ]);
@@ -597,6 +924,7 @@ class DemoPresentationSeeder extends Seeder
                 'locale' => 'en',
                 'show_on_leaderboard' => true,
                 'show_leaderboard_badge' => true,
+                'is_verified' => $role === 'teacher',
             ],
         );
 
@@ -638,8 +966,8 @@ class DemoPresentationSeeder extends Seeder
 
         Comment::query()->whereIn('user_id', $userIds)->delete();
         Like::query()->whereIn('user_id', $userIds)->delete();
-        PostSave::query()->whereIn('user_id', $userIds)->delete();
-        QuizMistake::query()->whereIn('user_id', $userIds)->delete();
+        BookmarkItem::query()->whereIn('user_id', $userIds)->delete();
+        QuizAttempt::query()->whereIn('user_id', $userIds)->delete();
         StudyMaterialFeedback::query()->whereIn('user_id', $userIds)->delete();
         DB::table('material_quiz_attempts')->whereIn('user_id', $userIds)->delete();
         DB::table('study_material_views')->whereIn('user_id', $userIds)->delete();
@@ -684,6 +1012,8 @@ class DemoPresentationSeeder extends Seeder
         array $paragraphs,
         bool $improvedFromFeedback,
         $createdAt,
+        ?string $image = null,
+        ?string $videoUrl = null,
     ): Post {
         return Post::query()->create([
             'user_id' => $teacher->id,
@@ -699,8 +1029,8 @@ class DemoPresentationSeeder extends Seeder
             'quiz_data' => null,
             'subject_id' => $subjectId,
             'language_id' => $languageId,
-            'image' => null,
-            'video_url' => null,
+            'image' => $image ? [$image] : null,
+            'video_url' => $videoUrl,
             'material_improved_from_feedback' => $improvedFromFeedback,
             'created_at' => $createdAt,
             'updated_at' => $createdAt,

@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->boolean('is_verified')->default(false)->after('is_blocked');
+        Schema::table('lessons', function (Blueprint $table) {
+            $table->foreign('source_post_id')->references('id')->on('posts')->nullOnDelete();
         });
     }
 
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('is_verified');
+        Schema::table('lessons', function (Blueprint $table) {
+            $table->dropForeign(['source_post_id']);
         });
     }
 };

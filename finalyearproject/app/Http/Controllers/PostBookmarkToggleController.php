@@ -9,7 +9,7 @@ use App\Services\PointsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class PostSaveController extends Controller
+class PostBookmarkToggleController extends Controller
 {
     public function __construct(private readonly PointsService $pointsService) {}
 
@@ -18,19 +18,19 @@ class PostSaveController extends Controller
         $user = $request->user();
         $defaultFolder = BookmarkFolder::defaultFor($user);
 
-        $existingSave = BookmarkItem::query()
+        $existingBookmark = BookmarkItem::query()
             ->where('user_id', $user->id)
             ->where('post_id', $post->id)
             ->first();
 
         $isSaved = false;
 
-        if ($existingSave) {
+        if ($existingBookmark) {
             if ($post->user) {
-                $this->pointsService->revoke($post->user, 'resource_bookmarked', $existingSave);
+                $this->pointsService->revoke($post->user, 'resource_bookmarked', $existingBookmark);
             }
 
-            $existingSave->delete();
+            $existingBookmark->delete();
         } else {
             $bookmarkItem = BookmarkItem::query()->create([
                 'user_id' => $user->id,

@@ -2,7 +2,7 @@ export interface BestAnswerExplanation {
     explanation: string;
     key_points: string[];
     summary: string;
-    provider: 'deepseek' | 'gemini';
+
 }
 
 export interface BestAnswerExplainParams {
@@ -13,7 +13,6 @@ export interface BestAnswerExplainParams {
 
 async function explainWithProvider(
     params: BestAnswerExplainParams,
-    provider: 'deepseek' | 'gemini',
 ): Promise<BestAnswerExplanation> {
     const res = await fetch('/ai-best-answer', {
         method: 'POST',
@@ -26,12 +25,12 @@ async function explainWithProvider(
             post_title: params.postTitle,
             post_content: params.postContent ?? '',
             answer_content: params.answerContent,
-            provider,
+
         }),
     });
 
     if (!res.ok) {
-        let errorMessage = `${provider} failed: ${res.status}`;
+        let errorMessage = `Failed: ${res.status}`;
         try {
             const errorData = await res.json();
             if (typeof errorData?.error === 'string' && errorData.error.trim() !== '') {
@@ -46,18 +45,18 @@ async function explainWithProvider(
     const payload = await res.json();
 
     if (!payload || typeof payload !== 'object' || !('result' in payload)) {
-        throw new Error(`${provider} failed: invalid response`);
+        throw new Error(`Failed: invalid response`);
     }
 
     const result = (payload as { result: unknown }).result;
     if (!result || typeof result !== 'object') {
-        throw new Error(`${provider} failed: invalid result`);
+        throw new Error(`Failed: invalid result`);
     }
 
     const data = result as Record<string, unknown>;
     const explanation = typeof data.explanation === 'string' ? data.explanation.trim() : '';
     if (explanation === '') {
-        throw new Error(`${provider} failed: empty explanation`);
+        throw new Error(`Failed: empty explanation`);
     }
 
     const key_points = Array.isArray(data.key_points)
@@ -66,14 +65,9 @@ async function explainWithProvider(
 
     const summary = typeof data.summary === 'string' ? data.summary.trim() : '';
 
-    return { explanation, key_points, summary, provider };
+    return { explanation, key_points, summary };
 }
 
 export async function explainBestAnswer(params: BestAnswerExplainParams): Promise<BestAnswerExplanation> {
-    try {
-        return await explainWithProvider(params, 'deepseek');
-    } catch (err) {
-        console.warn('[aiBestAnswer] DeepSeek failed, falling back to Gemini:', err);
-        return await explainWithProvider(params, 'gemini');
-    }
+    return await explainWithProvider(params);
 }

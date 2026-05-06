@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BookmarkFolder;
 use App\Models\Post;
 use App\Models\QuizCompletion;
-use App\Models\QuizMistake;
+use App\Models\QuizAttempt;
 use App\Services\PostSerializationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -169,7 +169,7 @@ class PostBookmarkController extends Controller
             return 0;
         }
 
-        return QuizMistake::query()
+        return QuizAttempt::query()
             ->where('user_id', $userId)
             ->where('is_correct', $isCorrect)
             ->count();
@@ -191,7 +191,7 @@ class PostBookmarkController extends Controller
 
         $statuses = array_fill_keys($completedPostIds, true);
 
-        QuizMistake::query()
+        QuizAttempt::query()
             ->where('user_id', $userId)
             ->whereIn('post_id', $completedPostIds)
             ->where('is_correct', false)
@@ -216,13 +216,13 @@ class PostBookmarkController extends Controller
             return [];
         }
 
-        return QuizMistake::query()
+        return QuizAttempt::query()
             ->where('user_id', $userId)
             ->where('is_correct', $isCorrect)
             ->with(['post:id,title,subject_id,quiz_data', 'post.subject:id,name'])
             ->orderByDesc('attempted_at')
             ->get()
-            ->map(fn (QuizMistake $mistake) => $this->serializeQuizReviewItem($mistake))
+            ->map(fn (QuizAttempt $mistake) => $this->serializeQuizReviewItem($mistake))
             ->filter()
             ->values()
             ->all();
@@ -231,7 +231,7 @@ class PostBookmarkController extends Controller
     /**
      * @return array<string, mixed>|null
      */
-    private function serializeQuizReviewItem(QuizMistake $mistake): ?array
+    private function serializeQuizReviewItem(QuizAttempt $mistake): ?array
     {
         $post = $mistake->post;
 

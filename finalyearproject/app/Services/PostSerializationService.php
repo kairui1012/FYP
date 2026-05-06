@@ -17,6 +17,12 @@ class PostSerializationService
     public function serialize(Post $post, array $followingIds = []): array
     {
         $currentUserId = Auth::id();
+        $images = $post->image;
+        if (is_string($images)) {
+            $images = trim($images) === '' ? [] : [$images];
+        } elseif (! is_array($images)) {
+            $images = [];
+        }
 
         return [
             'id' => $post->id,
@@ -25,7 +31,7 @@ class PostSerializationService
             'content_blocks' => $post->content_blocks,
             'post_type' => $post->post_type,
             'quiz_data' => $post->quiz_data,
-            'image' => $post->image,
+            'image' => $images,
             'video_url' => $post->video_url,
             'parent_material_id' => $post->parent_material_id,
             'material_improved_from_feedback' => (bool) ($post->material_improved_from_feedback ?? false),

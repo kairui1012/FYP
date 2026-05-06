@@ -7,7 +7,6 @@ export type MaterialQuizQuestion = {
 
 export type MaterialQuizResult = {
     questions: MaterialQuizQuestion[];
-    provider: 'deepseek' | 'gemini';
 };
 
 export type MaterialQuizParams = {
@@ -75,7 +74,6 @@ function parseMaterialQuizPayload(
 
 async function requestMaterialQuizWithProvider(
     params: MaterialQuizParams,
-    provider: 'deepseek' | 'gemini',
 ): Promise<MaterialQuizResult> {
     const res = await fetch('/ai-material-quiz', {
         method: 'POST',
@@ -93,19 +91,18 @@ async function requestMaterialQuizWithProvider(
             subject: params.subject ?? null,
             language_code: params.languageCode ?? null,
             question_count: params.questionCount ?? 1,
-            provider,
         }),
     });
 
     if (!res.ok) {
-        let errorMessage = `${provider} failed: ${res.status}`;
+        let errorMessage = `Failed: ${res.status}`;
         try {
             const errorData = await res.json();
             if (
                 typeof errorData?.error === 'string' &&
                 errorData.error.trim() !== ''
             ) {
-                errorMessage = `${provider} failed: ${errorData.error}`;
+                errorMessage = `Failed: ${errorData.error}`;
             }
         } catch {
             // Keep the status-based message.
@@ -116,13 +113,10 @@ async function requestMaterialQuizWithProvider(
     const payload = await res.json();
 
     if (!payload || typeof payload !== 'object' || !('quiz' in payload)) {
-        throw new Error(`${provider} failed: invalid material quiz response`);
+        throw new Error(`Failed: invalid material quiz response`);
     }
 
-    return {
-        ...parseMaterialQuizPayload((payload as { quiz?: unknown }).quiz),
-        provider,
-    };
+    return parseMaterialQuizPayload((payload as { quiz?: unknown }).quiz);
 }
 
 const formatMaterialQuizError = (error: unknown): Error => {
@@ -153,24 +147,9 @@ export async function requestMaterialQuiz(
     params: MaterialQuizParams,
 ): Promise<MaterialQuizResult> {
     try {
-        return await requestMaterialQuizWithProvider(params, 'deepseek');
-    } catch (deepseekErr) {
-        console.warn(
-            '[aiMaterialQuiz] DeepSeek failed, falling back to Gemini:',
-            deepseekErr,
-        );
-        try {
-            return await requestMaterialQuizWithProvider(params, 'gemini');
-        } catch (geminiErr) {
-            const formattedGeminiError = formatMaterialQuizError(geminiErr);
-            const deepseekMessage =
-                deepseekErr instanceof Error && deepseekErr.message.trim() !== ''
-                    ? deepseekErr.message
-                    : 'deepseek failed';
-
-            throw new Error(
-                `${formattedGeminiError.message} (DeepSeek: ${deepseekMessage})`,
-            );
-        }
+        return await requestMaterialQuizWithProvider(params);
+    } catch (err) {
+        const formattedError = formatMaterialQuizError(err);
+        throw formattedError;
     }
 }

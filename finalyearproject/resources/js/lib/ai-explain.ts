@@ -5,7 +5,6 @@ export interface QuizAiAnalysis {
     explanation: string;
     discrepancyAnalysis: string;
     confidence: 'high' | 'medium' | 'low';
-    provider: 'deepseek' | 'gemini';
     userAnswer: string;
     creatorAnswer: string;
     aiReasoning?: string;
@@ -82,7 +81,6 @@ function parseAnalysisPayload(payload: unknown): Omit<QuizAiAnalysis, 'provider'
 
 async function explainWithProvider(
     params: ExplainParams,
-    provider: 'deepseek' | 'gemini',
 ): Promise<QuizAiAnalysis> {
     const res = await fetch('/ai-explain', {
         method: 'POST',
@@ -96,16 +94,15 @@ async function explainWithProvider(
             options: params.options,
             user_answer: params.userAnswer,
             creator_answer: params.creatorAnswer,
-            provider,
         }),
     });
 
     if (!res.ok) {
-        let errorMessage = `${provider} failed: ${res.status}`;
+        let errorMessage = `Failed: ${res.status}`;
         try {
             const errorData = await res.json();
             if (typeof errorData?.error === 'string' && errorData.error.trim() !== '') {
-                errorMessage = `${provider} failed: ${errorData.error}`;
+                errorMessage = `Failed: ${errorData.error}`;
             }
         } catch {
             // Keep the status-based message when response is not JSON.
@@ -116,20 +113,14 @@ async function explainWithProvider(
     const payload = await res.json();
 
     if (!payload || typeof payload !== 'object' || !('analysis' in payload)) {
-        throw new Error(`${provider} failed: invalid analysis payload`);
+        throw new Error(`Failed: invalid analysis payload`);
     }
 
     return {
         ...parseAnalysisPayload((payload as { analysis?: unknown }).analysis),
-        provider,
     };
 }
 
 export async function explainAnswer(params: ExplainParams): Promise<QuizAiAnalysis> {
-    try {
-        return await explainWithProvider(params, 'deepseek');
-    } catch (deepseekErr) {
-        console.warn('[aiExplain] DeepSeek failed, falling back to Gemini:', deepseekErr);
-        return await explainWithProvider(params, 'gemini');
-    }
+    return await explainWithProvider(params);
 }

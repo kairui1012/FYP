@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->boolean('is_blocked')->default(false)->after('locale');
+        Schema::table('posts', function (Blueprint $table) {
+            $table->json('attachments')->nullable()->after('content_blocks');
         });
     }
 
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('is_blocked');
+        Schema::table('posts', function (Blueprint $table) {
+            $table->dropColumn('attachments');
         });
     }
 };

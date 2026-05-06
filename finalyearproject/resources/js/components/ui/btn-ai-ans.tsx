@@ -122,23 +122,9 @@ async function translateTexts(texts: string[]): Promise<Record<string, string>> 
                 document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
                     ?.content ?? '',
         },
-        body: JSON.stringify({ texts, provider: 'deepseek' }),
+        body: JSON.stringify({ texts }),
     });
-    if (!res.ok) {
-        const fallback = await fetch('/translate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN':
-                    document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
-                        ?.content ?? '',
-            },
-            body: JSON.stringify({ texts, provider: 'gemini' }),
-        });
-        if (!fallback.ok) throw new Error('Translation failed');
-        const { translations } = await fallback.json();
-        return translations;
-    }
+    if (!res.ok) throw new Error('Translation failed');
     const { translations } = await res.json();
     return translations;
 }

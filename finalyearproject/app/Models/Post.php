@@ -48,10 +48,6 @@ class Post extends Model
         return $this->hasMany(Like::class);
     }
 
-    public function saves() {
-        return $this->hasMany(PostSave::class);
-    }
-
     public function bookmarkItems(): HasMany
     {
         return $this->hasMany(BookmarkItem::class);

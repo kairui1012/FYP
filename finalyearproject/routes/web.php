@@ -16,7 +16,7 @@ use App\Http\Controllers\PostBookmarkController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostCreateController;
 use App\Http\Controllers\PostPopularController;
-use App\Http\Controllers\PostSaveController;
+use App\Http\Controllers\PostBookmarkToggleController;
 use App\Http\Controllers\ProfilePageController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Auth;
@@ -64,7 +64,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/posts/{post}/material-feedback', [PostController::class, 'materialFeedback'])->name('posts.materialFeedback');
     Route::delete('/posts/{post}/material-feedback', [PostController::class, 'destroyMaterialFeedback'])->name('posts.materialFeedback.destroy');
     Route::post('/posts/{posts}/like', [LikeController::class, 'toggle'])->name('like.toggle');
-    Route::post('/posts/{post}/save', [PostSaveController::class, 'toggle'])->name('posts.save.toggle');
+    Route::post('/posts/{post}/bookmark', [PostBookmarkToggleController::class, 'toggle'])->name('posts.bookmark.toggle');
     Route::post('/users/{user}/follow', [FollowerController::class, 'toggle'])->name('users.follow.toggle');
     Route::post('/users/{user}/featured-badges', [UserFeaturedBadgeController::class, 'update'])->name('users.featured-badges.update');
     Route::post('/bookmarks/folders', [BookmarkFolderController::class, 'store'])->name('bookmarks.folders.store');

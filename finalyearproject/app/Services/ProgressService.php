@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\Like;
 use App\Models\Post;
-use App\Models\QuizMistake;
+use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Models\UserProgress;
 
@@ -19,7 +19,7 @@ class ProgressService
         int $selectedAnswerIndex,
         bool $isCorrect,
     ): void {
-        QuizMistake::query()->updateOrCreate(
+        QuizAttempt::query()->updateOrCreate(
             [
                 'user_id' => $user->id,
                 'post_id' => $post->id,

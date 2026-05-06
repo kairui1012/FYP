@@ -99,11 +99,6 @@ class User extends Authenticatable
         return $this->hasMany(CommentLike::class);
     }
 
-    public function postSaves()
-    {
-        return $this->hasMany(PostSave::class);
-    }
-
     public function bookmarkFolders(): HasMany
     {
         return $this->hasMany(BookmarkFolder::class);

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'English' => '语文',
+    'English' => '英文',
     'Chinese' => '华语',
     'Malay' => '马来语',
     'Business' => '商业',
