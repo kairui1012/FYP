@@ -669,3 +669,138 @@ Table options: Assumed Laravel default table options (InnoDB, utf8mb4), unless o
 | two_factor_recovery_codes | No | text | No | Stored two-factor recovery codes |
 | two_factor_secret | No | text | No | Encrypted two-factor secret |
 | updated_at | No | timestamp | No | Record last update timestamp |
+
+---
+
+## Laravel Built-in / System Tables Check
+
+This section separates Laravel framework/system tables from project business tables before drawing the ERD or deleting unused tables.
+
+### Can Usually Be Removed From The Business ERD
+
+These tables are Laravel framework infrastructure tables. They are not part of the learning/community business domain, so they can usually be excluded from the ERD diagram.
+
+| Table | Source | Purpose | Delete From Database? |
+|---|---|---|---|
+| cache | Laravel default cache table | Stores application cache key-value records | Delete only if the app does not use database cache driver |
+| cache_locks | Laravel default cache table | Stores atomic lock records for cache-based locking | Delete only if database cache/locks are not used |
+| jobs | Laravel default queue table | Stores pending queued jobs | Delete only if the app does not use database queue driver |
+| job_batches | Laravel default queue batching table | Stores batch job metadata | Delete only if queued job batches are not used |
+| failed_jobs | Laravel default queue table | Stores failed queue job payloads | Delete only if queues are not used or failed job logging is unnecessary |
+| sessions | Laravel default session table | Stores logged-in browser session payloads when using database sessions | Delete only if SESSION_DRIVER is not database |
+| password_reset_tokens | Laravel default auth table | Stores password reset tokens | Delete only if password reset feature is removed |
+| migrations | Laravel internal table, created automatically by Laravel | Tracks which migration files have run | Do not include in ERD; do not delete while using migrations |
+
+### Laravel Default But Extended By This Project
+
+| Table | Why It Looks Laravel Default | Why It Should Be Kept |
+|---|---|---|
+| users | Laravel creates a users table by default | This project adds business fields such as points, total_points, locale, role, leaderboard flags, blocked/verified status, and 2FA fields. Keep this table as a core ERD entity. |
+
+Default-like columns inside `users`: `id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`.
+
+Project-specific columns inside `users`: `points`, `locale`, `two_factor_secret`, `two_factor_recovery_codes`, `two_factor_confirmed_at`, `total_points`, `show_on_leaderboard`, `show_leaderboard_badge`, `is_blocked`, `is_verified`, `role`.
+
+### Project Business Tables To Keep In ERD
+
+These tables represent the application domain and should be kept in the ERD unless the related feature is being removed.
+
+| Feature Area | Tables |
+|---|---|
+| User identity and social profile | users, profiles, social_accounts, follows |
+| Content structure | languages, subjects, lessons, posts |
+| Community interaction | comments, likes, comment_likes, comment_reports, post_reports |
+| Bookmarks | bookmark_folders, bookmark_items |
+| Quiz and learning progress | quiz_completions, quiz_mistakes, material_quiz_attempts, study_material_views, study_material_feedback, study_material_versions, user_progress |
+| Gamification | badges, badge_user, user_featured_badges, achievements, user_achievements, points_transactions |
+| Teacher verification | teacher_applications, teacher_verification_documents |
+
+## ERD Relationships
+
+Use the relationships below when drawing the ERD. The left side is the parent table and the right side is the child table containing the foreign key.
+
+### User And Profile
+
+| Relationship | Cardinality | Foreign Key | Delete Rule |
+|---|---|---|---|
+| users -> profiles | 1 to 0..1 | profiles.user_id -> users.id | Cascade delete |
+| users -> social_accounts | 1 to many | social_accounts.user_id -> users.id | Cascade delete |
+| users -> follows as follower | 1 to many | follows.follower_id -> users.id | Cascade delete |
+| users -> follows as following | 1 to many | follows.following_id -> users.id | Cascade delete |
+
+### Content Structure
+
+| Relationship | Cardinality | Foreign Key | Delete Rule |
+|---|---|---|---|
+| subjects -> lessons | 1 to many | lessons.subject_id -> subjects.id | Cascade delete |
+| users -> posts | 1 to many | posts.user_id -> users.id | Cascade delete |
+| subjects -> posts | 1 to many | posts.subject_id -> subjects.id | Cascade delete |
+| lessons -> posts | 1 to many | posts.lesson_id -> lessons.id | Cascade delete |
+| languages -> posts | 1 to many | posts.language_id -> languages.id | Cascade delete |
+| posts -> posts as parent material | 1 to many | posts.parent_material_id -> posts.id | Cascade/null delete, depending on migration path |
+| posts -> lessons as source post | 1 to 0..1 | lessons.source_post_id -> posts.id | Null on delete |
+
+### Comments And Reactions
+
+| Relationship | Cardinality | Foreign Key | Delete Rule |
+|---|---|---|---|
+| users -> comments | 1 to many | comments.user_id -> users.id | Cascade delete |
+| posts -> comments | 1 to many | comments.post_id -> posts.id | Cascade delete |
+| comments -> comments as parent comment | 1 to many | comments.parent_id -> comments.id | Cascade delete |
+| users -> likes | 1 to many | likes.user_id -> users.id | Cascade delete |
+| posts -> likes | 1 to many | likes.post_id -> posts.id | Cascade delete |
+| users -> comment_likes | 1 to many | comment_likes.user_id -> users.id | Cascade delete |
+| comments -> comment_likes | 1 to many | comment_likes.comment_id -> comments.id | Cascade delete |
+| users -> comment_reports | 1 to many | comment_reports.user_id -> users.id | Cascade delete |
+| comments -> comment_reports | 1 to many | comment_reports.comment_id -> comments.id | Cascade delete |
+| users -> post_reports | 1 to many | post_reports.user_id -> users.id | Cascade delete |
+| posts -> post_reports | 1 to many | post_reports.post_id -> posts.id | Cascade delete |
+
+### Bookmarks
+
+| Relationship | Cardinality | Foreign Key | Delete Rule |
+|---|---|---|---|
+| users -> bookmark_folders | 1 to many | bookmark_folders.user_id -> users.id | Cascade delete |
+| users -> bookmark_items | 1 to many | bookmark_items.user_id -> users.id | Cascade delete |
+| bookmark_folders -> bookmark_items | 1 to many | bookmark_items.bookmark_folder_id -> bookmark_folders.id | Cascade delete |
+| posts -> bookmark_items | 1 to many | bookmark_items.post_id -> posts.id | Cascade delete |
+
+### Quiz And Learning Progress
+
+| Relationship | Cardinality | Foreign Key | Delete Rule |
+|---|---|---|---|
+| users -> quiz_completions | 1 to many | quiz_completions.user_id -> users.id | Cascade delete |
+| posts -> quiz_completions | 1 to many | quiz_completions.post_id -> posts.id | Cascade delete |
+| subjects -> quiz_completions | 1 to many | quiz_completions.subject_id -> subjects.id | Null on delete |
+| users -> quiz_mistakes | 1 to many | quiz_mistakes.user_id -> users.id | Cascade delete |
+| posts -> quiz_mistakes | 1 to many | quiz_mistakes.post_id -> posts.id | Cascade delete |
+| users -> study_material_feedback | 1 to many | study_material_feedback.user_id -> users.id | Cascade delete |
+| posts -> study_material_feedback | 1 to many | study_material_feedback.post_id -> posts.id | Cascade delete |
+| users -> study_material_views | 1 to many | study_material_views.user_id -> users.id | Cascade delete |
+| posts -> study_material_views | 1 to many | study_material_views.post_id -> posts.id | Cascade delete |
+| users -> material_quiz_attempts | 1 to many | material_quiz_attempts.user_id -> users.id | Cascade delete |
+| posts -> material_quiz_attempts as quiz post | 1 to many | material_quiz_attempts.post_id -> posts.id | Cascade delete |
+| posts -> material_quiz_attempts as material | 1 to many | material_quiz_attempts.material_id -> posts.id | Cascade delete |
+| posts -> study_material_versions | 1 to many | study_material_versions.post_id -> posts.id | Cascade delete |
+| users -> study_material_versions | 1 to many | study_material_versions.user_id -> users.id | Cascade delete |
+| users -> user_progress | 1 to 0..1 | user_progress.user_id -> users.id | Cascade delete |
+
+### Gamification
+
+| Relationship | Cardinality | Foreign Key | Delete Rule |
+|---|---|---|---|
+| users -> badge_user | many to many bridge | badge_user.user_id -> users.id | Cascade delete |
+| badges -> badge_user | many to many bridge | badge_user.badge_id -> badges.id | Cascade delete |
+| users -> user_featured_badges | 1 to many | user_featured_badges.user_id -> users.id | Cascade delete |
+| badges -> user_featured_badges | 1 to many | user_featured_badges.badge_id -> badges.id | Cascade delete |
+| users -> user_achievements | 1 to many | user_achievements.user_id -> users.id | Cascade delete |
+| users -> points_transactions | 1 to many | points_transactions.user_id -> users.id | Cascade delete |
+
+Note: `user_achievements.achievement_key` stores the achievement key as text. The migration does not define a physical foreign key to `achievements.key`, but for ERD readability you may draw it as a logical relationship: `achievements.key -> user_achievements.achievement_key`.
+
+### Teacher Verification
+
+| Relationship | Cardinality | Foreign Key | Delete Rule |
+|---|---|---|---|
+| users -> teacher_applications | 1 to many | teacher_applications.user_id -> users.id | Cascade delete |
+| users -> teacher_verification_documents | 1 to many | teacher_verification_documents.user_id -> users.id | Cascade delete |
