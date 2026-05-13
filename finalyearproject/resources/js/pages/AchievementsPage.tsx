@@ -5,7 +5,10 @@ import type { ReactNode } from 'react';
 import { AchievementsHero } from '@/components/achievements/AchievementsHero';
 import { AchievementsSection } from '@/components/achievements/AchievementsSection';
 import { CategoryFilterTabs } from '@/components/achievements/CategoryFilterTabs';
-import { CATEGORY_ORDER } from '@/components/achievements/constants';
+import {
+    CATEGORY_ORDER,
+    HIDDEN_ACHIEVEMENT_KEYS,
+} from '@/components/achievements/constants';
 import { NextBadgeBanner } from '@/components/achievements/NextBadgeBanner';
 import { PointsBadgesSection } from '@/components/achievements/PointsBadgesSection';
 import { QuizAccuracyStats } from '@/components/achievements/QuizAccuracyStats';
@@ -26,17 +29,20 @@ export default function AchievementsPage() {
 
     const [activeFilter, setActiveFilter] = useState('all');
 
-    const earnedCount = achievements.filter((a) => a.achieved).length;
-    const totalCount = achievements.length;
+    const visibleAchievements = achievements.filter(
+        (achievement) => !HIDDEN_ACHIEVEMENT_KEYS.has(achievement.key),
+    );
+    const earnedCount = visibleAchievements.filter((a) => a.achieved).length;
+    const totalCount = visibleAchievements.length;
     const earnedBadges = badges.filter((b) => b.earned);
 
     const presentCategories = CATEGORY_ORDER.filter((cat) =>
-        achievements.some((a) => a.category === cat),
+        visibleAchievements.some((a) => a.category === cat),
     );
 
     const grouped = CATEGORY_ORDER.reduce<Record<string, typeof achievements>>(
         (acc, cat) => {
-            acc[cat] = achievements.filter((a) => a.category === cat);
+            acc[cat] = visibleAchievements.filter((a) => a.category === cat);
             return acc;
         },
         {},
@@ -53,17 +59,23 @@ export default function AchievementsPage() {
 
             <div className="w-full max-w-none px-4 pt-6 pb-24 md:px-6 md:pt-8">
                 <div className="mx-auto w-full max-w-5xl space-y-8">
-
-                    <AchievementsHero earnedCount={earnedCount} totalCount={totalCount} />
+                    <AchievementsHero
+                        earnedCount={earnedCount}
+                        totalCount={totalCount}
+                    />
 
                     <SummaryStats
                         summary={summary}
                         quizzesCompleted={user_progress?.quizzes_completed ?? 0}
                     />
 
-                    {next_badge && (
-                        <NextBadgeBanner nextBadge={next_badge} currentPoints={summary.points} />
-                    )}
+                    {next_badge &&
+                        !HIDDEN_ACHIEVEMENT_KEYS.has(next_badge.key) && (
+                            <NextBadgeBanner
+                                nextBadge={next_badge}
+                                currentPoints={summary.points}
+                            />
+                        )}
 
                     {user_progress && (
                         <QuizAccuracyStats userProgress={user_progress} />
@@ -80,8 +92,10 @@ export default function AchievementsPage() {
                         grouped={grouped}
                     />
 
-                    <PointsBadgesSection badges={badges} earnedBadges={earnedBadges} />
-
+                    <PointsBadgesSection
+                        badges={badges}
+                        earnedBadges={earnedBadges}
+                    />
                 </div>
             </div>
         </>
@@ -91,4 +105,3 @@ export default function AchievementsPage() {
 AchievementsPage.layout = (page: ReactNode) => (
     <AppLayout breadcrumbs={breadcrumbs}>{page}</AppLayout>
 );
-

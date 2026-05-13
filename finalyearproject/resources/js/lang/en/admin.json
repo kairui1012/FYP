@@ -53,9 +53,9 @@
     "btn_confirm_reject": "Confirm Reject",
     "col_report_target": "Reported Content",
     "col_target_author": "Content Author",
-    "delete_reported_post": "Delete reported post",
-    "confirm_delete_reported_post": "Delete the reported post? This cannot be undone.",
-    "tap_again_delete_post": "Tap delete again within 4 seconds to confirm.",
+    "delete_reported_post": "Delete reported post content",
+    "confirm_delete_reported_post": "Delete this reported post content? This action cannot be undone.",
+    "tap_again_delete_post": "Click delete post again within 4 seconds to confirm.",
     "delete_reported_comment": "Delete reported comment",
-    "tap_again_delete_comment": "Tap delete comment again within 4 seconds to confirm."
+    "tap_again_delete_comment": "Click delete comment again within 4 seconds to confirm."
 }

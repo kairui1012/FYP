@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\UserAchievement;
 use App\Models\UserProgress;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Schema;
 
@@ -113,7 +114,7 @@ class LearningProgressService
                         'post_type' => $post->post_type,
                         'subject_name' => $post->subject?->name,
                         'user_name' => $post->user?->name,
-                        'created_at' => (string) $post->created_at,
+                        'created_at' => $this->serializeTimestamp($post->created_at),
                     ])->values()->all(),
                 ];
             }
@@ -130,7 +131,7 @@ class LearningProgressService
                     'post_type' => $post->post_type,
                     'subject_name' => $post->subject?->name,
                     'user_name' => $post->user?->name,
-                    'created_at' => (string) $post->created_at,
+                    'created_at' => $this->serializeTimestamp($post->created_at),
                 ])
                 ->values()
                 ->all(),
@@ -265,8 +266,13 @@ class LearningProgressService
             'subject_name' => $post->subject?->name,
             'selected_answer' => $details['selected_answer'],
             'correct_answer' => $details['correct_answer'],
-            'attempted_at' => (string) $mistake->attempted_at,
+            'attempted_at' => $this->serializeTimestamp($mistake->attempted_at),
         ];
+    }
+
+    private function serializeTimestamp(?CarbonInterface $timestamp): ?string
+    {
+        return $timestamp?->toISOString();
     }
 
     private function extractQuizQuestionDetails(

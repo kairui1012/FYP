@@ -21,7 +21,6 @@ type StudyFolderSidebarProps = {
     isQuizFolder: boolean;
     activeQuizMode: QuizFolderMode;
     totalSaves: number;
-    completedCount: number;
     correctCount: number;
     wrongCount: number;
     creatingFolder: boolean;
@@ -49,7 +48,6 @@ export function StudyFolderSidebar({
     isQuizFolder,
     activeQuizMode,
     totalSaves,
-    completedCount,
     correctCount,
     wrongCount,
     creatingFolder,
@@ -93,16 +91,6 @@ export function StudyFolderSidebar({
                     />
                     {isQuizFolder ? (
                         <div className="mt-1 ml-5 space-y-1 border-l border-zinc-200 pl-3">
-                            <SidebarFolderItem
-                                active={activeQuizMode === 'completed'}
-                                icon={<BookOpen className="h-3.5 w-3.5" />}
-                                label={trans('bookmark.study_folder_completed')}
-                                count={completedCount}
-                                compact
-                                onClick={() =>
-                                    onNavigateQuizFolder('completed')
-                                }
-                            />
                             <SidebarFolderItem
                                 active={activeQuizMode === 'correct'}
                                 icon={<CheckCircle2 className="h-3.5 w-3.5" />}
@@ -157,7 +145,6 @@ type FolderManagementPanelProps = Omit<
     | 'isQuizFolder'
     | 'activeQuizMode'
     | 'totalSaves'
-    | 'completedCount'
     | 'correctCount'
     | 'wrongCount'
     | 'onNavigateQuizFolder'

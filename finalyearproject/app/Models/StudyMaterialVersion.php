@@ -9,8 +9,12 @@ class StudyMaterialVersion extends Model
 {
     protected $fillable = [
         'post_id',
+        'user_id',
         'version_number',
         'title',
+        'content',
+        'content_blocks',
+        'change_summary',
         'average_rating',
         'rating_count',
         'recommended_count',
@@ -22,6 +26,7 @@ class StudyMaterialVersion extends Model
     {
         return [
             'version_number' => 'integer',
+            'content_blocks' => 'array',
             'average_rating' => 'float',
             'rating_count' => 'integer',
             'recommended_count' => 'integer',

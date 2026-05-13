@@ -14,7 +14,6 @@ class StudyMaterialFeedback extends Model
         'post_id',
         'vote',
         'rating',
-        'feedback',
     ];
 
     protected function casts(): array

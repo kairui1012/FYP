@@ -1,3 +1,5 @@
+import { postAiJson } from '@/lib/ai-http';
+
 export interface QuizAiAnalysis {
     aiAnswer: string;
     isUserCorrect: boolean;
@@ -19,7 +21,9 @@ export interface ExplainParams {
     creatorAnswer: string;
 }
 
-function parseAnalysisPayload(payload: unknown): Omit<QuizAiAnalysis, 'provider'> {
+function parseAnalysisPayload(
+    payload: unknown,
+): Omit<QuizAiAnalysis, 'provider'> {
     if (!payload || typeof payload !== 'object') {
         throw new Error('invalid analysis payload');
     }
@@ -29,7 +33,8 @@ function parseAnalysisPayload(payload: unknown): Omit<QuizAiAnalysis, 'provider'
     const isUserCorrect = data.isUserCorrect ?? data.is_user_correct;
     const matchesCreator = data.matchesCreator ?? data.matches_creator;
     const explanation = data.explanation;
-    const discrepancyAnalysis = data.discrepancyAnalysis ?? data.discrepancy_analysis;
+    const discrepancyAnalysis =
+        data.discrepancyAnalysis ?? data.discrepancy_analysis;
     const confidence = data.confidence;
     const userAnswer = data.userAnswer ?? data.user_answer;
     const creatorAnswer = data.creatorAnswer ?? data.creator_answer;
@@ -66,51 +71,47 @@ function parseAnalysisPayload(payload: unknown): Omit<QuizAiAnalysis, 'provider'
         isUserCorrect,
         matchesCreator,
         explanation: explanation.trim(),
-        discrepancyAnalysis: typeof discrepancyAnalysis === 'string' ? discrepancyAnalysis.trim() : '',
+        discrepancyAnalysis:
+            typeof discrepancyAnalysis === 'string'
+                ? discrepancyAnalysis.trim()
+                : '',
         confidence:
-            confidence === 'high' || confidence === 'medium' || confidence === 'low'
+            confidence === 'high' ||
+            confidence === 'medium' ||
+            confidence === 'low'
                 ? confidence
                 : 'medium',
         userAnswer: userAnswer.trim(),
         creatorAnswer: creatorAnswer.trim(),
-        aiReasoning: typeof aiReasoning === 'string' && aiReasoning.trim() !== '' ? aiReasoning.trim() : undefined,
-        creatorReasoning: typeof creatorReasoning === 'string' && creatorReasoning.trim() !== '' ? creatorReasoning.trim() : undefined,
-        ambiguityNote: typeof ambiguityNote === 'string' && ambiguityNote.trim() !== '' ? ambiguityNote.trim() : undefined,
+        aiReasoning:
+            typeof aiReasoning === 'string' && aiReasoning.trim() !== ''
+                ? aiReasoning.trim()
+                : undefined,
+        creatorReasoning:
+            typeof creatorReasoning === 'string' &&
+            creatorReasoning.trim() !== ''
+                ? creatorReasoning.trim()
+                : undefined,
+        ambiguityNote:
+            typeof ambiguityNote === 'string' && ambiguityNote.trim() !== ''
+                ? ambiguityNote.trim()
+                : undefined,
     };
 }
 
 async function explainWithProvider(
     params: ExplainParams,
 ): Promise<QuizAiAnalysis> {
-    const res = await fetch('/ai-explain', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN':
-                document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-        },
-        body: JSON.stringify({
+    const payload = await postAiJson(
+        '/ai-explain',
+        {
             question: params.question,
             options: params.options,
             user_answer: params.userAnswer,
             creator_answer: params.creatorAnswer,
-        }),
-    });
-
-    if (!res.ok) {
-        let errorMessage = `Failed: ${res.status}`;
-        try {
-            const errorData = await res.json();
-            if (typeof errorData?.error === 'string' && errorData.error.trim() !== '') {
-                errorMessage = `Failed: ${errorData.error}`;
-            }
-        } catch {
-            // Keep the status-based message when response is not JSON.
-        }
-        throw new Error(errorMessage);
-    }
-
-    const payload = await res.json();
+        },
+        'The AI answer service returned an unexpected response. Please try again.',
+    );
 
     if (!payload || typeof payload !== 'object' || !('analysis' in payload)) {
         throw new Error(`Failed: invalid analysis payload`);
@@ -121,6 +122,8 @@ async function explainWithProvider(
     };
 }
 
-export async function explainAnswer(params: ExplainParams): Promise<QuizAiAnalysis> {
+export async function explainAnswer(
+    params: ExplainParams,
+): Promise<QuizAiAnalysis> {
     return await explainWithProvider(params);
 }

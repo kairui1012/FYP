@@ -1,6 +1,6 @@
 import type { BookmarkFolderItem, PostItem } from '@/types';
 
-export type QuizFolderMode = 'completed' | 'correct' | 'wrong';
+export type QuizFolderMode = 'correct' | 'wrong';
 
 export type QuizReviewItem = {
     id: number;

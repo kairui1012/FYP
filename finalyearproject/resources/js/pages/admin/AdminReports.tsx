@@ -60,10 +60,7 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
     const deletePost = (postId: number) => {
         if (armedDeletePostId !== postId) {
             setArmedDeletePostId(postId);
-            toast(
-                trans('admin.tap_again_delete_post') ||
-                    trans('admin.confirm_delete_reported_post'),
-            );
+            toast(trans('admin.tap_again_delete_post'));
             if (clearArmTimerRef.current) {
                 window.clearTimeout(clearArmTimerRef.current);
             }
@@ -79,7 +76,9 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                 toast.success(trans('admin.delete_reported_post'));
             },
             onError: () => {
-                toast.error(trans('errors.generic') || 'Failed to delete post.');
+                toast.error(
+                    trans('errors.generic') || 'Failed to delete post.',
+                );
             },
             onFinish: () => {
                 setArmedDeletePostId(null);
@@ -119,9 +118,14 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
     return (
         <AdminLayout>
             <div className="mb-6">
-                <h1 className="text-2xl font-bold">{trans('admin.reports_title')}</h1>
+                <h1 className="text-2xl font-bold">
+                    {trans('admin.reports_title')}
+                </h1>
                 <p className="text-sm text-muted-foreground">
-                    {trans('admin.reports_total').replace(':count', String(reports.length))}
+                    {trans('admin.reports_total').replace(
+                        ':count',
+                        String(reports.length),
+                    )}
                 </p>
             </div>
 
@@ -133,22 +137,36 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                             <TableHead>{t('admin.col_reporter')}</TableHead>
                             <TableHead>{t('admin.col_reason')}</TableHead>
                             <TableHead>
-                                {t('admin.col_report_target', 'admin.col_comment')}
+                                {t(
+                                    'admin.col_report_target',
+                                    'admin.col_comment',
+                                )}
                             </TableHead>
                             <TableHead>
-                                {t('admin.col_target_author', 'admin.col_comment_author')}
+                                {t(
+                                    'admin.col_target_author',
+                                    'admin.col_comment_author',
+                                )}
                             </TableHead>
                             <TableHead>{t('admin.col_date')}</TableHead>
-                            <TableHead className="text-right">{t('admin.col_actions')}</TableHead>
+                            <TableHead className="text-right">
+                                {t('admin.col_actions')}
+                            </TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {reports.map((report, i) => (
                             <TableRow key={report.id}>
-                                <TableCell className="text-muted-foreground">{i + 1}</TableCell>
+                                <TableCell className="text-muted-foreground">
+                                    {i + 1}
+                                </TableCell>
                                 <TableCell>
-                                    <div className="font-medium">{report.reporter_name}</div>
-                                    <div className="text-xs text-muted-foreground">{report.reporter_email}</div>
+                                    <div className="font-medium">
+                                        {report.reporter_name}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                        {report.reporter_email}
+                                    </div>
                                 </TableCell>
                                 <TableCell>
                                     <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-700">
@@ -160,8 +178,12 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                                         {report.target_body ?? '—'}
                                     </p>
                                 </TableCell>
-                                <TableCell className="text-muted-foreground">{report.target_author ?? '—'}</TableCell>
-                                <TableCell className="text-muted-foreground">{report.created_at}</TableCell>
+                                <TableCell className="text-muted-foreground">
+                                    {report.target_author ?? '—'}
+                                </TableCell>
+                                <TableCell className="text-muted-foreground">
+                                    {report.created_at}
+                                </TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-1">
                                         {report.report_type === 'post' ? (
@@ -172,7 +194,9 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                                                 onClick={() =>
                                                     deletePost(report.target_id)
                                                 }
-                                                title={trans('admin.delete_reported_post')}
+                                                title={trans(
+                                                    'admin.delete_reported_post',
+                                                )}
                                             >
                                                 <AlertTriangle className="h-4 w-4" />
                                             </Button>
@@ -187,7 +211,9 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                                                         report.target_id,
                                                     )
                                                 }
-                                                title={trans('admin.delete_reported_comment')}
+                                                title={trans(
+                                                    'admin.delete_reported_comment',
+                                                )}
                                             >
                                                 <AlertTriangle className="h-4 w-4" />
                                             </Button>
@@ -202,7 +228,9 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                                                     report.report_type,
                                                 )
                                             }
-                                            title={trans('admin.dismiss_report')}
+                                            title={trans(
+                                                'admin.dismiss_report',
+                                            )}
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
@@ -212,7 +240,10 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                         ))}
                         {reports.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                                <TableCell
+                                    colSpan={7}
+                                    className="py-10 text-center text-muted-foreground"
+                                >
                                     {trans('admin.no_reports')}
                                 </TableCell>
                             </TableRow>

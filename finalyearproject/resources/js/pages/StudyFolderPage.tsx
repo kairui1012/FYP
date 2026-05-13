@@ -9,14 +9,15 @@ import { useStudyFolder } from '@/components/studyfolder/use-study-folder';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'My Study Folder', href: '/bookmarks' }];
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'My Study Folder', href: '/bookmarks' },
+];
 
 export default function StudyFolderPage() {
     const { trans } = reactLang();
     const {
         folders,
         posts,
-        completedCount,
         correctCount,
         wrongCount,
         quizReviewItems,
@@ -67,7 +68,6 @@ export default function StudyFolderPage() {
                             isQuizFolder={isQuizFolder}
                             activeQuizMode={activeQuizMode}
                             totalSaves={totalSaves}
-                            completedCount={completedCount}
                             correctCount={correctCount}
                             wrongCount={wrongCount}
                             creatingFolder={creatingFolder}
@@ -99,11 +99,8 @@ export default function StudyFolderPage() {
                             {isQuizFolder ? (
                                 <QuizFolderPanel
                                     activeQuizMode={activeQuizMode}
-                                    posts={posts}
                                     quizReviewItems={quizReviewItems}
-                                    savingPostIds={savingPostIds}
                                     trans={trans}
-                                    onToggleSave={handleToggleSave}
                                 />
                             ) : (
                                 <SavedPostsPanel

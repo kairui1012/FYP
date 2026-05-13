@@ -40,7 +40,14 @@ return [
     'col_reason' => 'Reason',
     'col_comment' => 'Comment',
     'col_comment_author' => 'Comment Author',
+    'col_report_target' => 'Reported Content',
+    'col_target_author' => 'Content Author',
     'dismiss_report' => 'Dismiss report',
+    'delete_reported_post' => 'Delete reported post content',
+    'confirm_delete_reported_post' => 'Delete this reported post content? This action cannot be undone.',
+    'tap_again_delete_post' => 'Click delete post again within 4 seconds to confirm.',
+    'delete_reported_comment' => 'Delete reported comment',
+    'tap_again_delete_comment' => 'Click delete comment again within 4 seconds to confirm.',
     'no_reports' => 'No reports found.',
 
     // AdminTeacherApplications

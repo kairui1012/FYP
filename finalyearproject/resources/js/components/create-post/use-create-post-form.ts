@@ -17,7 +17,6 @@ import {
 import type {
     CreatePostText,
     LearningMaterialOption,
-    LinkedQuizOption,
     LocalAttachment,
     MaterialBlockType,
     MaterialContentBlock,
@@ -28,13 +27,28 @@ import type {
 type UseCreatePostFormParams = {
     subjects: PostSubject[];
     learningMaterials: LearningMaterialOption[];
-    availableQuizzes: LinkedQuizOption[];
     canPublishStudyMaterial: boolean;
     t: CreatePostText;
     trans: (key: string) => string;
 };
 
 const AI_QUIZ_OPTION_COUNT = 4;
+
+function getCookieValue(name: string): string {
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const match = document.cookie.match(
+        new RegExp(`(?:^|; )${escapedName}=([^;]*)`),
+    );
+
+    return match ? decodeURIComponent(match[1]) : '';
+}
+
+function getMetaCsrfToken(): string {
+    return (
+        document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+            ?.content ?? ''
+    );
+}
 
 const createEmptyQuizOptions = () =>
     Array.from({ length: AI_QUIZ_OPTION_COUNT }, () => '');
@@ -89,7 +103,6 @@ const applyGeneratedOptionsToQuiz = (
 export function useCreatePostForm({
     subjects,
     learningMaterials,
-    availableQuizzes,
     canPublishStudyMaterial,
     t,
     trans,
@@ -108,15 +121,15 @@ export function useCreatePostForm({
     const [selectedMaterialId, setSelectedMaterialId] = useState<string>('');
     const [selectedSubject, setSelectedSubject] = useState<string>('');
     const [selectedLanguage, setSelectedLanguage] = useState<string>('');
-    const [selectedLinkedQuizIds, setSelectedLinkedQuizIds] = useState<
-        number[]
-    >([]);
     const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
     const [videoUrl, setVideoUrl] = useState('');
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [fileError, setFileError] = useState<string | null>(null);
+    const [materialBlockError, setMaterialBlockError] = useState<string | null>(
+        null,
+    );
     const [generatingQuizOptionIds, setGeneratingQuizOptionIds] = useState<
         number[]
     >([]);
@@ -425,11 +438,12 @@ export function useCreatePostForm({
 
         setSelectedPostType(value);
 
-        if (value === 'material') {
+        if (value !== 'quiz') {
             setSelectedMaterialId('');
+        }
+
+        if (value === 'material') {
             setIsAnonymous(false);
-        } else {
-            setSelectedLinkedQuizIds([]);
         }
     };
 
@@ -452,10 +466,7 @@ export function useCreatePostForm({
         const extension = file.name.toLowerCase().split('.').pop() ?? '';
         const supportedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 
-        return (
-            file.type.startsWith('image/') ||
-            supportedExtensions.includes(extension)
-        );
+        return supportedExtensions.includes(extension);
     };
 
     const getAttachmentKind = (file: File): LocalAttachment['type'] =>
@@ -599,7 +610,14 @@ export function useCreatePostForm({
         setIsSubmitting(true);
         setFileError(null);
 
+        const csrfToken = getMetaCsrfToken();
+        const xsrfToken = getCookieValue('XSRF-TOKEN');
         const formData = new FormData();
+
+        if (!xsrfToken && csrfToken) {
+            formData.append('_token', csrfToken);
+        }
+
         formData.append('title', title.trim());
         formData.append('content', isMaterialSelected ? '' : content.trim());
         formData.append('post_type', selectedPostType);
@@ -610,7 +628,7 @@ export function useCreatePostForm({
         );
         formData.append('language_code', selectedLanguage);
 
-        if (selectedMaterialId && selectedPostType !== 'material') {
+        if (selectedMaterialId && isQuizSelected) {
             formData.append('parent_material_id', selectedMaterialId);
         }
 
@@ -640,9 +658,7 @@ export function useCreatePostForm({
         }
 
         if (isMaterialSelected) {
-            selectedLinkedQuizIds.forEach((quizId) => {
-                formData.append('linked_quiz_ids[]', String(quizId));
-            });
+            setMaterialBlockError(null);
 
             materialBlocks.forEach((block, index) => {
                 formData.append(`material_blocks[${index}][type]`, block.type);
@@ -676,13 +692,25 @@ export function useCreatePostForm({
 
         router.post('/posts', formData, {
             forceFormData: true,
+            headers: {
+                ...(xsrfToken
+                    ? { 'X-XSRF-TOKEN': xsrfToken }
+                    : { 'X-CSRF-TOKEN': csrfToken }),
+            },
             onError: (errors) => {
                 const uploadError = Object.entries(errors).find(([key]) =>
                     key.startsWith('attachments'),
                 )?.[1];
+                const materialUploadError = Object.entries(errors).find(
+                    ([key]) => key.startsWith('material_blocks'),
+                )?.[1];
 
                 if (uploadError) {
                     setFileError(uploadError);
+                }
+
+                if (materialUploadError) {
+                    setMaterialBlockError(materialUploadError);
                 }
             },
             onSuccess: () => {
@@ -697,12 +725,12 @@ export function useCreatePostForm({
                 setMaterialBlocks([createMaterialBlock('text')]);
                 setSelectedPostType('');
                 setSelectedMaterialId('');
-                setSelectedLinkedQuizIds([]);
                 setSelectedSubject('');
                 setSelectedLanguage('');
                 setAttachments([]);
                 setVideoUrl('');
                 setIsAnonymous(false);
+                setMaterialBlockError(null);
             },
             onFinish: () => setIsSubmitting(false),
         });
@@ -936,18 +964,6 @@ export function useCreatePostForm({
         }
     };
 
-    const toggleLinkedQuizId = (quizId: number) => {
-        const hasQuiz = availableQuizzes.some((quiz) => quiz.id === quizId);
-        if (!hasQuiz) {
-            return;
-        }
-
-        setSelectedLinkedQuizIds((prev) =>
-            prev.includes(quizId)
-                ? prev.filter((id) => id !== quizId)
-                : [...prev, quizId],
-        );
-    };
     const addMaterialBlock = (type: MaterialBlockType) => {
         setMaterialBlocks((prev) => [...prev, createMaterialBlock(type)]);
     };
@@ -964,6 +980,32 @@ export function useCreatePostForm({
     };
 
     const updateMaterialBlockFile = (blockId: string, file: File | null) => {
+        setMaterialBlockError(null);
+
+        if (file) {
+            const targetBlock = materialBlocks.find(
+                (block) => block.id === blockId,
+            );
+
+            if (targetBlock?.type === 'image' && !isSupportedImage(file)) {
+                setMaterialBlockError(t.noValidFiles);
+                return;
+            }
+
+            if (
+                targetBlock?.type === 'document' &&
+                !isSupportedDocument(file)
+            ) {
+                setMaterialBlockError(t.noValidFiles);
+                return;
+            }
+
+            if (file.size > MAX_FILE_SIZE) {
+                setMaterialBlockError(t.fileTooLarge);
+                return;
+            }
+        }
+
         setMaterialBlocks((prev) =>
             prev.map((block) => {
                 if (block.id !== blockId) return block;
@@ -1018,6 +1060,7 @@ export function useCreatePostForm({
         content,
         setContent,
         materialBlocks,
+        materialBlockError,
         addMaterialBlock,
         updateMaterialBlock,
         updateMaterialBlockFile,
@@ -1039,8 +1082,6 @@ export function useCreatePostForm({
         quizOptionErrors,
         selectedMaterialId,
         setSelectedMaterialId,
-        selectedLinkedQuizIds,
-        toggleLinkedQuizId,
         generatingMaterialQuiz,
         materialQuizError,
         generateQuizFromMaterial,

@@ -40,7 +40,14 @@ return [
     'col_reason' => '原因',
     'col_comment' => '评论',
     'col_comment_author' => '评论作者',
+    'col_report_target' => '被举报内容',
+    'col_target_author' => '内容作者',
     'dismiss_report' => '忽略举报',
+    'delete_reported_post' => '删除被举报的帖子内容',
+    'confirm_delete_reported_post' => '确定要删除这条被举报的帖子内容吗？此操作无法撤销。',
+    'tap_again_delete_post' => '请在 4 秒内再次点击删除帖子以确认。',
+    'delete_reported_comment' => '删除被举报的评论',
+    'tap_again_delete_comment' => '请在 4 秒内再次点击删除评论以确认。',
     'no_reports' => '未找到举报记录。',
 
     // AdminTeacherApplications

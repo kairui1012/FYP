@@ -1,0 +1,89 @@
+<mxfile host="app.diagrams.net" version="24.7.17">
+  <diagram name="Achievement Progress Activity" id="achievement-progress-activity">
+    <mxGraphModel dx="2800" dy="1800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3600" pageHeight="3000" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="2" value="" style="ellipse;html=1;fillColor=#000000;strokeColor=#000000;aspect=fixed;" vertex="1" parent="1"><mxGeometry x="1768" y="40" width="24" height="24" as="geometry"/></mxCell>
+        <mxCell id="3" value="" style="ellipse;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;aspect=fixed;" vertex="1" parent="1"><mxGeometry x="1760" y="2520" width="40" height="40" as="geometry"/></mxCell>
+        <mxCell id="4" value="" style="ellipse;html=1;fillColor=#000000;strokeColor=#000000;aspect=fixed;" vertex="1" parent="1"><mxGeometry x="1770" y="2530" width="20" height="20" as="geometry"/></mxCell>
+
+        <mxCell id="10" value="User performs learning or community action" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1560" y="100" width="440" height="60" as="geometry"/></mxCell>
+        <mxCell id="11" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="1700" y="200" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="111" value="Action source" style="text;html=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1700" y="170" width="160" height="24" as="geometry"/></mxCell>
+
+        <mxCell id="20" value="Recount user's total posts and question posts" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="80" y="380" width="340" height="60" as="geometry"/></mxCell>
+        <mxCell id="21" value="Increment total_questions_answered and correct_answers_count if correct" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="460" y="380" width="420" height="60" as="geometry"/></mxCell>
+        <mxCell id="22" value="Increment quizzes_completed" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="920" y="380" width="260" height="60" as="geometry"/></mxCell>
+        <mxCell id="23" value="Recount likes received on user's posts" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1220" y="380" width="320" height="60" as="geometry"/></mxCell>
+        <mxCell id="24" value="Recount user's comments" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1580" y="380" width="240" height="60" as="geometry"/></mxCell>
+        <mxCell id="25" value="Recount user's bookmark items" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1860" y="380" width="280" height="60" as="geometry"/></mxCell>
+        <mxCell id="26" value="Recount quiz attempt or mistake review records" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="2180" y="380" width="360" height="60" as="geometry"/></mxCell>
+
+        <mxCell id="27" value="Append recent quiz score and recalculate improvement_score" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="480" y="500" width="380" height="60" as="geometry"/></mxCell>
+        <mxCell id="28" value="Create or update UserProgress row" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1540" y="680" width="320" height="60" as="geometry"/></mxCell>
+        <mxCell id="29" value="Sync legacy badge points: posts * 10 + likes received * 2" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1420" y="770" width="560" height="60" as="geometry"/></mxCell>
+        <mxCell id="30" value="Attach point badges when points_required is reached" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1460" y="860" width="480" height="60" as="geometry"/></mxCell>
+        <mxCell id="31" value="Evaluate progress achievements" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1540" y="950" width="320" height="60" as="geometry"/></mxCell>
+
+        <mxCell id="32" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="1620" y="1040" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="132" value="Achievement condition met and not already earned?" style="text;html=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1460" y="1010" width="480" height="24" as="geometry"/></mxCell>
+
+        <mxCell id="33" value="Keep current achievement state" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1340" y="1220" width="280" height="60" as="geometry"/></mxCell>
+        <mxCell id="34" value="Create UserAchievement with achieved_at timestamp" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1760" y="1220" width="360" height="60" as="geometry"/></mxCell>
+        <mxCell id="35" value="Return newly earned achievement key to UI when action supports it" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1760" y="1310" width="520" height="60" as="geometry"/></mxCell>
+
+        <mxCell id="36" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="1700" y="1410" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="136" value="User opens Achievements page?" style="text;html=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1640" y="1380" width="280" height="24" as="geometry"/></mxCell>
+
+        <mxCell id="37" value="Load summary: points, posts, likes received, comments, saves, mistakes reviewed" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1460" y="1590" width="640" height="60" as="geometry"/></mxCell>
+        <mxCell id="38" value="Load badges, next badge, user progress, and achievement definitions" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1480" y="1680" width="600" height="60" as="geometry"/></mxCell>
+        <mxCell id="39" value="Calculate current metric, threshold, progress percentage, and earned state" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1460" y="1770" width="640" height="60" as="geometry"/></mxCell>
+        <mxCell id="40" value="Render achievement categories: question, performance, improvement, community, posting, commenting, saving, mistakes" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1320" y="1860" width="920" height="70" as="geometry"/></mxCell>
+
+        <mxCell id="200" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="2" target="10"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="201" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="10" target="11"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="202" value="Create post" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="11" target="20"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="203" value="Answer quiz" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="11" target="21"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="204" value="Complete quiz first time" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="11" target="22"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="205" value="Receive like" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="11" target="23"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="206" value="Comment" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="11" target="24"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="207" value="Save post" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="11" target="25"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="208" value="Review quiz attempt" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="11" target="26"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="209" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="21" target="27"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="210" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="27" target="28"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="211" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="20" target="28"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="212" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="22" target="28"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="213" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="23" target="28"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="214" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="24" target="28"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="215" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="25" target="28"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="216" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="26" target="28"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="217" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="28" target="29"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="218" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="29" target="30"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="219" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="30" target="31"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="220" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="31" target="32"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="221" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="32" target="33"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="222" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="32" target="34"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="223" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="34" target="35"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="224" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="33" target="36"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="225" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="35" target="36"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="226" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="36" target="3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="227" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="36" target="37"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="228" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="37" target="38"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="229" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="38" target="39"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="230" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="39" target="40"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="231" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="40" target="3"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

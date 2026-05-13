@@ -34,38 +34,9 @@ export type FrequentlyWrongQuestionInsight = {
     error_rate: number;
 };
 
-export type MaterialVersionInsight = {
-    id: number;
-    material_id: number;
-    material_title: string;
-    version_number: number;
-    version_title: string;
-    average_rating: number;
-    rating_count: number;
-    recommended_count: number;
-    total_votes: number;
-    recommendation_rate: number;
-    recommendation_rate_change: number | null;
-    created_at?: string;
-};
-
-export type RepeatedFeedbackInsight = {
-    total_feedback_texts: number;
-    keywords: Array<{
-        keyword: string;
-        count: number;
-    }>;
-    repeated_phrases: Array<{
-        phrase: string;
-        count: number;
-    }>;
-};
-
 export type TeacherMaterialInsightsData = {
     low_rated_materials: LowRatedMaterialInsight[];
     frequently_wrong_questions: FrequentlyWrongQuestionInsight[];
-    material_versions: MaterialVersionInsight[];
-    repeated_feedback: RepeatedFeedbackInsight;
 };
 
 export type TransFn = (key: string) => string;

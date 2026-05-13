@@ -61,28 +61,6 @@ class AchievementsSeeder extends Seeder
                 'metric'    => 'accuracy_pct',
                 'threshold' => 90,
             ],
-            [
-                'key'       => 'quiz_completionist',
-                'category'  => 'performance',
-                'icon'      => 'CheckCircle2',
-                'metric'    => 'quizzes_completed',
-                'threshold' => 10,
-            ],
-            // ── Improvement ──────────────────────────────────────────────────
-            [
-                'key'       => 'consistent_growth',
-                'category'  => 'improvement',
-                'icon'      => 'BarChart2',
-                'metric'    => 'improvement_score',
-                'threshold' => 10,
-            ],
-            [
-                'key'       => 'fast_improver',
-                'category'  => 'improvement',
-                'icon'      => 'TrendingUp',
-                'metric'    => 'improvement_score',
-                'threshold' => 20,
-            ],
             // ── Community ────────────────────────────────────────────────────
             [
                 'key'       => 'helpful_contributor',

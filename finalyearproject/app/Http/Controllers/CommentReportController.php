@@ -8,6 +8,7 @@ use App\Models\CommentReport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 class CommentReportController extends Controller
 {
@@ -45,7 +46,13 @@ class CommentReportController extends Controller
         }
 
         $report = CommentReport::query()->create($reportAttributes);
-        QueueCommentReportForModeration::dispatch($report->id);
+
+        try {
+            QueueCommentReportForModeration::dispatch($report->id);
+        } catch (Throwable $e) {
+            report($e);
+            QueueCommentReportForModeration::dispatchSync($report->id);
+        }
 
         return response()->json(['message' => 'Report submitted.']);
     }

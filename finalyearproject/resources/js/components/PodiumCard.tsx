@@ -2,6 +2,8 @@ import { router } from '@inertiajs/react';
 import { Medal, Trophy } from 'lucide-react';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
+import { isVerifiedTeacher } from '@/lib/verified-teacher';
 import { profilePage } from '@/routes';
 
 type PodiumUser = {
@@ -11,6 +13,8 @@ type PodiumUser = {
     points: number;
     rank: number;
     is_anonymous: boolean;
+    role?: string | null;
+    is_verified?: boolean;
     leaderboard_title?: string | null;
 };
 
@@ -56,6 +60,7 @@ export function PodiumCard({
         rankBorderGradient[user.rank] ??
         'bg-gradient-to-br from-zinc-300 to-zinc-400';
     const cardBg = podiumTone[user.rank] ?? 'bg-white text-zinc-950';
+    const verifiedTeacher = isVerifiedTeacher(user);
 
     const handleClick = () => {
         if (user.is_anonymous) return;
@@ -128,9 +133,18 @@ export function PodiumCard({
                                 </span>
                             ) : (
                                 <>
-                                    <p className="truncate text-base font-semibold hover:underline">
+                                    <p
+                                        className={`truncate text-base font-semibold hover:underline ${
+                                            verifiedTeacher
+                                                ? 'text-blue-600'
+                                                : ''
+                                        }`}
+                                    >
                                         {user.name}
                                     </p>
+                                    {verifiedTeacher && (
+                                        <VerifiedTeacherBadge />
+                                    )}
                                     <LeaderboardTitleBadge
                                         title={user.leaderboard_title}
                                     />

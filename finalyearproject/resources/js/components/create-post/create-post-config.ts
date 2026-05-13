@@ -110,21 +110,6 @@ export type LearningMaterialOption = {
     updated_at?: string | null;
 };
 
-export type LinkedQuizOption = {
-    id: number;
-    title: string;
-    questionCount: number;
-    subject?: {
-        id: number;
-        name: string;
-    } | null;
-    publisher: {
-        id: number;
-        name: string;
-        role?: string;
-    };
-};
-
 export type CreatePostText = {
     pageTitle: string;
     heading: string;
@@ -232,9 +217,6 @@ export type CreatePostText = {
     materialLinkTitle: string;
     materialLinkHint: string;
     materialLinkNone: string;
-    materialAttachQuizTitle: string;
-    materialAttachExistingQuizHint: string;
-    materialNoAttachableQuizzes: string;
     materialQuizGenerating: string;
     materialQuizGenerateAi: string;
     materialSelectRequired: string;
@@ -391,13 +373,6 @@ export const buildCreatePostText = (
     materialLinkTitle: trans('createPost.material_link_title'),
     materialLinkHint: trans('createPost.material_link_hint'),
     materialLinkNone: trans('createPost.material_link_none'),
-    materialAttachQuizTitle: trans('createPost.material_attach_quiz_title'),
-    materialAttachExistingQuizHint: trans(
-        'createPost.material_attach_existing_quiz_hint',
-    ),
-    materialNoAttachableQuizzes: trans(
-        'createPost.material_no_attachable_quizzes',
-    ),
     materialQuizGenerating: trans('createPost.material_quiz_generating'),
     materialQuizGenerateAi: trans('createPost.material_quiz_generate_ai'),
     materialSelectRequired: trans('createPost.material_select_required'),
@@ -425,7 +400,9 @@ export const buildCreatePostText = (
         'createPost.material_feedback_placeholder',
     ),
     materialSubmitFeedback: trans('createPost.material_submit_feedback'),
-    materialSubmittingFeedback: trans('createPost.material_submitting_feedback'),
+    materialSubmittingFeedback: trans(
+        'createPost.material_submitting_feedback',
+    ),
     materialFeedbackSubmitted: trans('createPost.material_feedback_submitted'),
     materialFeedbackImprovement: trans(
         'createPost.material_feedback_improvement',
@@ -434,7 +411,9 @@ export const buildCreatePostText = (
     materialViews: trans('createPost.material_views'),
     materialUniqueUsers: trans('createPost.material_unique_users'),
     materialAverageQuizScore: trans('createPost.material_average_quiz_score'),
-    materialAttemptImprovement: trans('createPost.material_attempt_improvement'),
+    materialAttemptImprovement: trans(
+        'createPost.material_attempt_improvement',
+    ),
     materialLearningLoop: trans('createPost.material_learning_loop'),
     materialContributedBy: trans('createPost.material_contributed_by'),
     materialUnknownUser: trans('createPost.material_unknown_user'),

@@ -1,3 +1,5 @@
+import { postAiJson } from '@/lib/ai-http';
+
 export interface DoubtClarification {
     explanation: string;
     guidance: string;
@@ -22,59 +24,11 @@ async function callWithProvider<T>(
     endpoint: string,
     body: Record<string, unknown>,
 ): Promise<T> {
-    const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN':
-                document.querySelector<HTMLMetaElement>(
-                    'meta[name="csrf-token"]',
-                )?.content ?? '',
-        },
-        body: JSON.stringify(body),
-    });
-
-    const contentType = res.headers.get('content-type') ?? '';
-    const responseText = await res.text();
-    const parseJson = () => {
-        if (!contentType.includes('application/json')) {
-            return null;
-        }
-
-        try {
-            return JSON.parse(responseText) as {
-                result?: T;
-                error?: string;
-                message?: string;
-            };
-        } catch {
-            return null;
-        }
-    };
-
-    const payload = parseJson();
-
-    if (!res.ok) {
-        let message = `Request failed: ${res.status}`;
-        if (
-            typeof payload?.message === 'string' &&
-            payload.message.trim() !== ''
-        ) {
-            message = payload.message;
-        } else if (
-            typeof payload?.error === 'string' &&
-            payload.error.trim() !== ''
-        ) {
-            message = payload.error;
-        } else if (contentType.includes('text/html')) {
-            message =
-                'The AI validation service returned an unexpected response. Please try again.';
-        }
-
-        throw new Error(message);
-    }
+    const payload = await postAiJson(
+        endpoint,
+        body,
+        'The AI validation service returned an unexpected response. Please try again.',
+    );
 
     const result = payload?.result;
     if (!result || typeof result !== 'object') {

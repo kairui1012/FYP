@@ -69,7 +69,7 @@ class FollowerController extends Controller
             ->whereIn('user_id', $followingIds)
             ->whereHas('user', fn ($q) => $q->where('is_blocked', false))
             ->with([
-                'user:id,name',
+                'user:id,name,role,is_verified',
                 'user.socialAccounts:id,user_id,avatar',
                 'language:id,code,name',
             ])
@@ -93,6 +93,8 @@ class FollowerController extends Controller
                 'user' => $post->user ? [
                     'id' => $post->user->id,
                     'name' => $post->user->name,
+                    'role' => $post->user->role ?? 'student',
+                    'is_verified' => (bool) ($post->user->is_verified ?? false),
                     'avatar' => $post->user->socialAccounts
                         ->first(fn ($account) => ! empty($account->avatar))
                         ?->avatar,

@@ -122,3 +122,110 @@ test('anonymous question keeps author hidden while exposing owner state', functi
             ->where('post.is_owner', false)
         );
 });
+
+test('question creation works without study material link', function () {
+    $student = User::factory()->create(['role' => 'student']);
+    [$language, $subject] = createPostEditingTaxonomy();
+
+    $response = $this
+        ->actingAs($student)
+        ->post(route('posts.store'), [
+            'title' => 'Question without material link',
+            'content' => 'How do I solve this problem?',
+            'post_type' => 'question',
+            'subject_id' => $subject->id,
+            'language_code' => $language->code,
+            'is_anonymous' => false,
+        ]);
+
+    $response->assertRedirect(route('homePage'));
+    $this->assertDatabaseHas('posts', [
+        'title' => 'Question without material link',
+        'post_type' => 'question',
+        'parent_material_id' => null,
+    ]);
+});
+
+test('question creation rejects study material link', function () {
+    $student = User::factory()->create(['role' => 'student']);
+    $teacher = User::factory()->create(['role' => 'teacher']);
+    [$language, $subject] = createPostEditingTaxonomy();
+
+    $material = Post::create([
+        'user_id' => $teacher->id,
+        'title' => 'Reference material',
+        'content' => 'Study this first.',
+        'content_blocks' => [
+            [
+                'type' => 'text',
+                'text' => 'Study this first.',
+            ],
+        ],
+        'post_type' => 'material',
+        'language_id' => $language->id,
+        'subject_id' => $subject->id,
+    ]);
+
+    $response = $this
+        ->actingAs($student)
+        ->post(route('posts.store'), [
+            'title' => 'Question with blocked material link',
+            'content' => 'Can this link a material?',
+            'post_type' => 'question',
+            'parent_material_id' => $material->id,
+            'subject_id' => $subject->id,
+            'language_code' => $language->code,
+        ]);
+
+    $response->assertSessionHasErrors(['parent_material_id']);
+    $this->assertDatabaseMissing('posts', [
+        'title' => 'Question with blocked material link',
+    ]);
+});
+
+test('quiz creation can link to study material', function () {
+    $student = User::factory()->create(['role' => 'student']);
+    $teacher = User::factory()->create(['role' => 'teacher']);
+    [$language, $subject] = createPostEditingTaxonomy();
+
+    $material = Post::create([
+        'user_id' => $teacher->id,
+        'title' => 'Quiz reference material',
+        'content' => 'Read before quiz.',
+        'content_blocks' => [
+            [
+                'type' => 'text',
+                'text' => 'Read before quiz.',
+            ],
+        ],
+        'post_type' => 'material',
+        'language_id' => $language->id,
+        'subject_id' => $subject->id,
+    ]);
+
+    $response = $this
+        ->actingAs($student)
+        ->post(route('posts.store'), [
+            'title' => 'Linked quiz',
+            'content' => 'Answer this linked quiz.',
+            'post_type' => 'quiz',
+            'parent_material_id' => $material->id,
+            'subject_id' => $subject->id,
+            'language_code' => $language->code,
+            'quiz_questions' => [
+                [
+                    'question' => 'What is 2 + 2?',
+                    'options' => ['3', '4'],
+                    'answer_index' => 1,
+                    'explanation' => 'Two plus two equals four.',
+                ],
+            ],
+        ]);
+
+    $response->assertRedirect(route('homePage'));
+    $this->assertDatabaseHas('posts', [
+        'title' => 'Linked quiz',
+        'post_type' => 'quiz',
+        'parent_material_id' => $material->id,
+    ]);
+});

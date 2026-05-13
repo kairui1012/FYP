@@ -25,6 +25,7 @@ type StudyMaterialBlockEditorProps = {
     onUpdateBlockFile: (id: string, file: File | null) => void;
     onRemoveBlock: (id: string) => void;
     onMoveBlock: (id: string, direction: -1 | 1) => void;
+    blockError: string | null;
 };
 
 const blockOptions: Array<{
@@ -50,6 +51,7 @@ export function StudyMaterialBlockEditor({
     onUpdateBlockFile,
     onRemoveBlock,
     onMoveBlock,
+    blockError,
 }: StudyMaterialBlockEditorProps) {
     return (
         <section className="space-y-4 rounded-lg border border-violet-200 bg-violet-50/40 p-4">
@@ -146,7 +148,7 @@ export function StudyMaterialBlockEditor({
                                         type="file"
                                         accept={
                                             block.type === 'image'
-                                                ? 'image/*'
+                                                ? 'image/png,image/jpeg,image/webp,image/gif,.png,.jpg,.jpeg,.webp,.gif'
                                                 : '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,application/pdf'
                                         }
                                         className="hidden"
@@ -204,6 +206,12 @@ export function StudyMaterialBlockEditor({
                     {text.materialEmptyHint}
                 </p>
             </div>
+
+            {blockError ? (
+                <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">
+                    {blockError}
+                </p>
+            ) : null}
         </section>
     );
 }

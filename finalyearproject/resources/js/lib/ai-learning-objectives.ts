@@ -1,4 +1,9 @@
-export type LearningObjectivesDifficulty = 'beginner' | 'intermediate' | 'advanced';
+import { postAiJson } from '@/lib/ai-http';
+
+export type LearningObjectivesDifficulty =
+    | 'beginner'
+    | 'intermediate'
+    | 'advanced';
 
 export interface LearningObjectives {
     objectives: string[];
@@ -36,44 +41,26 @@ function parsePayload(payload: unknown): Omit<LearningObjectives, 'provider'> {
             : 'intermediate';
 
     const estimated_time =
-        typeof data.estimated_time === 'string' ? data.estimated_time.trim() : '';
+        typeof data.estimated_time === 'string'
+            ? data.estimated_time.trim()
+            : '';
 
     return { objectives, difficulty, estimated_time };
 }
 
 async function requestWithProvider(
     params: LearningObjectivesParams,
-
 ): Promise<LearningObjectives> {
-    const res = await fetch('/ai-learning-objectives', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN':
-                document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
-                    ?.content ?? '',
-        },
-        body: JSON.stringify({
+    const payload = await postAiJson(
+        '/ai-learning-objectives',
+        {
             post_title: params.postTitle,
             post_content: params.postContent ?? '',
             post_type: params.postType ?? 'sharing',
-        }),
-    });
+        },
+        'The AI learning objectives service returned an unexpected response. Please try again.',
+    );
 
-    if (!res.ok) {
-        let msg = `Failed: ${res.status}`;
-        try {
-            const err = await res.json();
-            if (typeof err?.error === 'string' && err.error.trim() !== '') {
-                msg = err.error;
-            }
-        } catch {
-            // keep status message
-        }
-        throw new Error(msg);
-    }
-
-    const payload = await res.json();
     return parsePayload((payload as { result?: unknown }).result);
 }
 

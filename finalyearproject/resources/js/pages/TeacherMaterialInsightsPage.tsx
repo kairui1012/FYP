@@ -3,7 +3,6 @@ import { Head, router } from '@inertiajs/react';
 import { InsightsFilterPanel } from '@/components/teacher-material-insights/insights-filter-panel';
 import { InsightsPageHeader } from '@/components/teacher-material-insights/insights-page-header';
 import { LowRatedMaterialsSection } from '@/components/teacher-material-insights/low-rated-materials-section';
-import { MaterialVersionHistorySection } from '@/components/teacher-material-insights/material-version-history-section';
 import type {
     SelectOption,
     TeacherMaterialInsightsData,
@@ -46,8 +45,10 @@ export default function TeacherMaterialInsightsPage({
         value: string,
     ) {
         const next: Record<string, string | null> = {
-            material_id: filters.material_id != null ? String(filters.material_id) : '',
-            subject_id: filters.subject_id != null ? String(filters.subject_id) : '',
+            material_id:
+                filters.material_id != null ? String(filters.material_id) : '',
+            subject_id:
+                filters.subject_id != null ? String(filters.subject_id) : '',
             quiz_id: filters.quiz_id != null ? String(filters.quiz_id) : '',
             time_range: filters.time_range,
             sort: filters.sort,
@@ -69,10 +70,7 @@ export default function TeacherMaterialInsightsPage({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={trans('createPost.teacher_insights_title')} />
             <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 lg:px-8">
-                <InsightsPageHeader
-                    trans={trans}
-                    generatedAt={generated_at}
-                />
+                <InsightsPageHeader trans={trans} generatedAt={generated_at} />
 
                 <div className="mt-4 space-y-6">
                     <InsightsFilterPanel
@@ -86,11 +84,6 @@ export default function TeacherMaterialInsightsPage({
 
                     <LowRatedMaterialsSection
                         items={insights.low_rated_materials}
-                        trans={trans}
-                    />
-
-                    <MaterialVersionHistorySection
-                        items={insights.material_versions}
                         trans={trans}
                     />
                 </div>

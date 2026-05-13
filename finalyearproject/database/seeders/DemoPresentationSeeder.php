@@ -17,12 +17,18 @@ use App\Models\UserProgress;
 use App\Services\AchievementService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
 class DemoPresentationSeeder extends Seeder
 {
+    /**
+     * @var array<string, array<int, string>>
+     */
+    private array $columnCache = [];
+
     public function run(): void
     {
         $languageIds = DB::table('languages')->pluck('id', 'code');
@@ -58,6 +64,14 @@ class DemoPresentationSeeder extends Seeder
             ['email' => 'student.p@example.com', 'name' => 'Puteri Sofea'],
             ['email' => 'student.q@example.com', 'name' => 'Qing Yi'],
             ['email' => 'student.r@example.com', 'name' => 'Rafiq Azlan'],
+            ['email' => 'student.s@example.com', 'name' => 'Sara Nordin'],
+            ['email' => 'student.t@example.com', 'name' => 'Terence Goh'],
+            ['email' => 'student.u@example.com', 'name' => 'Uma Devi'],
+            ['email' => 'student.v@example.com', 'name' => 'Vincent Chia'],
+            ['email' => 'student.w@example.com', 'name' => 'Wan Nurin'],
+            ['email' => 'student.x@example.com', 'name' => 'Xiao Han'],
+            ['email' => 'student.y@example.com', 'name' => 'Yasmin Aziz'],
+            ['email' => 'student.z@example.com', 'name' => 'Zikri Faiz'],
         ])->map(fn (array $reviewer) => $this->upsertUser($reviewer['email'], $reviewer['name'], 'student'));
 
         $allDemoUsers = collect([$teacher, $student])
@@ -433,6 +447,201 @@ class DemoPresentationSeeder extends Seeder
             ),
         ];
 
+        $extraQuizRows = [
+            [
+                'material' => $teacherMediaMaterials[0],
+                'title' => 'Expanding Brackets Speed Check',
+                'questions' => [
+                    [
+                        'question' => 'Expand 3(x + 4).',
+                        'options' => ['3x + 4', '3x + 12', 'x + 12', '7x'],
+                        'answer_index' => 1,
+                        'explanation' => 'Multiply both terms inside the bracket by 3.',
+                    ],
+                    [
+                        'question' => 'Expand -2(x - 5).',
+                        'options' => ['-2x - 10', '-2x + 10', '2x - 10', '2x + 10'],
+                        'answer_index' => 1,
+                        'explanation' => 'The negative multiplier changes the sign of both terms.',
+                    ],
+                    [
+                        'question' => 'Which expression is equivalent to 5(2a - 3)?',
+                        'options' => ['10a - 15', '7a - 8', '10a - 3', '2a - 15'],
+                        'answer_index' => 0,
+                        'explanation' => '5 times 2a is 10a, and 5 times -3 is -15.',
+                    ],
+                    [
+                        'question' => 'What is the common mistake in 4(x + 2) = 4x + 2?',
+                        'options' => ['Only x was multiplied', 'The sign of x changed', 'The bracket was squared', 'The answer was factorised'],
+                        'answer_index' => 0,
+                        'explanation' => 'Both x and 2 must be multiplied by 4.',
+                    ],
+                ],
+            ],
+            [
+                'material' => $teacherMediaMaterials[1],
+                'title' => 'Collecting Like Terms Quiz',
+                'questions' => [
+                    [
+                        'question' => 'Simplify 3x + 2x.',
+                        'options' => ['5x', '5x^2', '6x', 'x'],
+                        'answer_index' => 0,
+                        'explanation' => 'Like terms have the same variable part, so add the coefficients.',
+                    ],
+                    [
+                        'question' => 'Simplify 4a + 3b - a.',
+                        'options' => ['3a + 3b', '4ab - a', '6ab', '7a - b'],
+                        'answer_index' => 0,
+                        'explanation' => '4a - a = 3a, and 3b stays separate.',
+                    ],
+                    [
+                        'question' => 'Which terms are like terms?',
+                        'options' => ['2x and 2y', '3a and 5a', 'x and x^2', '4b and 4'],
+                        'answer_index' => 1,
+                        'explanation' => '3a and 5a share the same variable part.',
+                    ],
+                    [
+                        'question' => 'Simplify 7m - 2m + 4.',
+                        'options' => ['5m + 4', '9m + 4', '5m', '9m'],
+                        'answer_index' => 0,
+                        'explanation' => '7m - 2m = 5m, and the constant remains 4.',
+                    ],
+                ],
+            ],
+            [
+                'material' => $teacherMediaMaterials[2],
+                'title' => 'Linear Equations Balance Quiz',
+                'questions' => [
+                    [
+                        'question' => 'Solve x + 7 = 12.',
+                        'options' => ['x = 5', 'x = 19', 'x = 7', 'x = 12'],
+                        'answer_index' => 0,
+                        'explanation' => 'Subtract 7 from both sides.',
+                    ],
+                    [
+                        'question' => 'Solve 3x = 18.',
+                        'options' => ['x = 6', 'x = 15', 'x = 21', 'x = 54'],
+                        'answer_index' => 0,
+                        'explanation' => 'Divide both sides by 3.',
+                    ],
+                    [
+                        'question' => 'What keeps an equation balanced?',
+                        'options' => ['Changing only the left side', 'Doing the same operation to both sides', 'Removing all constants', 'Guessing the value first'],
+                        'answer_index' => 1,
+                        'explanation' => 'The equality is preserved when the same operation is applied to both sides.',
+                    ],
+                    [
+                        'question' => 'Solve 2x + 1 = 9.',
+                        'options' => ['x = 4', 'x = 5', 'x = 8', 'x = 10'],
+                        'answer_index' => 0,
+                        'explanation' => 'Subtract 1, then divide 8 by 2.',
+                    ],
+                ],
+            ],
+            [
+                'material' => $teacherMediaMaterials[7],
+                'title' => 'Mean Median Mode Checkpoint',
+                'questions' => [
+                    [
+                        'question' => 'Find the mean of 2, 4, 6.',
+                        'options' => ['3', '4', '6', '12'],
+                        'answer_index' => 1,
+                        'explanation' => 'The total is 12 and there are 3 values, so the mean is 4.',
+                    ],
+                    [
+                        'question' => 'Which measure is most affected by an extreme outlier?',
+                        'options' => ['Mean', 'Median', 'Mode', 'Range label'],
+                        'answer_index' => 0,
+                        'explanation' => 'The mean uses every value, so an outlier can pull it strongly.',
+                    ],
+                    [
+                        'question' => 'What is the mode of 1, 2, 2, 3, 4?',
+                        'options' => ['1', '2', '3', '4'],
+                        'answer_index' => 1,
+                        'explanation' => 'The mode is the value that appears most often.',
+                    ],
+                    [
+                        'question' => 'What is the median of 5, 1, 9?',
+                        'options' => ['1', '5', '9', '15'],
+                        'answer_index' => 1,
+                        'explanation' => 'Order the values as 1, 5, 9; the middle value is 5.',
+                    ],
+                ],
+            ],
+            [
+                'material' => $teacherMediaMaterials[10],
+                'title' => '华文议论文结构小测',
+                'questions' => [
+                    [
+                        'question' => '议论文开头最重要的是先写清楚什么？',
+                        'options' => ['论点', '错别字', '标点数量', '故事结局'],
+                        'answer_index' => 0,
+                        'explanation' => '清楚的论点能让后面的例子和分析有方向。',
+                    ],
+                    [
+                        'question' => '“因为……所以……”最适合用来表达什么关系？',
+                        'options' => ['因果关系', '时间顺序', '人物外貌', '地点转换'],
+                        'answer_index' => 0,
+                        'explanation' => '这个句式能帮助学生把理由和结论连接起来。',
+                    ],
+                    [
+                        'question' => '好的论据应该和论点有什么关系？',
+                        'options' => ['互不相关', '直接支持论点', '只负责增加字数', '必须完全相反'],
+                        'answer_index' => 1,
+                        'explanation' => '论据的作用是证明或支持论点。',
+                    ],
+                    [
+                        'question' => '段落结尾常用来做什么？',
+                        'options' => ['总结本段重点', '换成另一个题目', '删除论点', '重复所有例子'],
+                        'answer_index' => 0,
+                        'explanation' => '段末总结能让论证更完整。',
+                    ],
+                ],
+            ],
+            [
+                'material' => $teacherMediaMaterials[11],
+                'title' => 'Kuiz Huraian Isi Karangan',
+                'questions' => [
+                    [
+                        'question' => 'Apakah fungsi contoh dalam huraian isi?',
+                        'options' => ['Menguatkan hujah', 'Menghapuskan isi utama', 'Menggantikan tajuk', 'Memendekkan karangan sahaja'],
+                        'answer_index' => 0,
+                        'explanation' => 'Contoh menjadikan hujah lebih jelas dan meyakinkan.',
+                    ],
+                    [
+                        'question' => 'Susunan yang paling kemas ialah:',
+                        'options' => ['Isi, sebab, contoh, kesan', 'Contoh, tajuk, penutup, isi', 'Kesan sahaja', 'Isi tanpa huraian'],
+                        'answer_index' => 0,
+                        'explanation' => 'Formula ini membantu pelajar menghuraikan idea dengan lengkap.',
+                    ],
+                    [
+                        'question' => 'Apakah maksud huraian matang?',
+                        'options' => ['Ayat panjang tanpa isi', 'Idea dijelaskan dengan sebab dan kesan', 'Mengulang ayat sama', 'Menukar bahasa'],
+                        'answer_index' => 1,
+                        'explanation' => 'Huraian matang menerangkan alasan dan impak dengan jelas.',
+                    ],
+                    [
+                        'question' => 'Perkataan penanda wacana membantu pembaca melihat:',
+                        'options' => ['Hubungan idea', 'Bilangan huruf', 'Saiz tulisan', 'Nama penulis'],
+                        'answer_index' => 0,
+                        'explanation' => 'Penanda wacana menyusun aliran hujah.',
+                    ],
+                ],
+            ],
+        ];
+
+        foreach ($extraQuizRows as $index => $quizRow) {
+            $quizzes['extra_' . $index] = $this->createQuiz(
+                $teacher,
+                (int) $quizRow['material']->subject_id,
+                (int) $quizRow['material']->language_id,
+                $quizRow['material']->id,
+                $quizRow['title'],
+                $quizRow['questions'],
+                now()->subDays(10 - min(6, $index))->addHours($index + 1),
+            );
+        }
+
         $questionPosts = collect([
             [
                 'title' => 'Primary Mathematics: Why do we carry 1 when adding?',
@@ -581,9 +790,67 @@ class DemoPresentationSeeder extends Seeder
                 'language_id' => $englishId,
                 'created_at' => now()->subDay(),
             ],
-        ])->map(function (array $post) use ($student) {
+            [
+                'title' => 'Secondary Mathematics: Why does completing the square reveal the vertex?',
+                'content' => 'I can follow the method, but I do not see why the final bracket form shows the turning point.',
+                'subject_id' => $mathId,
+                'language_id' => $englishId,
+                'created_at' => now()->subDays(6)->addHours(3),
+            ],
+            [
+                'title' => '小学华文：怎样让看图作文的开头更生动？',
+                'content' => '我通常只写“有一天”，老师说太普通。可以怎样根据图片写一个更具体的开头？',
+                'subject_id' => $chineseSubjectId,
+                'language_id' => $chineseId,
+                'created_at' => now()->subDays(5)->addHours(4),
+            ],
+            [
+                'title' => 'Bahasa Melayu: Bila perlu guna penanda wacana “selain itu”?',
+                'content' => 'Saya selalu guna penanda wacana yang sama. Bagaimana pilih penanda yang sesuai antara isi?',
+                'subject_id' => $malaySubjectId,
+                'language_id' => $malayId,
+                'created_at' => now()->subDays(5)->addHours(7),
+            ],
+            [
+                'title' => 'Secondary Mathematics: How do I tell direct and inverse proportion apart?',
+                'content' => 'Both use ratios, so I get confused when the word problem changes. What clue should I look for first?',
+                'subject_id' => $mathId,
+                'language_id' => $englishId,
+                'created_at' => now()->subDays(4)->addHours(8),
+            ],
+            [
+                'title' => '中学华文：引用名言后要怎样继续分析？',
+                'content' => '我会放名言，可是后面常常不知道怎样解释它和论点的关系。',
+                'subject_id' => $chineseSubjectId,
+                'language_id' => $chineseId,
+                'created_at' => now()->subDays(3)->addHours(9),
+            ],
+            [
+                'title' => 'Secondary Mathematics: When should I use a table for probability outcomes?',
+                'content' => 'Tree diagrams and tables both work sometimes. Which one is faster for two-step choices?',
+                'subject_id' => $mathId,
+                'language_id' => $englishId,
+                'created_at' => now()->subDays(2)->addHours(5),
+            ],
+            [
+                'title' => 'Bahasa Melayu: Cara bezakan contoh umum dan contoh khusus',
+                'content' => 'Guru kata contoh saya terlalu umum. Apakah beza contoh umum dengan contoh yang kuat?',
+                'subject_id' => $malaySubjectId,
+                'language_id' => $malayId,
+                'created_at' => now()->subDays(2)->addHours(11),
+            ],
+            [
+                'title' => 'Secondary Mathematics: Why does the median ignore extreme values?',
+                'content' => 'I know the median is the middle value, but I want to explain why it is better when data has an outlier.',
+                'subject_id' => $mathId,
+                'language_id' => $englishId,
+                'created_at' => now()->subDay()->addHours(2),
+            ],
+        ])->map(function (array $post, int $index) use ($student, $reviewers) {
+            $author = $index % 4 === 0 ? $reviewers[$index % $reviewers->count()] : $student;
+
             return $this->createQuestion(
-                $student,
+                $author,
                 $post['subject_id'],
                 $post['language_id'],
                 $post['title'],
@@ -617,11 +884,9 @@ class DemoPresentationSeeder extends Seeder
             $materials['vertex'],
             $materials['factorisation'],
             $materials['graphs'],
-            $quizzes['vertex'],
-            $quizzes['factorisation'],
-            $quizzes['graphs'],
+            ...array_values($quizzes),
             ...$teacherMediaMaterials->take(12)->all(),
-            ...$questionPosts->take(14)->all(),
+            ...$questionPosts->all(),
             $studentReflection,
         ];
 
@@ -644,6 +909,18 @@ class DemoPresentationSeeder extends Seeder
             'This helped me explain my method more clearly in class.',
             'The revision order is helpful for students who are weak in basics.',
             'The mistakes section made me more careful with sign errors.',
+            'This question is worth discussing because the mistake is very common.',
+            'The answer above is clear enough for beginners to follow.',
+            'I tried the same strategy and my quiz score improved.',
+            'The example helps connect the rule to the actual exam step.',
+            'This is a good place to compare two different solving methods.',
+            'The explanation avoids memorising blindly, which helps a lot.',
+            'I would add one more diagram, but the concept is already clear.',
+            'The wording is student-friendly and easy to revise from.',
+            'This helped me notice the difference between the method and the shortcut.',
+            'The correction note is practical for students who rush.',
+            'I used this in my study group and everyone understood faster.',
+            'The best part is the quick self-check before submitting an answer.',
         ];
 
         $rootComments = collect();
@@ -680,6 +957,7 @@ class DemoPresentationSeeder extends Seeder
         foreach ($rootComments as $index => $rootComment) {
             $firstReplyUser = $reviewers[$index % $reviewers->count()];
             $secondReplyUser = $reviewers[($index + 3) % $reviewers->count()];
+            $thirdReplyUser = $reviewers[($index + 7) % $reviewers->count()];
             $replyCreatedAt = now()->subDays(max(1, 3 - ($index % 3)));
 
             Comment::query()->create([
@@ -703,6 +981,19 @@ class DemoPresentationSeeder extends Seeder
                 'created_at' => $replyCreatedAt->copy()->addHours(2),
                 'updated_at' => $replyCreatedAt->copy()->addHours(2),
             ]);
+
+            if ($index % 2 === 0) {
+                Comment::query()->create([
+                    'user_id' => $thirdReplyUser->id,
+                    'post_id' => $rootComment->post_id,
+                    'parent_id' => $rootComment->id,
+                    'content' => $replyTexts[($index + 5) % count($replyTexts)],
+                    'attachments' => null,
+                    'mentions' => null,
+                    'created_at' => $replyCreatedAt->copy()->addHours(4),
+                    'updated_at' => $replyCreatedAt->copy()->addHours(4),
+                ]);
+            }
         }
 
         $allSeededComments = Comment::query()
@@ -732,6 +1023,23 @@ class DemoPresentationSeeder extends Seeder
                     ],
                 );
             }
+
+            if ($comment->post?->post_type === 'question' && $index % 4 === 0) {
+                foreach ($reviewers->take(8) as $offset => $voter) {
+                    if ($voter->id === $comment->user_id) {
+                        continue;
+                    }
+
+                    CommentLike::query()->updateOrCreate(
+                        ['user_id' => $voter->id, 'comment_id' => $comment->id],
+                        [
+                            'vote' => 1,
+                            'created_at' => $votedAt->copy()->addMinutes(30 + $offset),
+                            'updated_at' => $votedAt->copy()->addMinutes(30 + $offset),
+                        ],
+                    );
+                }
+            }
         }
 
         $defaultFolder = BookmarkFolder::defaultFor($student);
@@ -747,30 +1055,29 @@ class DemoPresentationSeeder extends Seeder
         }
 
         $feedbackRows = [
-            [$student, $materials['vertex'], 1, 5, 'Clear explanation. The worked example on vertex form helped me check the turning point correctly.'],
-            [$reviewers[0], $materials['vertex'], 1, 4, 'Good summary and the axis of symmetry reminder is useful before quizzes.'],
-            [$reviewers[1], $materials['vertex'], 1, 5, 'The explanation is clear and the examples are aligned with class exercises.'],
-            [$reviewers[2], $materials['factorisation'], -1, 2, 'Need more step-by-step examples for harder factorisation questions.'],
-            [$reviewers[3], $materials['factorisation'], -1, 2, 'Need more step-by-step examples. The factorisation steps feel too fast.'],
-            [$student, $materials['factorisation'], -1, 3, 'Need more step-by-step examples and one difficult worked solution.'],
-            [$reviewers[4], $materials['factorisation'], 1, 3, 'The basics are fine, but stronger students still need more step-by-step examples for mixed questions.'],
-            [$reviewers[0], $materials['graphs'], 1, 4, 'Useful for quick revision because the key features are organised clearly.'],
-            [$reviewers[1], $materials['graphs'], 1, 4, 'The graph sketch checklist is practical and easy to remember.'],
-            [$reviewers[2], $materials['graphs'], 1, 5, 'Very suitable for revision night because the sketching method is concise.'],
-            [$reviewers[5], $materials['vertex'], 1, 5, 'Great for students who need a quick recap before trying harder exercises.'],
-            [$reviewers[6], $materials['factorisation'], -1, 3, 'The topic is useful but needs one more example with larger coefficients.'],
-            [$reviewers[7], $materials['graphs'], 1, 4, 'The feature-based sketching flow is easy to apply in timed practice.'],
-            [$reviewers[8], $materials['vertex'], 1, 4, 'Clear enough for weaker students and still relevant for revision drills.'],
-            [$reviewers[9], $materials['factorisation'], 1, 3, 'The method is okay after repeated practice, but one extra challenge set would help.'],
+            [$student, $materials['vertex'], 1, 5],
+            [$reviewers[0], $materials['vertex'], 1, 4],
+            [$reviewers[1], $materials['vertex'], 1, 5],
+            [$reviewers[2], $materials['factorisation'], -1, 2],
+            [$reviewers[3], $materials['factorisation'], -1, 2],
+            [$student, $materials['factorisation'], -1, 3],
+            [$reviewers[4], $materials['factorisation'], 1, 3],
+            [$reviewers[0], $materials['graphs'], 1, 4],
+            [$reviewers[1], $materials['graphs'], 1, 4],
+            [$reviewers[2], $materials['graphs'], 1, 5],
+            [$reviewers[5], $materials['vertex'], 1, 5],
+            [$reviewers[6], $materials['factorisation'], -1, 3],
+            [$reviewers[7], $materials['graphs'], 1, 4],
+            [$reviewers[8], $materials['vertex'], 1, 4],
+            [$reviewers[9], $materials['factorisation'], 1, 3],
         ];
 
-        foreach ($feedbackRows as [$user, $material, $vote, $rating, $feedback]) {
+        foreach ($feedbackRows as [$user, $material, $vote, $rating]) {
             StudyMaterialFeedback::query()->updateOrCreate(
                 ['user_id' => $user->id, 'post_id' => $material->id],
                 [
                     'vote' => $vote,
                     'rating' => $rating,
-                    'feedback' => $feedback,
                     'created_at' => now()->subDays(3),
                     'updated_at' => now()->subDays(3),
                 ]
@@ -800,28 +1107,29 @@ class DemoPresentationSeeder extends Seeder
             }
         }
 
-        $attemptRows = [
-            [$student, $quizzes['vertex'], $materials['vertex'], 2.0, true, now()->subDays(8)],
-            [$student, $quizzes['factorisation'], $materials['factorisation'], 1.0, false, now()->subDays(7)],
-            [$student, $quizzes['graphs'], $materials['graphs'], 2.0, true, now()->subDays(6)],
-            [$reviewers[0], $quizzes['vertex'], $materials['vertex'], 3.0, true, now()->subDays(6)],
-            [$reviewers[1], $quizzes['factorisation'], $materials['factorisation'], 1.0, false, now()->subDays(5)],
-            [$reviewers[2], $quizzes['factorisation'], $materials['factorisation'], 2.0, true, now()->subDays(4)],
-            [$reviewers[3], $quizzes['graphs'], $materials['graphs'], 3.0, true, now()->subDays(4)],
-            [$reviewers[4], $quizzes['factorisation'], $materials['factorisation'], 1.0, false, now()->subDays(3)],
-            [$reviewers[5], $quizzes['vertex'], $materials['vertex'], 3.0, true, now()->subDays(3)],
-            [$reviewers[6], $quizzes['graphs'], $materials['graphs'], 2.0, true, now()->subDays(2)],
-            [$reviewers[7], $quizzes['factorisation'], $materials['factorisation'], 1.0, false, now()->subDays(2)],
-            [$reviewers[8], $quizzes['vertex'], $materials['vertex'], 2.0, true, now()->subDays(2)],
-            [$reviewers[9], $quizzes['factorisation'], $materials['factorisation'], 2.0, true, now()->subDay()],
-            [$reviewers[10], $quizzes['graphs'], $materials['graphs'], 3.0, true, now()->subDay()],
-        ];
+        $attemptRows = collect(array_values($quizzes))->flatMap(function (Post $quiz, int $quizIndex) use ($student, $reviewers) {
+            $questionsCount = count($quiz->quiz_data['questions'] ?? []);
+            $attemptUsers = collect([$student])
+                ->merge($reviewers->slice($quizIndex % 5, 8))
+                ->values();
 
-        foreach ($attemptRows as [$user, $quiz, $material, $score, $passed, $createdAt]) {
+            return $attemptUsers->map(function (User $user, int $userIndex) use ($quiz, $quizIndex, $questionsCount) {
+                $score = max(1, min($questionsCount, $questionsCount - (($quizIndex + $userIndex) % 3)));
+                $createdAt = now()
+                    ->subDays(max(1, 8 - ($quizIndex % 7)))
+                    ->addHours($userIndex);
+
+                return [$user, $quiz, (float) $score, $score >= max(1, $questionsCount - 1), $createdAt, $questionsCount];
+            });
+        });
+
+        foreach ($attemptRows as [$user, $quiz, $score, $passed, $createdAt, $questionsCount]) {
             DB::table('material_quiz_attempts')->insert([
                 'user_id' => $user->id,
                 'post_id' => $quiz->id,
+                'material_id' => $quiz->parent_material_id,
                 'score' => $score,
+                'total_questions' => $questionsCount,
                 'passed' => $passed,
                 'created_at' => $createdAt,
                 'updated_at' => $createdAt,
@@ -888,6 +1196,29 @@ class DemoPresentationSeeder extends Seeder
             'updated_at' => now()->subDay(),
         ]);
 
+        foreach ($reviewers as $index => $reviewer) {
+            $answered = 18 + ($index * 3);
+            $correct = max(10, $answered - (5 + ($index % 4)));
+            $posted = $questionPosts->where('user_id', $reviewer->id)->count();
+
+            UserProgress::query()->create([
+                'user_id' => $reviewer->id,
+                'total_questions_answered' => $answered,
+                'total_questions_posted' => $posted,
+                'total_post_posted' => $posted,
+                'quizzes_completed' => 6 + ($index % 8),
+                'correct_answers_count' => $correct,
+                'total_likes_received' => 8 + ($index * 2),
+                'quiz_scores' => [55 + ($index % 8), 62 + ($index % 7), 70 + ($index % 6), 78 + ($index % 5)],
+                'improvement_score' => 6 + ($index % 12),
+                'created_at' => now()->subDays(9),
+                'updated_at' => now()->subHours(12 - min(11, $index % 12)),
+            ]);
+        }
+
+        $this->seedLeaderboard($allDemoUsers, $commentTargets);
+        $this->applyMixedPresentationTimeline($materials, $teacherMediaMaterials, collect($quizzes), $questionPosts, $studentReflection);
+
         $versionRows = [
             [$materials['vertex']->id, 1, $student->id, $materials['vertex']->title, 'Initial version', now()->subDays(18)],
             [$materials['factorisation']->id, 1, $student->id, $materials['factorisation']->title, 'Initial version', now()->subDays(16)],
@@ -896,7 +1227,14 @@ class DemoPresentationSeeder extends Seeder
         ];
 
         foreach ($versionRows as [$postId, $versionNumber, $userId, $title, $changeSummary, $createdAt]) {
-            DB::table('study_material_versions')->insert([
+            if (! DB::table('posts')->where('id', $postId)->exists()) {
+                continue;
+            }
+
+            DB::table('study_material_versions')->updateOrInsert([
+                'post_id' => $postId,
+                'version_number' => $versionNumber,
+            ], [
                 'post_id' => $postId,
                 'user_id' => $userId,
                 'version_number' => $versionNumber,
@@ -915,18 +1253,20 @@ class DemoPresentationSeeder extends Seeder
 
     private function upsertUser(string $email, string $name, string $role): User
     {
+        $attributes = $this->filterColumns('users', [
+            'name' => $name,
+            'password' => Hash::make('password'),
+            'role' => $role,
+            'email_verified_at' => now(),
+            'locale' => 'en',
+            'show_on_leaderboard' => true,
+            'show_leaderboard_badge' => true,
+            'is_verified' => $role === 'teacher',
+        ]);
+
         $user = User::query()->updateOrCreate(
             ['email' => $email],
-            [
-                'name' => $name,
-                'password' => Hash::make('password'),
-                'role' => $role,
-                'email_verified_at' => now(),
-                'locale' => 'en',
-                'show_on_leaderboard' => true,
-                'show_leaderboard_badge' => true,
-                'is_verified' => $role === 'teacher',
-            ],
+            $attributes,
         );
 
         $this->syncDemoAvatar($user);
@@ -964,27 +1304,65 @@ class DemoPresentationSeeder extends Seeder
     private function resetDemoData(Collection $users): void
     {
         $userIds = $users->pluck('id')->all();
+        $postIds = Schema::hasTable('posts')
+            ? Post::query()->whereIn('user_id', $userIds)->pluck('id')->all()
+            : [];
 
-        if (Schema::hasTable('comments')) {
-            Comment::query()->whereIn('user_id', $userIds)->delete();
-        }
-        if (Schema::hasTable('likes')) {
-            Like::query()->whereIn('user_id', $userIds)->delete();
-        }
-        if (Schema::hasTable('bookmark_items')) {
-            BookmarkItem::query()->whereIn('user_id', $userIds)->delete();
-        }
-        if (Schema::hasTable('quiz_attempts')) {
-            QuizAttempt::query()->whereIn('user_id', $userIds)->delete();
-        }
-        if (Schema::hasTable('study_material_feedback')) {
-            StudyMaterialFeedback::query()->whereIn('user_id', $userIds)->delete();
+        if (Schema::hasTable('study_material_versions')) {
+            DB::table('study_material_versions')
+                ->whereIn('user_id', $userIds)
+                ->when($postIds !== [], fn ($query) => $query->orWhereIn('post_id', $postIds))
+                ->delete();
         }
         if (Schema::hasTable('material_quiz_attempts')) {
-            DB::table('material_quiz_attempts')->whereIn('user_id', $userIds)->delete();
+            DB::table('material_quiz_attempts')
+                ->whereIn('user_id', $userIds)
+                ->when($postIds !== [], fn ($query) => $query->orWhereIn('post_id', $postIds)->orWhereIn('material_id', $postIds))
+                ->delete();
         }
         if (Schema::hasTable('study_material_views')) {
-            DB::table('study_material_views')->whereIn('user_id', $userIds)->delete();
+            DB::table('study_material_views')
+                ->whereIn('user_id', $userIds)
+                ->when($postIds !== [], fn ($query) => $query->orWhereIn('post_id', $postIds))
+                ->delete();
+        }
+        if (Schema::hasTable('study_material_feedback')) {
+            StudyMaterialFeedback::query()
+                ->whereIn('user_id', $userIds)
+                ->when($postIds !== [], fn ($query) => $query->orWhereIn('post_id', $postIds))
+                ->delete();
+        }
+        if (Schema::hasTable('bookmark_items')) {
+            BookmarkItem::query()
+                ->whereIn('user_id', $userIds)
+                ->when($postIds !== [], fn ($query) => $query->orWhereIn('post_id', $postIds))
+                ->delete();
+        }
+        if (Schema::hasTable('likes')) {
+            Like::query()
+                ->whereIn('user_id', $userIds)
+                ->when($postIds !== [], fn ($query) => $query->orWhereIn('post_id', $postIds))
+                ->delete();
+        }
+
+        if (Schema::hasTable('comments')) {
+            $commentIds = Comment::query()
+                ->whereIn('user_id', $userIds)
+                ->when($postIds !== [], fn ($query) => $query->orWhereIn('post_id', $postIds))
+                ->pluck('id')
+                ->all();
+
+            if (Schema::hasTable('comment_likes') && $commentIds !== []) {
+                CommentLike::query()->whereIn('comment_id', $commentIds)->delete();
+            }
+
+            Comment::query()->whereIn('id', $commentIds)->delete();
+        }
+        if (Schema::hasTable('quiz_attempts')) {
+            QuizAttempt::query()
+                ->whereIn('user_id', $userIds)
+                ->when($postIds !== [], fn ($query) => $query->orWhereIn('post_id', $postIds))
+                ->delete();
         }
         if (Schema::hasTable('badge_user')) {
             DB::table('badge_user')->whereIn('user_id', $userIds)->delete();
@@ -994,6 +1372,18 @@ class DemoPresentationSeeder extends Seeder
         }
         if (Schema::hasTable('user_progress')) {
             UserProgress::query()->whereIn('user_id', $userIds)->delete();
+        }
+        if (Schema::hasTable('points_transactions')) {
+            DB::table('points_transactions')->whereIn('user_id', $userIds)->delete();
+        }
+        if (Schema::hasTable('users')) {
+            DB::table('users')
+                ->whereIn('id', $userIds)
+                ->update($this->filterColumns('users', [
+                    'points' => 0,
+                    'total_points' => 0,
+                    'updated_at' => now(),
+                ]));
         }
         if (Schema::hasTable('posts')) {
             Post::query()->whereIn('user_id', $userIds)->delete();
@@ -1008,7 +1398,7 @@ class DemoPresentationSeeder extends Seeder
         string $content,
         $createdAt,
     ): Post {
-        return Post::query()->create([
+        return Post::query()->create($this->filterColumns('posts', [
             'user_id' => $author->id,
             'is_anonymous' => false,
             'title' => $title,
@@ -1024,7 +1414,7 @@ class DemoPresentationSeeder extends Seeder
             'material_improved_from_feedback' => false,
             'created_at' => $createdAt,
             'updated_at' => $createdAt,
-        ]);
+        ]));
     }
 
     private function createMaterial(
@@ -1038,7 +1428,7 @@ class DemoPresentationSeeder extends Seeder
         ?string $image = null,
         ?string $videoUrl = null,
     ): Post {
-        return Post::query()->create([
+        return Post::query()->create($this->filterColumns('posts', [
             'user_id' => $teacher->id,
             'is_anonymous' => false,
             'title' => $title,
@@ -1057,7 +1447,7 @@ class DemoPresentationSeeder extends Seeder
             'material_improved_from_feedback' => $improvedFromFeedback,
             'created_at' => $createdAt,
             'updated_at' => $createdAt,
-        ]);
+        ]));
     }
 
     private function createQuiz(
@@ -1069,7 +1459,7 @@ class DemoPresentationSeeder extends Seeder
         array $questions,
         $createdAt,
     ): Post {
-        return Post::query()->create([
+        return Post::query()->create($this->filterColumns('posts', [
             'user_id' => $teacher->id,
             'is_anonymous' => false,
             'title' => $title,
@@ -1087,6 +1477,136 @@ class DemoPresentationSeeder extends Seeder
             'material_improved_from_feedback' => false,
             'created_at' => $createdAt,
             'updated_at' => $createdAt,
-        ]);
+        ]));
+    }
+
+    private function seedLeaderboard(Collection $users, array $sourcePosts): void
+    {
+        if (! Schema::hasTable('points_transactions')) {
+            return;
+        }
+
+        $actions = [
+            'question_asked',
+            'answer_posted',
+            'question_upvoted',
+            'answer_upvoted',
+            'best_answer_marked',
+            'resource_bookmarked',
+            'follower_gained',
+        ];
+
+        $rankPoints = [
+            420, 385, 360, 330, 305, 286, 268, 244, 228, 210, 196, 184, 172, 160,
+            148, 136, 126, 116, 106, 98, 90, 82, 74, 66, 58, 50, 44, 38,
+        ];
+
+        $sourceIds = collect($sourcePosts)->pluck('id')->filter()->values();
+        $now = now();
+
+        foreach ($users->values() as $index => $user) {
+            $targetPoints = $rankPoints[$index] ?? max(20, 120 - ($index * 4));
+            $remaining = $targetPoints;
+            $transactionNumber = 0;
+
+            while ($remaining > 0) {
+                $points = min($remaining, [15, 10, 8, 5, 3, 2][($index + $transactionNumber) % 6]);
+                $createdAt = $now
+                    ->copy()
+                    ->subDays(($index + $transactionNumber) % 12)
+                    ->subHours(($transactionNumber * 3) % 20);
+
+                DB::table('points_transactions')->insert([
+                    'user_id' => $user->id,
+                    'points' => $points,
+                    'action' => $actions[($index + $transactionNumber) % count($actions)],
+                    'source_type' => Post::class,
+                    'source_id' => $sourceIds->isNotEmpty()
+                        ? $sourceIds[($index + $transactionNumber) % $sourceIds->count()]
+                        : $user->id,
+                    'created_at' => $createdAt,
+                    'updated_at' => $createdAt,
+                ]);
+
+                $remaining -= $points;
+                $transactionNumber++;
+            }
+
+            DB::table('users')
+                ->where('id', $user->id)
+                ->update($this->filterColumns('users', [
+                    'points' => $targetPoints,
+                    'total_points' => $targetPoints,
+                    'updated_at' => $now,
+                ]));
+        }
+
+        foreach (['all_time', 'weekly', 'monthly'] as $period) {
+            Cache::forget("leaderboard.{$period}.top-50");
+        }
+
+        Cache::forget('leaderboard.titles.all-time.top-three');
+    }
+
+    private function applyMixedPresentationTimeline(
+        array $materials,
+        Collection $teacherMediaMaterials,
+        Collection $quizzes,
+        Collection $questionPosts,
+        Post $studentReflection,
+    ): void {
+        $materialsPool = collect($materials)->values()->merge($teacherMediaMaterials)->values();
+        $quizzesPool = $quizzes->values();
+        $questionsPool = $questionPosts->push($studentReflection)->values();
+        $timeline = collect();
+        $pattern = ['material', 'question', 'quiz', 'question', 'material'];
+
+        while ($materialsPool->isNotEmpty() || $questionsPool->isNotEmpty() || $quizzesPool->isNotEmpty()) {
+            foreach ($pattern as $type) {
+                $post = match ($type) {
+                    'material' => $materialsPool->shift(),
+                    'quiz' => $quizzesPool->shift(),
+                    default => $questionsPool->shift(),
+                };
+
+                if ($post instanceof Post && ! $timeline->contains('id', $post->id)) {
+                    $timeline->push($post);
+                }
+            }
+        }
+
+        $timeline = $timeline->unique('id')->values();
+
+        $timeline->values()->each(function (Post $post, int $index) {
+            $createdAt = now()
+                ->copy()
+                ->subDays(1)
+                ->subHours($index * 4)
+                ->addMinutes(($index % 5) * 7);
+
+            $post->forceFill([
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt->copy()->addHours(2 + ($index % 4)),
+            ])->save();
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>  $values
+     * @return array<string, mixed>
+     */
+    private function filterColumns(string $table, array $values): array
+    {
+        if (! isset($this->columnCache[$table])) {
+            $this->columnCache[$table] = Schema::hasTable($table)
+                ? Schema::getColumnListing($table)
+                : [];
+        }
+
+        if ($this->columnCache[$table] === []) {
+            return [];
+        }
+
+        return array_intersect_key($values, array_flip($this->columnCache[$table]));
     }
 }

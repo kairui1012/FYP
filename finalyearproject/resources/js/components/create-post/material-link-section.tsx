@@ -33,7 +33,7 @@ export function MaterialLinkSection({
     const { trans } = reactLang();
     const emptyValue = '__none__';
 
-    if (selectedPostType === 'material') {
+    if (selectedPostType !== 'quiz') {
         return null;
     }
 

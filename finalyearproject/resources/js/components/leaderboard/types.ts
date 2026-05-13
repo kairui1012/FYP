@@ -7,6 +7,8 @@ export type LeaderboardUser = {
     points: number;
     rank: number;
     is_anonymous: boolean;
+    role?: string | null;
+    is_verified?: boolean;
     leaderboard_title?: string | null;
 };
 

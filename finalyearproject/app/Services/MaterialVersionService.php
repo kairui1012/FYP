@@ -23,16 +23,32 @@ class MaterialVersionService
             ->where('post_id', $post->id)
             ->max('version_number')) + 1;
 
-        return StudyMaterialVersion::query()->create([
+        $columns = array_flip(Schema::getColumnListing('study_material_versions'));
+        $attributes = [
             'post_id' => $post->id,
             'version_number' => $nextVersionNumber,
             'title' => $post->title,
+        ];
+
+        $optionalAttributes = [
+            'user_id' => $post->user_id,
+            'content' => $post->content ?? '',
+            'content_blocks' => $post->content_blocks,
+            'change_summary' => 'Initial version',
             'average_rating' => $snapshot['average_rating'],
             'rating_count' => $snapshot['rating_count'],
             'recommended_count' => $snapshot['recommended_count'],
             'total_votes' => $snapshot['total_votes'],
             'recommendation_rate' => $snapshot['recommendation_rate'],
-        ]);
+        ];
+
+        foreach ($optionalAttributes as $column => $value) {
+            if (isset($columns[$column])) {
+                $attributes[$column] = $value;
+            }
+        }
+
+        return StudyMaterialVersion::query()->create($attributes);
     }
 
     /**

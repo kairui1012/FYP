@@ -2,7 +2,11 @@ import { router, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { BookmarkFolderItem } from '@/types';
-import { toStudyFolderUrl, toQuizFolderUrl, withCsrfHeaders } from './study-folder-utils';
+import {
+    toStudyFolderUrl,
+    toQuizFolderUrl,
+    withCsrfHeaders,
+} from './study-folder-utils';
 import type { QuizFolderMode, StudyFolderPageProps } from './types';
 
 export function useStudyFolder() {
@@ -22,12 +26,12 @@ export function useStudyFolder() {
             : (folders.find((f) => f.is_default)?.id ?? folders[0]?.id));
     const activeFolder = folders.find((f) => f.id === activeFolderId);
     const activeQuizMode: QuizFolderMode =
-        studyMode === 'correct' || studyMode === 'wrong' ? studyMode : 'completed';
-    const isQuizFolder =
-        studyMode === 'completed' || studyMode === 'correct' || studyMode === 'wrong';
+        studyMode === 'wrong' ? 'wrong' : 'correct';
+    const isQuizFolder = studyMode === 'correct' || studyMode === 'wrong';
 
     const totalSaves = useMemo(
-        () => folders.reduce((sum, folder) => sum + (folder.items_count ?? 0), 0),
+        () =>
+            folders.reduce((sum, folder) => sum + (folder.items_count ?? 0), 0),
         [folders],
     );
     const savedQuizzesCount = completedCount;
@@ -35,17 +39,27 @@ export function useStudyFolder() {
     const [creatingFolder, setCreatingFolder] = useState(false);
     const [showCreateFolderForm, setShowCreateFolderForm] = useState(false);
     const [folderName, setFolderName] = useState('');
-    const [renamingFolderId, setRenamingFolderId] = useState<number | null>(null);
+    const [renamingFolderId, setRenamingFolderId] = useState<number | null>(
+        null,
+    );
     const [renameValue, setRenameValue] = useState('');
     const [savingPostIds, setSavingPostIds] = useState<number[]>([]);
     const [movingPostIds, setMovingPostIds] = useState<number[]>([]);
 
     const refreshCurrentFolder = (folderId = activeFolderId) => {
-        router.get(toStudyFolderUrl(folderId), {}, { preserveScroll: true, preserveState: false });
+        router.get(
+            toStudyFolderUrl(folderId),
+            {},
+            { preserveScroll: true, preserveState: false },
+        );
     };
 
     const navigateQuizFolder = (mode: QuizFolderMode) => {
-        router.get(toQuizFolderUrl(mode), {}, { preserveScroll: true, preserveState: false });
+        router.get(
+            toQuizFolderUrl(mode),
+            {},
+            { preserveScroll: true, preserveState: false },
+        );
     };
 
     const cancelCreateFolder = () => {
@@ -77,7 +91,9 @@ export function useStudyFolder() {
             });
             if (!response.ok) throw new Error('Failed to create folder.');
 
-            const payload = (await response.json()) as { folder?: BookmarkFolderItem };
+            const payload = (await response.json()) as {
+                folder?: BookmarkFolderItem;
+            };
             setFolderName('');
             setShowCreateFolderForm(false);
             refreshCurrentFolder(payload.folder?.id ?? activeFolderId);

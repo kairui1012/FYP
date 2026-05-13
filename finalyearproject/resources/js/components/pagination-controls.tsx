@@ -5,11 +5,13 @@ import type { PaginationMeta } from '@/types';
 type PaginationControlsProps = {
     pagination?: PaginationMeta | null;
     only?: string[];
+    appendQuery?: Record<string, string | number | boolean | null | undefined>;
 };
 
 export function PaginationControls({
     pagination,
     only,
+    appendQuery,
 }: PaginationControlsProps) {
     if (!pagination || pagination.last_page <= 1) {
         return null;
@@ -48,9 +50,32 @@ export function PaginationControls({
             );
         }
 
+        const nextHref = (() => {
+            if (!appendQuery || Object.keys(appendQuery).length === 0) {
+                return href;
+            }
+
+            const baseOrigin =
+                typeof window !== 'undefined'
+                    ? window.location.origin
+                    : 'http://localhost';
+            const url = new URL(href, baseOrigin);
+
+            Object.entries(appendQuery).forEach(([key, value]) => {
+                if (value === null || value === undefined || value === '') {
+                    url.searchParams.delete(key);
+                    return;
+                }
+
+                url.searchParams.set(key, String(value));
+            });
+
+            return `${url.pathname}${url.search}${url.hash}`;
+        })();
+
         return (
             <Link
-                href={href}
+                href={nextHref}
                 only={only}
                 preserveScroll
                 preserveState

@@ -1,3 +1,5 @@
+import { postAiJson } from '@/lib/ai-http';
+
 export type MaterialQuizQuestion = {
     question: string;
     options: string[];
@@ -75,42 +77,17 @@ function parseMaterialQuizPayload(
 async function requestMaterialQuizWithProvider(
     params: MaterialQuizParams,
 ): Promise<MaterialQuizResult> {
-    const res = await fetch('/ai-material-quiz', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN':
-                document.querySelector<HTMLMetaElement>(
-                    'meta[name="csrf-token"]',
-                )?.content ?? '',
-        },
-        body: JSON.stringify({
+    const payload = await postAiJson(
+        '/ai-material-quiz',
+        {
             material_title: params.materialTitle,
             material_content: params.materialContent,
             subject: params.subject ?? null,
             language_code: params.languageCode ?? null,
             question_count: params.questionCount ?? 1,
-        }),
-    });
-
-    if (!res.ok) {
-        let errorMessage = `Failed: ${res.status}`;
-        try {
-            const errorData = await res.json();
-            if (
-                typeof errorData?.error === 'string' &&
-                errorData.error.trim() !== ''
-            ) {
-                errorMessage = `Failed: ${errorData.error}`;
-            }
-        } catch {
-            // Keep the status-based message.
-        }
-        throw new Error(errorMessage);
-    }
-
-    const payload = await res.json();
+        },
+        'The AI material quiz service returned an unexpected response. Please try again.',
+    );
 
     if (!payload || typeof payload !== 'object' || !('quiz' in payload)) {
         throw new Error(`Failed: invalid material quiz response`);

@@ -35,7 +35,8 @@ Route::post('/translate', function (Request $request) {
             ->post('https://api.deepseek.com/v1/chat/completions', [
                 'model'           => 'deepseek-chat',
                 'messages'        => [
-                    ['role' => 'system', 'content' => 'You are a professional translator. Always respond with valid JSON only, no markdown.'],
+                    ['role' => 'system', 'content' => 'You are a professional translator. 
+                    Always respond with valid JSON only, no markdown.'],
                     ['role' => 'user',   'content' => $prompt],
                 ],
                 'temperature'     => 0.2,
@@ -637,13 +638,12 @@ Route::post('/ai-best-answer', function (Request $request) {
         'post_title'     => 'required|string|max:300',
         'post_content'   => 'nullable|string|max:2000',
         'answer_content' => 'required|string|max:2000',
-        'provider'       => 'required|in:deepseek,gemini',
+        'provider'       => 'nullable|in:deepseek,gemini',
     ]);
 
     $postTitle     = $request->input('post_title');
     $postContent   = $request->input('post_content', '');
     $answerContent = $request->input('answer_content');
-    $provider      = $request->input('provider');
 
     $currentLocale = app()->getLocale();
     $lang = match ($currentLocale) {
@@ -749,13 +749,12 @@ Route::post('/ai-answer-feedback', function (Request $request) {
         'post_title'     => 'required|string|max:300',
         'post_content'   => 'nullable|string|max:2000',
         'answer_content' => 'required|string|max:2000',
-        'provider'       => 'required|in:deepseek,gemini',
+        'provider'       => 'nullable|in:deepseek,gemini',
     ]);
 
     $postTitle     = $request->input('post_title');
     $postContent   = $request->input('post_content', '');
     $answerContent = $request->input('answer_content');
-    $provider      = $request->input('provider');
 
     $currentLocale = app()->getLocale();
     $lang = match ($currentLocale) {

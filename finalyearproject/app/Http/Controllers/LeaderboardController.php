@@ -106,7 +106,7 @@ class LeaderboardController extends Controller
     }
 
     /**
-     * @return array<int, array{id: int, name: string, avatar: string|null, points: int, rank: int, is_anonymous: bool}>
+     * @return array<int, array{id: int, name: string, avatar: string|null, points: int, rank: int, is_anonymous: bool, role: string|null, is_verified: bool, leaderboard_title: string|null}>
      */
     private function cachedLeaderboard(string $period): array
     {
@@ -123,6 +123,8 @@ class LeaderboardController extends Controller
                     'points' => (int) $user->points,
                     'rank' => $index + 1,
                     'is_anonymous' => ! (bool) $user->show_on_leaderboard,
+                    'role' => (bool) $user->show_on_leaderboard ? $user->role : null,
+                    'is_verified' => (bool) $user->show_on_leaderboard && (bool) $user->is_verified,
                     'leaderboard_title' => (bool) $user->show_on_leaderboard && $user->show_leaderboard_badge
                         ? $this->leaderboardTitleService->titleForUserId((int) $user->id)
                         : null,
@@ -216,12 +218,14 @@ class LeaderboardController extends Controller
             ->select([
                 'ranked_users.id',
                 'ranked_users.name',
+                'ranked_users.role',
+                'ranked_users.is_verified',
                 'ranked_users.points',
                 'ranked_users.show_leaderboard_badge',
                 'ranked_users.show_on_leaderboard',
                 DB::raw('MAX(social_accounts.avatar) as avatar'),
             ])
-            ->groupBy('ranked_users.id', 'ranked_users.name', 'ranked_users.points', 'ranked_users.show_leaderboard_badge', 'ranked_users.show_on_leaderboard')
+            ->groupBy('ranked_users.id', 'ranked_users.name', 'ranked_users.role', 'ranked_users.is_verified', 'ranked_users.points', 'ranked_users.show_leaderboard_badge', 'ranked_users.show_on_leaderboard')
             ->orderByDesc('ranked_users.points')
             ->orderBy('ranked_users.id');
     }
@@ -233,6 +237,8 @@ class LeaderboardController extends Controller
                 ->select([
                     'id',
                     'name',
+                    'role',
+                    'is_verified',
                     'show_leaderboard_badge',
                     'show_on_leaderboard',
                     DB::raw('total_points as points'),
@@ -248,11 +254,13 @@ class LeaderboardController extends Controller
             ->select([
                 'users.id',
                 'users.name',
+                'users.role',
+                'users.is_verified',
                 'users.show_leaderboard_badge',
                 'users.show_on_leaderboard',
                 DB::raw('COALESCE(SUM(points_transactions.points), 0) as points'),
             ])
-            ->groupBy('users.id', 'users.name', 'users.show_leaderboard_badge', 'users.show_on_leaderboard');
+            ->groupBy('users.id', 'users.name', 'users.role', 'users.is_verified', 'users.show_leaderboard_badge', 'users.show_on_leaderboard');
     }
 
     /**

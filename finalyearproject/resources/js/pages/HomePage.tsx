@@ -133,7 +133,14 @@ export default function HomePage({
                                 onToggleFollow={handleFollowToggle}
                                 text={buildFeedSectionText(homeText)}
                             />
-                            <PaginationControls pagination={pagination} />
+                            <PaginationControls
+                                pagination={pagination}
+                                appendQuery={
+                                    isHomePage
+                                        ? { tab: activeTab }
+                                        : undefined
+                                }
+                            />
                         </section>
                     )}
                 </div>

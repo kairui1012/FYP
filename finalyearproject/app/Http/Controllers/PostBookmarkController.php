@@ -47,46 +47,12 @@ class PostBookmarkController extends Controller
         $correctCount = $this->getQuizReviewCount($user->id, true);
         $wrongCount = $this->getQuizReviewCount($user->id, false);
 
-        $studyMode = $request->string('study')->toString(); // 'completed' | 'correct' | 'wrong' | ''
+        $studyMode = $request->string('study')->toString(); // 'correct' | 'wrong' | ''
+        if ($studyMode === 'completed') {
+            $studyMode = 'correct';
+        }
 
-        if (in_array($studyMode, ['completed', 'correct', 'wrong'], true)) {
-            if ($studyMode === 'completed') {
-                $quizStatusByPostId = $this->getCompletedQuizStatusByPostId($user->id, $completedPostIds);
-                $posts = Post::query()
-                    ->whereIn('id', array_values($completedPostIds))
-                    ->with([
-                        'user:id,name',
-                        'user.socialAccounts:id,user_id,avatar',
-                        'subject:id,name',
-                        'language:id,code,name',
-                    ])
-                    ->withCount(['likes', 'comments', 'bookmarkItems as saves_count'])
-                    ->withExists([
-                        'likes as is_liked' => fn ($query) => $query->where('user_id', $user->id),
-                        'bookmarkItems as is_saved' => fn ($query) => $query->where('user_id', $user->id),
-                    ])
-                    ->orderByDesc('created_at')
-                    ->get()
-                    ->map(function (Post $post) use ($followingIds, $completedPostIds, $quizStatusByPostId) {
-                        $serialized = $this->serializationService->serialize($post, $followingIds);
-                        $serialized['is_quiz_completed'] = in_array($post->id, $completedPostIds, true);
-                        $serialized['is_quiz_correct'] = $quizStatusByPostId[$post->id] ?? true;
-
-                        return $serialized;
-                    });
-
-                return Inertia::render('StudyFolderPage', [
-                    'posts' => $posts,
-                    'folders' => $folders,
-                    'activeFolderId' => null,
-                    'studyMode' => $studyMode,
-                    'completedCount' => $completedCount,
-                    'correctCount' => $correctCount,
-                    'wrongCount' => $wrongCount,
-                    'quizReviewItems' => [],
-                ]);
-            }
-
+        if (in_array($studyMode, ['correct', 'wrong'], true)) {
             $quizReviewItems = $this->getQuizReviewItems($user->id, $studyMode === 'correct');
 
             return Inertia::render('StudyFolderPage', [
@@ -173,38 +139,6 @@ class PostBookmarkController extends Controller
             ->where('user_id', $userId)
             ->where('is_correct', $isCorrect)
             ->count();
-    }
-
-    /**
-     * @param  int[]  $completedPostIds
-     * @return array<int, bool>
-     */
-    private function getCompletedQuizStatusByPostId(int $userId, array $completedPostIds): array
-    {
-        if ($completedPostIds === []) {
-            return [];
-        }
-
-        if (! Schema::hasTable('quiz_mistakes')) {
-            return array_fill_keys($completedPostIds, true);
-        }
-
-        $statuses = array_fill_keys($completedPostIds, true);
-
-        QuizAttempt::query()
-            ->where('user_id', $userId)
-            ->whereIn('post_id', $completedPostIds)
-            ->where('is_correct', false)
-            ->pluck('post_id')
-            ->unique()
-            ->each(function ($postId) use (&$statuses): void {
-                $id = (int) $postId;
-                if (array_key_exists($id, $statuses)) {
-                    $statuses[$id] = false;
-                }
-            });
-
-        return $statuses;
     }
 
     /**

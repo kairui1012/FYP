@@ -22,7 +22,6 @@ import {
     Star,
     Target,
     ThumbsUp,
-    TrendingUp,
     Trophy,
     Users,
     Zap,
@@ -34,7 +33,6 @@ export const achievementIconMap = {
     HelpCircle,
     GraduationCap,
     Target,
-    TrendingUp,
     BarChart2,
     ThumbsUp,
     Award,
@@ -101,18 +99,6 @@ export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
         badgeBg: 'bg-emerald-50 dark:bg-emerald-950/40',
         textAccent: 'text-emerald-700 dark:text-emerald-300',
         Icon: GraduationCap,
-    },
-    improvement: {
-        labelKey: 'achievement.category_improvement',
-        gradient: 'from-violet-500/20 via-violet-400/10 to-transparent',
-        border: 'border-violet-300 dark:border-violet-700',
-        glow: 'shadow-violet-200 dark:shadow-violet-900',
-        iconBg: 'bg-violet-100 dark:bg-violet-900/50',
-        iconColor: 'text-violet-600 dark:text-violet-400',
-        barColor: 'from-violet-400 to-violet-600',
-        badgeBg: 'bg-violet-50 dark:bg-violet-950/40',
-        textAccent: 'text-violet-700 dark:text-violet-300',
-        Icon: TrendingUp,
     },
     community: {
         labelKey: 'achievement.category_community',
@@ -181,11 +167,16 @@ export const CATEGORY_ORDER = [
     'question',
     'commenting',
     'performance',
-    'improvement',
     'saving',
     'mistakes',
     'community',
 ];
+
+export const HIDDEN_ACHIEVEMENT_KEYS = new Set([
+    'consistent_growth',
+    'fast_improver',
+    'quiz_completionist',
+]);
 
 export const ACHIEVEMENT_META: Record<
     string,
@@ -209,16 +200,6 @@ export const ACHIEVEMENT_META: Record<
     high_accuracy: {
         titleKey: 'achievement.high_accuracy_title',
         descKey: 'achievement.high_accuracy_desc',
-        unitKey: 'achievement.unit_percent',
-    },
-    fast_improver: {
-        titleKey: 'achievement.fast_improver_title',
-        descKey: 'achievement.fast_improver_desc',
-        unitKey: 'achievement.unit_percent',
-    },
-    consistent_growth: {
-        titleKey: 'achievement.consistent_growth_title',
-        descKey: 'achievement.consistent_growth_desc',
         unitKey: 'achievement.unit_percent',
     },
     helpful_contributor: {
@@ -295,11 +276,6 @@ export const ACHIEVEMENT_META: Record<
         titleKey: 'achievement.perfect_scorer_title',
         descKey: 'achievement.perfect_scorer_desc',
         unitKey: 'achievement.unit_percent',
-    },
-    quiz_completionist: {
-        titleKey: 'achievement.quiz_completionist_title',
-        descKey: 'achievement.quiz_completionist_desc',
-        unitKey: 'achievement.unit_quizzes',
     },
     community_star: {
         titleKey: 'achievement.community_star_title',

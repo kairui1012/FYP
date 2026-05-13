@@ -1,0 +1,138 @@
+<mxfile host="app.diagrams.net" version="24.7.17">
+  <diagram name="Create Post Activity" id="create-post-activity">
+    <mxGraphModel dx="2600" dy="1800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3200" pageHeight="2800" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="2" value="" style="ellipse;html=1;fillColor=#000000;strokeColor=#000000;aspect=fixed;" vertex="1" parent="1"><mxGeometry x="1508" y="40" width="24" height="24" as="geometry"/></mxCell>
+        <mxCell id="3" value="" style="ellipse;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;aspect=fixed;" vertex="1" parent="1"><mxGeometry x="1500" y="2620" width="40" height="40" as="geometry"/></mxCell>
+        <mxCell id="4" value="" style="ellipse;html=1;fillColor=#000000;strokeColor=#000000;aspect=fixed;" vertex="1" parent="1"><mxGeometry x="1510" y="2630" width="20" height="20" as="geometry"/></mxCell>
+
+        <mxCell id="10" value="Authenticated verified user opens Create Post page" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1320" y="100" width="400" height="60" as="geometry"/></mxCell>
+        <mxCell id="11" value="Select post type: question, quiz, or study material" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1300" y="190" width="440" height="60" as="geometry"/></mxCell>
+        <mxCell id="12" value="Enter shared fields: title, subject, language, content, attachments, and anonymous option if available" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1160" y="280" width="720" height="70" as="geometry"/></mxCell>
+        <mxCell id="13" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="1440" y="390" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="14" value="Post type?" style="text;html=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1440" y="360" width="160" height="24" as="geometry"/></mxCell>
+
+        <mxCell id="20" value="Write question details and optional context" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="220" y="560" width="320" height="60" as="geometry"/></mxCell>
+        <mxCell id="21" value="Validate title, content length, subject, language, and attachments" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="180" y="650" width="400" height="60" as="geometry"/></mxCell>
+
+        <mxCell id="30" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="1040" y="560" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="31" value="User is teacher or admin?" style="text;html=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1000" y="530" width="240" height="24" as="geometry"/></mxCell>
+        <mxCell id="32" value="Hide or reject quiz creation permission" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="760" y="730" width="320" height="60" as="geometry"/></mxCell>
+        <mxCell id="33" value="Create quiz question data" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1240" y="730" width="240" height="60" as="geometry"/></mxCell>
+        <mxCell id="34" value="Enter each quiz question, at least two options, correct answer index, and optional explanation" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1160" y="820" width="400" height="70" as="geometry"/></mxCell>
+        <mxCell id="35" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="1280" y="930" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="36" value="Use AI to generate quiz options?" style="text;html=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1210" y="900" width="300" height="24" as="geometry"/></mxCell>
+        <mxCell id="37" value="Send question, provider, and optional answer placement to AI quiz option endpoint" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1080" y="1100" width="560" height="70" as="geometry"/></mxCell>
+        <mxCell id="38" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="1280" y="1200" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="39" value="AI returns exactly four valid options and answer index?" style="text;html=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1140" y="1170" width="440" height="24" as="geometry"/></mxCell>
+        <mxCell id="40" value="Show AI generation error and let user edit manually" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="900" y="1340" width="360" height="60" as="geometry"/></mxCell>
+        <mxCell id="41" value="Apply generated options and correct answer index" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1480" y="1340" width="320" height="60" as="geometry"/></mxCell>
+        <mxCell id="42" value="Validate quiz_data: questions array, options, answer index bounds, and explanations" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1300" y="1430" width="680" height="70" as="geometry"/></mxCell>
+        <mxCell id="43" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="1560" y="1530" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="44" value="Quiz data valid?" style="text;html=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1560" y="1500" width="160" height="24" as="geometry"/></mxCell>
+        <mxCell id="45" value="Show quiz validation errors" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1300" y="1680" width="240" height="60" as="geometry"/></mxCell>
+        <mxCell id="46" value="Prepare quiz post payload" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1760" y="1680" width="220" height="60" as="geometry"/></mxCell>
+
+        <mxCell id="50" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="2360" y="560" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="51" value="User can publish study materials?" style="text;html=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="2280" y="530" width="320" height="24" as="geometry"/></mxCell>
+        <mxCell id="52" value="Reject request with permission error" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="2200" y="730" width="280" height="60" as="geometry"/></mxCell>
+        <mxCell id="53" value="Create material blocks: text, image/file, video link, and learning content" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="2520" y="730" width="460" height="70" as="geometry"/></mxCell>
+        <mxCell id="54" value="Upload valid material files and normalize content blocks" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="2560" y="830" width="380" height="60" as="geometry"/></mxCell>
+        <mxCell id="55" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="2660" y="930" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="56" value="Link existing quiz or generate material quiz?" style="text;html=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="2540" y="900" width="400" height="24" as="geometry"/></mxCell>
+
+        <mxCell id="57" value="Use material title/content to request AI material quiz" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="2500" y="1100" width="480" height="60" as="geometry"/></mxCell>
+        <mxCell id="58" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="2660" y="1200" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="59" value="AI quiz question valid?" style="text;html=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="2630" y="1170" width="220" height="24" as="geometry"/></mxCell>
+        <mxCell id="60" value="Show generation error and continue without generated quiz" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="2280" y="1340" width="360" height="60" as="geometry"/></mxCell>
+        <mxCell id="61" value="Attach generated quiz draft to material flow" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="2860" y="1340" width="320" height="60" as="geometry"/></mxCell>
+        <mxCell id="62" value="Select quiz posts to link by parent_material_id" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="2900" y="1100" width="320" height="60" as="geometry"/></mxCell>
+        <mxCell id="63" value="Skip quiz linking" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="2480" y="1440" width="220" height="60" as="geometry"/></mxCell>
+        <mxCell id="64" value="Validate material blocks and linked quiz references" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="2840" y="1560" width="360" height="60" as="geometry"/></mxCell>
+
+        <mxCell id="70" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="1540" y="1820" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="71" value="Validation passed?" style="text;html=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1540" y="1790" width="160" height="24" as="geometry"/></mxCell>
+        <mxCell id="72" value="Return validation errors to form" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1260" y="1980" width="260" height="60" as="geometry"/></mxCell>
+        <mxCell id="73" value="Create post in database transaction" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1700" y="1980" width="280" height="60" as="geometry"/></mxCell>
+        <mxCell id="74" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="1760" y="2070" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="75" value="Post is study material?" style="text;html=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1730" y="2040" width="220" height="24" as="geometry"/></mxCell>
+        <mxCell id="76" value="Save material version snapshot and linked quiz relationship" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1740" y="2250" width="380" height="60" as="geometry"/></mxCell>
+        <mxCell id="77" value="Skip material versioning" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="2200" y="2250" width="220" height="60" as="geometry"/></mxCell>
+        <mxCell id="78" value="Award points and sync post-created progress" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1880" y="2350" width="320" height="60" as="geometry"/></mxCell>
+        <mxCell id="79" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" vertex="1" parent="1"><mxGeometry x="1960" y="2440" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="80" value="Post is anonymous?" style="text;html=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="1960" y="2410" width="160" height="24" as="geometry"/></mxCell>
+        <mxCell id="81" value="Skip public author display and achievement display updates" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1720" y="2550" width="360" height="60" as="geometry"/></mxCell>
+        <mxCell id="82" value="Evaluate achievements and update user progress" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="2160" y="2550" width="320" height="60" as="geometry"/></mxCell>
+        <mxCell id="83" value="Redirect to home or post detail page" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#D9E8FB;strokeColor=#6C8EBF;" vertex="1" parent="1"><mxGeometry x="1940" y="2640" width="320" height="60" as="geometry"/></mxCell>
+
+        <mxCell id="200" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="2" target="10"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="201" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="10" target="11"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="202" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="11" target="12"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="203" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="12" target="13"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="204" value="Question" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="13" target="20"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="205" value="Quiz" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="13" target="30"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="206" value="Study material" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="13" target="50"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="207" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="20" target="21"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="208" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="30" target="32"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="209" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="30" target="33"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="210" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="33" target="34"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="211" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="34" target="35"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="212" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="35" target="37"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="213" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="35" target="41"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="214" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="37" target="38"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="215" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="38" target="40"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="216" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="38" target="41"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="217" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="41" target="42"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="218" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="42" target="43"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="219" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="43" target="45"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="220" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="43" target="46"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="221" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="40" target="34"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="222" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="50" target="52"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="223" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="50" target="53"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="224" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="53" target="54"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="225" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="54" target="55"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="226" value="Generate quiz" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="55" target="57"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="227" value="Link existing quiz" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="55" target="62"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="228" value="No quiz" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="55" target="63"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="229" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="57" target="58"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="230" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="58" target="60"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="231" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="58" target="61"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="232" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="60" target="63"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="233" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="61" target="62"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="234" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="62" target="64"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="235" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="63" target="64"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="236" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="21" target="70"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="237" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="46" target="70"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="238" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="64" target="70"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="239" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="70" target="72"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="240" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="70" target="73"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="241" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="73" target="74"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="242" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="74" target="76"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="243" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="74" target="77"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="244" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="76" target="78"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="245" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="77" target="78"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="246" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="78" target="79"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="247" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="79" target="81"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="248" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="79" target="82"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="249" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="81" target="83"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="250" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="82" target="83"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="251" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="32" target="3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="252" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="45" target="3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="253" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="52" target="3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="254" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="72" target="3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="255" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;endFill=1;" edge="1" parent="1" source="83" target="3"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

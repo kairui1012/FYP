@@ -128,16 +128,6 @@ const MILESTONE_META: Record<
         descKey: 'achievement.high_accuracy_desc',
         unitKey: 'achievement.unit_percent',
     },
-    fast_improver: {
-        titleKey: 'achievement.fast_improver_title',
-        descKey: 'achievement.fast_improver_desc',
-        unitKey: 'achievement.unit_percent',
-    },
-    consistent_growth: {
-        titleKey: 'achievement.consistent_growth_title',
-        descKey: 'achievement.consistent_growth_desc',
-        unitKey: 'achievement.unit_percent',
-    },
     helpful_contributor: {
         titleKey: 'achievement.helpful_contributor_title',
         descKey: 'achievement.helpful_contributor_desc',

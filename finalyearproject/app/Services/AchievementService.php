@@ -90,8 +90,6 @@ class AchievementService
         $accuracyRate     = $totalAnswered > 0
             ? ($progress->correct_answers_count / $totalAnswered) * 100
             : 0.0;
-        $improvementScore = $progress->improvement_score;
-
         // Live metrics computed from DB (no extra stored column needed)
         $commentsCount   = Comment::where('user_id', $user->id)->count();
         $savedPostsCount = BookmarkItem::where('user_id', $user->id)->count();
@@ -103,8 +101,6 @@ class AchievementService
             'curious_mind'        => $progress->total_questions_posted >= 5,
             'quiz_master'         => $progress->correct_answers_count >= 20,
             'high_accuracy'       => $totalAnswered >= 5 && $accuracyRate >= 80.0,
-            'fast_improver'       => $improvementScore >= 20,
-            'consistent_growth'   => $totalAnswered >= 10 && $improvementScore >= 10,
             'helpful_contributor' => $progress->total_likes_received >= 10,
             'top_contributor'     => $progress->total_likes_received >= 50,
 
@@ -132,7 +128,6 @@ class AchievementService
 
             // ── Extended Performance ─────────────────────────────────────────
             'perfect_scorer'      => $totalAnswered >= 5 && $accuracyRate >= 90.0,
-            'quiz_completionist'  => $progress->quizzes_completed >= 10,
 
             // ── Extended Community ───────────────────────────────────────────
             'community_star'      => $progress->total_likes_received >= 200,

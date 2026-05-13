@@ -15,7 +15,6 @@ return new class extends Migration
             $table->unsignedBigInteger('post_id');
             $table->tinyInteger('vote')->nullable();
             $table->unsignedTinyInteger('rating')->nullable();
-            $table->text('feedback')->nullable();
             $table->timestamps();
 
             $table->unique(['user_id', 'post_id']);

@@ -9,7 +9,6 @@ import {
     UsersRound,
 } from 'lucide-react';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
-import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { PostAttachments } from '@/components/post-attachments';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnComment } from '@/components/ui/btn-comment';
@@ -17,8 +16,10 @@ import { BtnFollow } from '@/components/ui/btn-follow';
 import { BtnLike } from '@/components/ui/btn-like';
 import { BtnSave } from '@/components/ui/btn-save';
 import { BtnShare } from '@/components/ui/btn-share';
+import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { formatFormulaText } from '@/lib/formula-display';
 import { formatTimeAgo, getSubjectLabel } from '@/lib/post-utils';
+import { isVerifiedTeacher } from '@/lib/verified-teacher';
 import type { PostItem } from '@/types';
 import {
     getLangBadgeProps,
@@ -126,16 +127,11 @@ function materialAssetUrl(path: string) {
 
 function MaterialRecommendationBadge({ post }: { post: PostItem }) {
     const averageRating = post.material_feedback_summary?.average_rating ?? 0;
-    const recommendationRate =
-        post.material_feedback_summary?.recommendation_rate ?? 0;
-    const ratingCount = post.material_feedback_summary?.rating_count ?? 0;
 
     return (
         <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
             <Star className="h-3.5 w-3.5 fill-current" />
-            {ratingCount > 0
-                ? `${averageRating.toFixed(1)} · ${recommendationRate}%`
-                : 'No ratings yet'}
+            {averageRating.toFixed(1)}
         </span>
     );
 }
@@ -362,7 +358,7 @@ export function HomeFeedSection({
                                                             ? `/profilePage/${post.user.id}`
                                                             : '/profilePage'
                                                     }
-                                                    className={`cursor-pointer font-semibold transition-colors peer-hover:text-[#e27193] hover:text-[#e27193] ${post.user?.is_verified ? 'text-blue-600' : 'text-zinc-900'}`}
+                                                    className={`cursor-pointer font-semibold transition-colors peer-hover:text-[#e27193] hover:text-[#e27193] ${isVerifiedTeacher(post.user) ? 'text-blue-600' : 'text-zinc-900'}`}
                                                     onClick={(event) =>
                                                         event.stopPropagation()
                                                     }
@@ -370,9 +366,9 @@ export function HomeFeedSection({
                                                     {post.user?.name ??
                                                         text.unknownUser}
                                                 </Link>
-                                                {post.user?.is_verified && (
-                                                    <VerifiedTeacherBadge />
-                                                )}
+                                                {isVerifiedTeacher(
+                                                    post.user,
+                                                ) && <VerifiedTeacherBadge />}
                                                 <LeaderboardTitleBadge
                                                     title={
                                                         post.user
@@ -416,17 +412,17 @@ export function HomeFeedSection({
                                                 post.post_type === 'quiz'
                                                     ? 'quiz'
                                                     : post.post_type ===
-                                                          'question'
-                                                        ? 'question'
-                                                        : 'material';
+                                                        'question'
+                                                      ? 'question'
+                                                      : 'material';
                                             const { bg, text: typeTextClass } =
                                                 getPostTypeBadgeProps(type);
                                             const label =
                                                 type === 'quiz'
                                                     ? text.createQuiz
                                                     : type === 'question'
-                                                        ? text.askQuestion
-                                                        : text.shareMaterial;
+                                                      ? text.askQuestion
+                                                      : text.shareMaterial;
 
                                             return (
                                                 <span

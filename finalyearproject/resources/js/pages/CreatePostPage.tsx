@@ -4,14 +4,11 @@ import type { ReactNode } from 'react';
 import { AnonymousToggleSection } from '@/components/create-post/anonymous-toggle-section';
 import { AttachmentsSection } from '@/components/create-post/attachments-section';
 import { ContentComposerSection } from '@/components/create-post/content-composer-section';
-import { CreatePostHeaderSection } from '@/components/create-post/create-post-header-section';
 import {
     ACCEPTED_FILE_TYPES,
     MAX_CONTENT_LENGTH,
     MAX_TITLE_LENGTH,
     buildCreatePostText,
-    type LearningMaterialOption,
-    type LinkedQuizOption,
     pillActionButton,
     pillChoiceActive,
     pillChoiceBase,
@@ -19,9 +16,10 @@ import {
     pillIconButton,
     pillSubmitButton,
 } from '@/components/create-post/create-post-config';
+import type { LearningMaterialOption } from '@/components/create-post/create-post-config';
+import { CreatePostHeaderSection } from '@/components/create-post/create-post-header-section';
 import { LanguageSection } from '@/components/create-post/language-section';
 import { MaterialLinkSection } from '@/components/create-post/material-link-section';
-import { MaterialQuizLinkSection } from '@/components/create-post/material-quiz-link-section';
 import { PostTypeSection } from '@/components/create-post/post-type-section';
 import { QuizSetupSection } from '@/components/create-post/quiz-setup-section';
 import { StudyMaterialBlockEditor } from '@/components/create-post/study-material-block-editor';
@@ -38,7 +36,6 @@ import type { PostSubject } from '@/types';
 type CreatePostPageProps = {
     subjects?: PostSubject[];
     learningMaterials?: LearningMaterialOption[];
-    availableQuizzes?: LinkedQuizOption[];
     canPublishStudyMaterial?: boolean;
 };
 
@@ -48,13 +45,17 @@ export default function CreatePostPage() {
     const {
         subjects = [],
         learningMaterials = [],
-        availableQuizzes = [],
         canPublishStudyMaterial = false,
         auth,
-    } = usePage<CreatePostPageProps & {
-        auth?: { user?: { role?: string } };
-    }>().props;
-    const normalizedRole = (auth?.user?.role ?? '').toString().trim().toLowerCase();
+    } = usePage<
+        CreatePostPageProps & {
+            auth?: { user?: { role?: string } };
+        }
+    >().props;
+    const normalizedRole = (auth?.user?.role ?? '')
+        .toString()
+        .trim()
+        .toLowerCase();
     const canUseAiQuizTools =
         normalizedRole === 'teacher' || normalizedRole === 'admin';
 
@@ -66,6 +67,7 @@ export default function CreatePostPage() {
         content,
         setContent,
         materialBlocks,
+        materialBlockError,
         addMaterialBlock,
         updateMaterialBlock,
         updateMaterialBlockFile,
@@ -90,8 +92,6 @@ export default function CreatePostPage() {
         generatingMaterialQuiz,
         materialQuizError,
         generateQuizFromMaterial,
-        selectedLinkedQuizIds,
-        toggleLinkedQuizId,
         selectedPostType,
         setSelectedPostType,
         selectedSubject,
@@ -129,7 +129,6 @@ export default function CreatePostPage() {
     } = useCreatePostForm({
         subjects,
         learningMaterials,
-        availableQuizzes,
         canPublishStudyMaterial,
         t,
         trans,
@@ -190,6 +189,7 @@ export default function CreatePostPage() {
                                 onUpdateBlockFile={updateMaterialBlockFile}
                                 onRemoveBlock={removeMaterialBlock}
                                 onMoveBlock={moveMaterialBlock}
+                                blockError={materialBlockError}
                             />
                         ) : (
                             <ContentComposerSection
@@ -213,9 +213,7 @@ export default function CreatePostPage() {
                                 }
                                 mathFormulaPresets={mathFormulaPresets}
                                 physicsSymbolPresets={physicsSymbolPresets}
-                                chemistrySymbolPresets={
-                                    chemistrySymbolPresets
-                                }
+                                chemistrySymbolPresets={chemistrySymbolPresets}
                                 onInsertSnippet={insertMathSnippet}
                                 showSymbolPreview={showSymbolPreview}
                                 symbolPreviewTitle={t.symbolPreviewTitle}
@@ -278,16 +276,6 @@ export default function CreatePostPage() {
                                     quizAiAnswerPlacementRandom:
                                         t.quizAiAnswerPlacementRandom,
                                 }}
-                            />
-                        ) : null}
-
-                        {isMaterialSelected ? (
-                            <MaterialQuizLinkSection
-                                quizzes={availableQuizzes}
-                                selectedQuizIds={selectedLinkedQuizIds}
-                                onToggleQuiz={toggleLinkedQuizId}
-                                hint={t.materialAttachExistingQuizHint}
-                                emptyLabel={t.materialNoAttachableQuizzes}
                             />
                         ) : null}
 

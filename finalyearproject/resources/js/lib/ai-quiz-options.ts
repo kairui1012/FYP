@@ -1,4 +1,5 @@
 import type { QuizAiAnswerPlacement } from '@/components/create-post/create-post-config';
+import { postAiJson } from '@/lib/ai-http';
 
 export interface QuizOptionsResult {
     options: string[];
@@ -63,62 +64,17 @@ async function requestQuizOptionsWithProvider(
             ? params.subject.trim()
             : null;
 
-    const res = await fetch('/ai-quiz-options', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN':
-                document.querySelector<HTMLMetaElement>(
-                    'meta[name="csrf-token"]',
-                )?.content ?? '',
-        },
-        body: JSON.stringify({
+    const payload = await postAiJson(
+        '/ai-quiz-options',
+        {
             question: params.question,
             subject: normalizedSubject,
             language_code: normalizedLanguageCode,
             existing_options: params.existingOptions ?? [],
             answer_placement: params.answerPlacementPreference ?? 'random',
-        }),
-    });
-
-    if (!res.ok) {
-        let errorMessage = `Failed: ${res.status}`;
-        try {
-            const errorData = await res.json();
-            if (
-                typeof errorData?.error === 'string' &&
-                errorData.error.trim() !== ''
-            ) {
-                errorMessage = `Failed: ${errorData.error}`;
-            } else if (
-                errorData?.errors &&
-                typeof errorData.errors === 'object'
-            ) {
-                const firstError = Object.values(
-                    errorData.errors as Record<string, unknown>,
-                )
-                    .flatMap((value) =>
-                        Array.isArray(value)
-                            ? value.filter(
-                                  (item): item is string =>
-                                      typeof item === 'string' &&
-                                      item.trim() !== '',
-                              )
-                            : [],
-                    )
-                    .at(0);
-
-                if (firstError) {
-                    errorMessage = `Failed: ${firstError}`;
-                }
-            }
-        } catch {
-            // Keep the status-based message.
-        }
-        throw new Error(errorMessage);
-    }
-
-    const payload = await res.json();
+        },
+        'The AI quiz options service returned an unexpected response. Please try again.',
+    );
 
     if (
         !payload ||
@@ -132,27 +88,6 @@ async function requestQuizOptionsWithProvider(
         (payload as { quiz_options?: unknown }).quiz_options,
     );
 }
-
-const formatQuizOptionsError = (error: unknown): Error => {
-    const rawMessage =
-        error instanceof Error && error.message.trim() !== ''
-            ? error.message
-            : 'AI options generation failed.';
-
-    if (rawMessage.includes('failed: 403')) {
-        return new Error(
-            'AI provider authorization failed (403). Please fill options manually for now.',
-        );
-    }
-
-    if (rawMessage.includes('failed: 502')) {
-        return new Error(
-            'AI options service is temporarily unavailable. Please try again later.',
-        );
-    }
-
-    return new Error(rawMessage);
-};
 
 export async function requestQuizOptions(
     params: QuizOptionsParams,

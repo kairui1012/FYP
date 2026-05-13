@@ -3,11 +3,13 @@ import { Fragment } from 'react';
 import type { PostItem } from '@/types';
 import { EmptyState } from './empty-state';
 import { PostCard } from './post-card';
-import type { QuizFolderMode, TransFn } from './types';
+import type { TransFn } from './types';
+
+type StudyPostListMode = 'completed' | 'correct';
 
 type StudyPostListProps = {
     posts: PostItem[];
-    studyMode: QuizFolderMode;
+    studyMode: StudyPostListMode;
     trans: TransFn;
     savingPostIds: number[];
     onToggleSave: (id: number) => void;
@@ -28,7 +30,9 @@ export function StudyPostList({
     if (posts.length === 0) {
         return (
             <EmptyState
-                icon={studyMode === 'completed' ? <BookOpen /> : <CheckCircle2 />}
+                icon={
+                    studyMode === 'completed' ? <BookOpen /> : <CheckCircle2 />
+                }
                 title={emptyMessage}
             />
         );

@@ -40,7 +40,14 @@ return [
     'col_reason' => 'Sebab',
     'col_comment' => 'Komen',
     'col_comment_author' => 'Penulis Komen',
+    'col_report_target' => 'Kandungan Dilaporkan',
+    'col_target_author' => 'Penulis Kandungan',
     'dismiss_report' => 'Buang laporan',
+    'delete_reported_post' => 'Padam kandungan kiriman dilaporkan',
+    'confirm_delete_reported_post' => 'Padam kandungan kiriman yang dilaporkan ini? Tindakan ini tidak boleh dibatalkan.',
+    'tap_again_delete_post' => 'Klik padam kiriman sekali lagi dalam 4 saat untuk sahkan.',
+    'delete_reported_comment' => 'Padam komen dilaporkan',
+    'tap_again_delete_comment' => 'Klik padam komen sekali lagi dalam 4 saat untuk sahkan.',
     'no_reports' => 'Tiada laporan ditemui.',
 
     // AdminTeacherApplications

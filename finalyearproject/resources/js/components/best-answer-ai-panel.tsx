@@ -1,4 +1,10 @@
-import { ChevronDown, ChevronUp, Loader2, RotateCcw, Sparkles } from 'lucide-react';
+import {
+    ChevronDown,
+    ChevronUp,
+    Loader2,
+    RotateCcw,
+    Sparkles,
+} from 'lucide-react';
 import { useRef, useState } from 'react';
 import { explainBestAnswer } from '@/lib/ai-best-answer';
 import type { BestAnswerExplanation } from '@/lib/ai-best-answer';
@@ -17,7 +23,13 @@ type Props = {
     answerContent: string;
 };
 
-export function BestAnswerAiPanel({ page, trans, postTitle, postContent, answerContent }: Props) {
+export function BestAnswerAiPanel({
+    page,
+    trans,
+    postTitle,
+    postContent,
+    answerContent,
+}: Props) {
     const [result, setResult] = useState<BestAnswerExplanation | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -45,7 +57,11 @@ export function BestAnswerAiPanel({ page, trans, postTitle, postContent, answerC
         setExpanded(true);
 
         try {
-            const data = await explainBestAnswer({ postTitle, postContent, answerContent });
+            const data = await explainBestAnswer({
+                postTitle,
+                postContent,
+                answerContent,
+            });
             if (!mountedRef.current) return;
             setResult(data);
         } catch (err) {
@@ -131,21 +147,24 @@ export function BestAnswerAiPanel({ page, trans, postTitle, postContent, answerC
             </div>
 
             {result !== null && expanded && !loading ? (
-                <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-200 space-y-3">
+                <div className="mt-3 animate-in space-y-3 duration-200 fade-in slide-in-from-top-2">
                     <div className="rounded-xl border border-emerald-200 bg-white/80 p-4">
-                        <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700">
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-700">
                             {result.explanation}
                         </p>
                     </div>
 
                     {result.key_points.length > 0 ? (
                         <div className="rounded-xl border border-emerald-200 bg-white/80 p-4">
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                            <p className="mb-2 text-xs font-semibold tracking-wide text-emerald-700 uppercase">
                                 Key Points
                             </p>
                             <ul className="space-y-1.5">
                                 {result.key_points.map((point, i) => (
-                                    <li key={i} className="flex items-start gap-2 text-sm leading-relaxed text-zinc-700">
+                                    <li
+                                        key={i}
+                                        className="flex items-start gap-2 text-sm leading-relaxed text-zinc-700"
+                                    >
                                         <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
                                         {point}
                                     </li>
@@ -156,14 +175,18 @@ export function BestAnswerAiPanel({ page, trans, postTitle, postContent, answerC
 
                     {result.summary ? (
                         <div className="rounded-xl border border-teal-200 bg-teal-50/60 p-3">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-teal-700 mb-1">
+                            <p className="mb-1 text-xs font-semibold tracking-wide text-teal-700 uppercase">
                                 Summary
                             </p>
-                            <p className="text-sm leading-relaxed text-zinc-700">{result.summary}</p>
+                            <p className="text-sm leading-relaxed text-zinc-700">
+                                {result.summary}
+                            </p>
                         </div>
                     ) : null}
 
-                    <p className="text-xs italic text-zinc-400">{t.disclaimer}</p>
+                    <p className="text-xs text-zinc-400 italic">
+                        {t.disclaimer}
+                    </p>
                 </div>
             ) : null}
         </div>

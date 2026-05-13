@@ -60,26 +60,6 @@ class PostCreateController extends Controller
                     'updated_at' => optional($post->updated_at)->toISOString(),
                 ])
                 ->values(),
-            'availableQuizzes' => Post::query()
-                ->where('post_type', 'quiz')
-                ->with(['user:id,name,role', 'subject:id,name'])
-                ->latest('updated_at')
-                ->get(['id', 'user_id', 'title', 'quiz_data', 'subject_id', 'updated_at'])
-                ->map(fn (Post $post) => [
-                    'id' => $post->id,
-                    'title' => $post->title,
-                    'questionCount' => count($post->quiz_data['questions'] ?? []),
-                    'subject' => $post->subject ? [
-                        'id' => $post->subject->id,
-                        'name' => $post->subject->name,
-                    ] : null,
-                    'publisher' => [
-                        'id' => $post->user?->id ?? 0,
-                        'name' => $post->user?->name ?? 'Unknown publisher',
-                        'role' => $post->user?->role ?? 'teacher',
-                    ],
-                ])
-                ->values(),
         ]);
     }
 
@@ -91,6 +71,7 @@ class PostCreateController extends Controller
             'post_type' => ['required', 'string', Rule::in(self::POST_TYPES)],
             'parent_material_id' => [
                 'nullable',
+                'prohibited_unless:post_type,quiz',
                 'integer',
                 Rule::exists('posts', 'id')->where(fn ($query) => $query->where('post_type', 'material')),
             ],
@@ -108,8 +89,6 @@ class PostCreateController extends Controller
             'material_blocks.*.text' => ['nullable', 'string', 'max:4000'],
             'material_blocks.*.url' => ['nullable', 'string', 'max:500'],
             'material_blocks.*.file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx,xls,xlsx,ppt,pptx', 'max:20480'],
-            'linked_quiz_ids' => ['nullable', 'array'],
-            'linked_quiz_ids.*' => ['integer', Rule::exists('posts', 'id')->where(fn ($query) => $query->where('post_type', 'quiz'))],
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['file', 'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx,xls,xlsx,ppt,pptx', 'max:20480'],
             'video_url' => ['nullable', 'string', 'max:500'],
@@ -123,6 +102,10 @@ class PostCreateController extends Controller
             throw ValidationException::withMessages([
                 'post_type' => 'Only admins and teachers can publish Study Materials.',
             ]);
+        }
+
+        if (($validated['post_type'] ?? null) !== 'quiz') {
+            $validated['parent_material_id'] = null;
         }
 
         if ($isStudyMaterial) {
@@ -199,11 +182,6 @@ class PostCreateController extends Controller
         }
 
         $isAnonymous = filter_var($validated['is_anonymous'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $linkedQuizIds = collect($validated['linked_quiz_ids'] ?? [])
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
-            ->unique()
-            ->values();
 
         $post = DB::transaction(function () use ($request, $validated, $language, $storedAttachments, $subject, $quizData, $isAnonymous, $materialBlocks): Post {
             $attributes = [
@@ -226,20 +204,6 @@ class PostCreateController extends Controller
 
             return Post::query()->create($attributes);
         });
-
-        if ($post->post_type === 'material' && Schema::hasColumn('posts', 'parent_material_id') && $linkedQuizIds->isNotEmpty()) {
-            $quizLinkQuery = Post::query()
-                ->where('post_type', 'quiz')
-                ->whereIn('id', $linkedQuizIds->all());
-
-            if (($user->role ?? 'student') !== 'admin') {
-                $quizLinkQuery->where('user_id', $user->id);
-            }
-
-            $quizLinkQuery->update([
-                'parent_material_id' => $post->id,
-            ]);
-        }
 
         if ($post->post_type === 'material') {
             $this->materialVersionService->createSnapshot($post);

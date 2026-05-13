@@ -8,6 +8,7 @@ use App\Models\PostReport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 class PostReportController extends Controller
 {
@@ -45,9 +46,14 @@ class PostReportController extends Controller
         }
 
         $report = PostReport::query()->create($reportAttributes);
-        QueuePostReportForModeration::dispatch($report->id);
+
+        try {
+            QueuePostReportForModeration::dispatch($report->id);
+        } catch (Throwable $e) {
+            report($e);
+            QueuePostReportForModeration::dispatchSync($report->id);
+        }
 
         return response()->json(['message' => 'Report submitted.']);
     }
 }
-

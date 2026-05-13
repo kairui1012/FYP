@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TeacherApplication;
 use App\Models\TeacherVerificationDocument;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -78,10 +79,26 @@ class TeacherCertificationController extends Controller
 
             foreach ($request->file('documents') as $file) {
                 $path = $file->store("teacher-verification/{$application->id}", 'local');
-                $application->documents()->create([
+                $documentAttributes = [
                     'path' => $path,
                     'original_name' => $file->getClientOriginalName(),
-                ]);
+                ];
+
+                // Backward compatibility with legacy teacher_verification_documents schema.
+                if (Schema::hasColumn('teacher_verification_documents', 'teacher_application_id')) {
+                    $documentAttributes['teacher_application_id'] = $application->id;
+                }
+                if (Schema::hasColumn('teacher_verification_documents', 'user_id')) {
+                    $documentAttributes['user_id'] = $user->id;
+                }
+                if (Schema::hasColumn('teacher_verification_documents', 'file_path')) {
+                    $documentAttributes['file_path'] = $path;
+                }
+                if (Schema::hasColumn('teacher_verification_documents', 'document_type')) {
+                    $documentAttributes['document_type'] = 'supporting_document';
+                }
+
+                $application->documents()->create($documentAttributes);
             }
         }
 

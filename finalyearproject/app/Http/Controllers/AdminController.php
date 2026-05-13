@@ -10,6 +10,7 @@ use App\Models\TeacherApplication;
 use App\Models\TeacherVerificationDocument;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
@@ -53,7 +54,7 @@ class AdminController extends Controller
                 'reporter_name' => $r->user?->name,
                 'reporter_email' => $r->user?->email,
                 'target_id' => $r->comment_id,
-                'target_body' => $r->comment?->body,
+                'target_body' => $r->comment?->content,
                 'target_author' => $r->comment?->user?->name,
                 'status' => $r->status ?? 'pending',
                 'created_at' => $r->created_at?->toDateString(),
@@ -196,6 +197,7 @@ class AdminController extends Controller
         }
 
         $user->update(['is_verified' => ! $user->is_verified]);
+        $this->clearLeaderboardCache();
 
         return back();
     }
@@ -233,8 +235,25 @@ class AdminController extends Controller
         }
 
         $request->validate(['role' => 'required|in:student,teacher,admin']);
-        $user->update(['role' => $request->role]);
+
+        $newRole = $request->string('role')->toString();
+        $updates = ['role' => $newRole];
+
+        if ($newRole !== 'teacher' && $user->is_verified) {
+            $updates['is_verified'] = false;
+        }
+
+        $user->update($updates);
+        $this->clearLeaderboardCache();
 
         return back();
+    }
+
+    private function clearLeaderboardCache(): void
+    {
+        Cache::forget('leaderboard.all_time.top-50');
+        Cache::forget('leaderboard.weekly.top-50');
+        Cache::forget('leaderboard.monthly.top-50');
+        Cache::forget('leaderboard.titles.all-time.top-three');
     }
 }

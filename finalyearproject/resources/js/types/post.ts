@@ -197,7 +197,6 @@ export type PostItem = {
         id?: number;
         vote?: number | null;
         rating?: number | null;
-        feedback?: string | null;
         created_at?: string | null;
         updated_at?: string | null;
     } | null;

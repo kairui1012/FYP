@@ -1,6 +1,5 @@
 import { Link, router } from '@inertiajs/react';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
-import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { PostAttachments } from '@/components/post-attachments';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BtnComment } from '@/components/ui/btn-comment';
@@ -9,12 +8,14 @@ import { BtnLike } from '@/components/ui/btn-like';
 import { BtnSave } from '@/components/ui/btn-save';
 import { BtnShare } from '@/components/ui/btn-share';
 import { MaterialLearningStateBadge } from '@/components/ui/material-learning-state-badge';
+import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { formatFormulaText } from '@/lib/formula-display';
 import {
     formatTimeAgo,
     getLanguageLabel,
     getSubjectLabel,
 } from '@/lib/post-utils';
+import { isVerifiedTeacher } from '@/lib/verified-teacher';
 import type { PostItem } from '@/types';
 import { getLangBadgeProps, getPostTypeBadgeProps } from './categories-config';
 import type { TransFn } from './types';
@@ -127,7 +128,7 @@ export function CategoryPostCard({
                                                 ? `/profilePage/${post.user.id}`
                                                 : '/profilePage'
                                         }
-                                        className={`cursor-pointer font-semibold transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89] ${post.user?.is_verified ? 'text-blue-600' : 'text-zinc-900'}`}
+                                        className={`cursor-pointer font-semibold transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89] ${isVerifiedTeacher(post.user) ? 'text-blue-600' : 'text-zinc-900'}`}
                                         onClick={(event) =>
                                             event.stopPropagation()
                                         }
@@ -135,9 +136,10 @@ export function CategoryPostCard({
                                         {post.user?.name ?? 'Unknown User'}
                                     </Link>
                                 )}
-                                {!post.is_anonymous && post.user?.is_verified && (
-                                    <VerifiedTeacherBadge />
-                                )}
+                                {!post.is_anonymous &&
+                                    isVerifiedTeacher(post.user) && (
+                                        <VerifiedTeacherBadge />
+                                    )}
                                 {!post.is_anonymous && (
                                     <LeaderboardTitleBadge
                                         title={post.user?.leaderboard_title}

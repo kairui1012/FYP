@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
         @php
-            $appName = config('app.name', 'Final Year Project');
+            $appName = config('app.name', 'jomstudy');
             $defaultDescription = $appName.' is a collaborative learning platform for sharing study materials, asking questions, and tracking learning progress.';
             $currentUrl = request()->url();
             $defaultImage = asset('apple-touch-icon.png');
@@ -75,7 +75,7 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title inertia>{{ config('app.name', 'jomstudy') }}</title>
 
         <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -91,7 +91,7 @@
             {!! json_encode([
                 '@context' => 'https://schema.org',
                 '@type' => 'WebSite',
-                'name' => config('app.name', 'Final Year Project'),
+                'name' => config('app.name', 'jomstudy'),
                 'url' => url('/'),
                 'potentialAction' => [
                     '@type' => 'SearchAction',

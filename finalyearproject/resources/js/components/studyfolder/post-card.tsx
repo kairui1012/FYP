@@ -1,7 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { ExternalLink } from 'lucide-react';
 import { lazy, Suspense } from 'react';
-import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { BtnSave } from '@/components/ui/btn-save';
 import { MaterialLearningStateBadge } from '@/components/ui/material-learning-state-badge';
 import { QuizStatusBadge } from '@/components/ui/quiz-status-badge';
@@ -12,12 +11,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { formatFormulaText } from '@/lib/formula-display';
 import {
     formatTimeAgo,
     getLanguageLabel,
     getSubjectLabel,
 } from '@/lib/post-utils';
+import { isVerifiedTeacher } from '@/lib/verified-teacher';
 import type { BookmarkFolderItem, PostItem } from '@/types';
 import {
     getFirstQuizQuestion,
@@ -78,7 +79,8 @@ export function PostCard({
         post.is_quiz_completed === true && post.is_quiz_correct !== false
             ? 'correct'
             : post.post_type === 'quiz' &&
-                (post.is_quiz_completed === false || post.is_quiz_correct === false)
+                (post.is_quiz_completed === false ||
+                    post.is_quiz_correct === false)
               ? 'incorrect'
               : 'unanswered';
 
@@ -103,11 +105,12 @@ export function PostCard({
                                         ? `/profilePage/${post.user.id}`
                                         : '/profilePage'
                                 }
-                                className={`truncate font-semibold transition ${post.user?.is_verified ? 'text-blue-600 hover:text-blue-700' : 'text-zinc-800 hover:text-zinc-950'}`}
+                                className={`truncate font-semibold transition ${isVerifiedTeacher(post.user) ? 'text-blue-600 hover:text-blue-700' : 'text-zinc-800 hover:text-zinc-950'}`}
                             >
-                                {post.user?.name ?? trans('bookmark.unknown_user')}
+                                {post.user?.name ??
+                                    trans('bookmark.unknown_user')}
                             </Link>
-                            {post.user?.is_verified && (
+                            {isVerifiedTeacher(post.user) && (
                                 <VerifiedTeacherBadge />
                             )}
                         </>
@@ -121,11 +124,9 @@ export function PostCard({
                 <div className="flex flex-wrap items-center gap-2">
                     {showFolderSelect && folders.length > 0 ? (
                         <Select
-                            value={
-                                String(
-                                    post.bookmark_folder_id ?? activeFolderId ?? '',
-                                )
-                            }
+                            value={String(
+                                post.bookmark_folder_id ?? activeFolderId ?? '',
+                            )}
                             disabled={movingPostIds.includes(post.id)}
                             onValueChange={(value) => {
                                 void onMove(post.id, Number(value));
@@ -212,7 +213,9 @@ export function PostCard({
                       })()
                     : null}
 
-                {post.post_type === 'quiz' && showQuizPreview && showQuizStatus ? (
+                {post.post_type === 'quiz' &&
+                showQuizPreview &&
+                showQuizStatus ? (
                     <QuizStatusBadge status={quizStatus} />
                 ) : null}
                 {post.post_type === 'material' ? (

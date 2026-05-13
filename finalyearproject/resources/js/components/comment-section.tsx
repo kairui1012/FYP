@@ -18,7 +18,6 @@ import { BestAnswerAiPanel } from '@/components/best-answer-ai-panel';
 import { CommentAiDoubtPanel } from '@/components/comment-ai-doubt-panel';
 import { CommentAiWrongPanel } from '@/components/comment-ai-wrong-panel';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
-import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,8 +26,10 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { formatFullDate, formatTimeAgo } from '@/lib/post-utils';
 import { cn } from '@/lib/utils';
+import { isVerifiedTeacher } from '@/lib/verified-teacher';
 import type { CommentItem, PostItem, User } from '@/types';
 
 export type SharedCommentSectionProps = {
@@ -880,8 +881,10 @@ export function CommentSection({
             {bestAnswer &&
             post.post_type === 'question' &&
             variant === 'qna' ? (
-                <div className="mb-6 overflow-hidden rounded-2xl border border-emerald-200 bg-linear-to-br from-emerald-50 to-teal-50/40 shadow-sm">
-                    <div className="flex items-center gap-2 border-b border-emerald-200/70 bg-emerald-100/60 px-4 py-2.5">
+                <div className="mb-6 overflow-hidden rounded-2xl border border-emerald-200 bg-linear-to-br
+                 from-emerald-50 to-teal-50/40 shadow-sm">
+                    <div className="flex items-center gap-2 border-b border-emerald-200/70 
+                    bg-emerald-100/60 px-4 py-2.5">
                         <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
                         <span className="text-xs font-bold tracking-wide text-emerald-800 uppercase">
                             {t.bestAnswer}
@@ -1131,11 +1134,11 @@ function CommentCard({
                                             ? `/profilePage/${comment.user.id}`
                                             : '/profilePage'
                                     }
-                                    className={`cursor-pointer text-sm font-semibold transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89] ${comment.user?.is_verified ? 'text-blue-600' : 'text-zinc-900'}`}
+                                    className={`cursor-pointer text-sm font-semibold transition-colors peer-hover:text-[#de6b89] hover:text-[#de6b89] ${isVerifiedTeacher(comment.user) ? 'text-blue-600' : 'text-zinc-900'}`}
                                 >
                                     {userName}
                                 </Link>
-                                {comment.user?.is_verified && (
+                                {isVerifiedTeacher(comment.user) && (
                                     <VerifiedTeacherBadge className="ml-0.5" />
                                 )}
                                 <LeaderboardTitleBadge

@@ -1,6 +1,8 @@
 import { router } from '@inertiajs/react';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
+import { isVerifiedTeacher } from '@/lib/verified-teacher';
 import { profilePage } from '@/routes';
 
 type LeaderboardRowUser = {
@@ -10,6 +12,8 @@ type LeaderboardRowUser = {
     points: number;
     rank: number;
     is_anonymous: boolean;
+    role?: string | null;
+    is_verified?: boolean;
     leaderboard_title?: string | null;
 };
 
@@ -35,6 +39,8 @@ export function LeaderboardRow({
     anonymousUserLabel,
     currentUserLabel,
 }: LeaderboardRowProps) {
+    const verifiedTeacher = isVerifiedTeacher(user);
+
     const handleClick = () => {
         if (user.is_anonymous) return;
 
@@ -84,9 +90,16 @@ export function LeaderboardRow({
                             </span>
                         ) : (
                             <>
-                                <p className="truncate text-sm font-medium text-zinc-950 hover:underline">
+                                <p
+                                    className={`truncate text-sm font-medium hover:underline ${
+                                        verifiedTeacher
+                                            ? 'text-blue-600'
+                                            : 'text-zinc-950'
+                                    }`}
+                                >
                                     {user.name}
                                 </p>
+                                {verifiedTeacher && <VerifiedTeacherBadge />}
                                 <LeaderboardTitleBadge
                                     title={user.leaderboard_title}
                                 />

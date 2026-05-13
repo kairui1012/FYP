@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle2, Circle, Languages, Loader2, Sparkles, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { explainAnswer, type QuizAiAnalysis } from '@/lib/ai-explain';
+import { postAiJson } from '@/lib/ai-http';
 
 type ManualResult = 'correct' | 'wrong' | null;
 
@@ -114,19 +115,17 @@ function AnalysisBadge({
 }
 
 async function translateTexts(texts: string[]): Promise<Record<string, string>> {
-    const res = await fetch('/translate', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN':
-                document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
-                    ?.content ?? '',
-        },
-        body: JSON.stringify({ texts }),
-    });
-    if (!res.ok) throw new Error('Translation failed');
-    const { translations } = await res.json();
-    return translations;
+    const { translations } = await postAiJson(
+        '/translate',
+        { texts },
+        'The AI translation service returned an unexpected response. Please try again.',
+    );
+
+    if (!translations || typeof translations !== 'object') {
+        throw new Error('Translation failed');
+    }
+
+    return translations as Record<string, string>;
 }
 
 export function BtnAiAns({

@@ -16,13 +16,14 @@ class GoogleAuthController extends Controller
     {
         return Socialite::driver('google')->redirect();
     }
-
     public function handleProviderCallback()
     {
         try {
             $googleUser = Socialite::driver('google')->user();
         } catch (\Exception $e) {
-            return redirect('/login')->with('error', 'The Google authorization verification sequence failed or was actively terminated, please try again.');
+            return redirect('/login')->with('error', 
+            'The Google authorization verification sequence 
+            failed or was actively terminated, please try again.');
         }
 
         $provider = 'google';

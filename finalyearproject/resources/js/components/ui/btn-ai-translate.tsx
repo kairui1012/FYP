@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { postAiJson } from '@/lib/ai-http';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -71,36 +72,22 @@ function collectTextNodes(root: HTMLElement): Text[] {
 async function translateWithProvider(
     texts: string[],
 ): Promise<Record<string, string>> {
-    const res = await fetch('/translate', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-        },
-        body: JSON.stringify({ texts }),
-    });
-    if (!res.ok) {
-        let errorMessage = `Failed: ${res.status}`;
-
-        try {
-            const errorData = await res.json();
-            if (typeof errorData?.error === 'string' && errorData.error.trim() !== '') {
-                errorMessage = `Failed: ${errorData.error}`;
-            }
-        } catch {
-            // Keep the default status-based message when response is not JSON.
-        }
-
-        throw new Error(errorMessage);
-    }
-
-    const { translations } = await res.json();
+    const { translations } = await postAiJson(
+        '/translate',
+        { texts },
+        'The AI translation service returned an unexpected response. Please try again.',
+    );
 
     if (!translations || typeof translations !== 'object') {
         throw new Error(`Failed: invalid translation payload`);
     }
 
-    return translations;
+    return Object.fromEntries(
+        Object.entries(translations).filter(
+            (entry): entry is [string, string] =>
+                typeof entry[1] === 'string',
+        ),
+    );
 }
 
 async function translateInBatches(
