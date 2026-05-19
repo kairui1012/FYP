@@ -1,25 +1,29 @@
 import { cn } from '@/lib/utils';
 
-export function ProfileTabBar({
+type ProfileTab = 'posts' | 'badges';
+
+type ProfileTabButtonProps = {
+    id: ProfileTab;
+    label: string;
+    count: number;
+    activeTab: ProfileTab;
+    onTabChange: (tab: ProfileTab) => void;
+};
+
+function ProfileTabButton({
+    id,
+    label,
+    count,
     activeTab,
-    postsCount,
-    badgesCount,
-    labels,
     onTabChange,
-}: {
-    activeTab: 'posts' | 'badges';
-    postsCount: number;
-    badgesCount: number;
-    labels: { posts: string; badges: string };
-    onTabChange: (tab: 'posts' | 'badges') => void;
-}) {
+}: ProfileTabButtonProps) {
     const activeClass = 'border-[#e27193] bg-[#fff0f5] text-[#b93c61]';
     const inactiveClass =
         'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400';
     const activeBadge = 'bg-[#ffd9e4] text-[#b93c61]';
     const inactiveBadge = 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800';
 
-    const Tab = ({ id, label, count }: { id: 'posts' | 'badges'; label: string; count: number }) => (
+    return (
         <button
             type="button"
             onClick={() => onTabChange(id)}
@@ -29,16 +33,47 @@ export function ProfileTabBar({
             )}
         >
             {label}
-            <span className={cn('rounded-full px-1.5 py-0.5 text-xs', activeTab === id ? activeBadge : inactiveBadge)}>
+            <span
+                className={cn(
+                    'rounded-full px-1.5 py-0.5 text-xs',
+                    activeTab === id ? activeBadge : inactiveBadge,
+                )}
+            >
                 {count}
             </span>
         </button>
     );
+}
 
+export function ProfileTabBar({
+    activeTab,
+    postsCount,
+    badgesCount,
+    labels,
+    onTabChange,
+}: {
+    activeTab: ProfileTab;
+    postsCount: number;
+    badgesCount: number;
+    labels: { posts: string; badges: string };
+    onTabChange: (tab: ProfileTab) => void;
+}) {
     return (
         <div className="flex gap-2">
-            <Tab id="posts" label={labels.posts} count={postsCount} />
-            <Tab id="badges" label={labels.badges} count={badgesCount} />
+            <ProfileTabButton
+                id="posts"
+                label={labels.posts}
+                count={postsCount}
+                activeTab={activeTab}
+                onTabChange={onTabChange}
+            />
+            <ProfileTabButton
+                id="badges"
+                label={labels.badges}
+                count={badgesCount}
+                activeTab={activeTab}
+                onTabChange={onTabChange}
+            />
         </div>
     );
 }

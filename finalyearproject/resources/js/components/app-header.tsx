@@ -125,10 +125,11 @@ export function AppHeader() {
     const containerRef = useRef<HTMLDivElement>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Close Sheet when page navigation completes
     useEffect(() => {
-        setIsSheetOpen(false);
-    }, [page.url]);
+        return router.on('navigate', () => {
+            setIsSheetOpen(false);
+        });
+    }, []);
 
     const fetchResults = useCallback(async (q: string) => {
         if (q.trim().length < 2) {

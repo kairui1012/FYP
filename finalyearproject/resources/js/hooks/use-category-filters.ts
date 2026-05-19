@@ -22,6 +22,7 @@ export function useCategoryFilters(props: CategoriesPageProps) {
     const [pagination, setPagination] = useState<PaginationMeta | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         if (props.filteredPosts !== undefined) {
             if (Array.isArray(props.filteredPosts)) {
@@ -35,6 +36,7 @@ export function useCategoryFilters(props: CategoriesPageProps) {
             setIsLoading(false);
         }
     }, [props.filteredPosts]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const totalPosts = useMemo(() => {
         const languageCount = languages.reduce(

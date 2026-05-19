@@ -1,6 +1,6 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, Link } from '@inertiajs/react';
 import { BookOpen, Brain, MessageSquare, Trophy, Globe, Bookmark } from 'lucide-react';
-import { reactLang } from '@erag/lang-sync-inertia';
 import { AppHeaderForUnlogin } from '@/components/app-header-for-unlogin';
 import { Button } from '@/components/ui/button';
 import { login, register } from '@/routes';

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import {
     Table,
     TableBody,
@@ -6,7 +7,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import type { ReactNode } from 'react';
 
 type TransFn = (key: string) => string;
 

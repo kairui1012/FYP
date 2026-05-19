@@ -1,9 +1,7 @@
 import { CheckCircle2, Loader2, RotateCcw, Sparkles } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import {
-    clarifyDoubt,
-    type DoubtClarification,
-} from '@/lib/ai-comment-feedback';
+import { clarifyDoubt } from '@/lib/ai-comment-feedback';
+import type { DoubtClarification } from '@/lib/ai-comment-feedback';
 import { cn } from '@/lib/utils';
 
 type TransFn = (

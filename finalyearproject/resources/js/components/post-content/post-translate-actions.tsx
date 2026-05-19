@@ -10,7 +10,6 @@ type PostTranslateActionsProps = {
 };
 
 export function PostTranslateActions({
-    page,
     title,
     content,
     texts,

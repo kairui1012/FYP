@@ -1,11 +1,7 @@
 import { router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import type { PostItem } from '@/types';
 
-export function useHomePageState(
-    pageContext: 'home' | 'following',
-    posts: PostItem[],
-) {
+export function useHomePageState(pageContext: 'home' | 'following') {
     const isHomePage = pageContext === 'home';
     const isFollowingPage = pageContext === 'following';
     const [activeTab, setActiveTab] = useState<'learn' | 'feed'>(() => {
@@ -16,10 +12,6 @@ export function useHomePageState(
         const tab = params.get('tab');
         return tab === 'feed' ? 'feed' : 'learn';
     });
-
-    useEffect(() => {
-        if (!isHomePage) setActiveTab('feed');
-    }, [isHomePage]);
 
     useEffect(() => {
         if (isFollowingPage && sessionStorage.getItem('followingPageDirty')) {
@@ -36,5 +28,10 @@ export function useHomePageState(
         document.body.style.cursor = '';
     }, []);
 
-    return { isHomePage, isFollowingPage, activeTab, setActiveTab };
+    return {
+        isHomePage,
+        isFollowingPage,
+        activeTab: isHomePage ? activeTab : 'feed',
+        setActiveTab,
+    };
 }

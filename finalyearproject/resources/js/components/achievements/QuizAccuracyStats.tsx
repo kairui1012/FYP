@@ -1,5 +1,4 @@
 import { reactLang } from '@erag/lang-sync-inertia';
-import { cn } from '@/lib/utils';
 import type { UserProgressData } from './types';
 
 type Props = {
@@ -10,10 +9,6 @@ export function QuizAccuracyStats({ userProgress }: Props) {
     const { trans } = reactLang();
 
     if (userProgress.total_questions_answered === 0) return null;
-
-    const { improvement_score } = userProgress;
-    const improvementPositive = improvement_score > 0;
-    const improvementNegative = improvement_score < 0;
 
     return (
         <section className="grid gap-3 sm:grid-cols-2 w-full">

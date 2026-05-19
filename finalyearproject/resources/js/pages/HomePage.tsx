@@ -3,13 +3,13 @@ import { router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { HomeFeedSection } from '@/components/home/home-feed-section';
 import { HomeHeroSection } from '@/components/home/home-hero-section';
-import { PaginationControls } from '@/components/pagination-controls';
 import {
     buildFeedSectionText,
     buildHomeText,
 } from '@/components/home/home-page-text';
 import { StudyHomeDashboard } from '@/components/home/study-home-dashboard';
 import type { StudyHomeOverview } from '@/components/home/study-home-dashboard';
+import { PaginationControls } from '@/components/pagination-controls';
 import { useHomePageState } from '@/hooks/use-home-page-state';
 import { usePostInteractions } from '@/hooks/use-post-interactions';
 import AppLayout from '@/layouts/app-layout';
@@ -42,7 +42,7 @@ export default function HomePage({
         'home';
 
     const { isHomePage, isFollowingPage, activeTab, setActiveTab } =
-        useHomePageState(pageContext, posts);
+        useHomePageState(pageContext);
     const {
         likeStateByPost,
         likingPostIds,

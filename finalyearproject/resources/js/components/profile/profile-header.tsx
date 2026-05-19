@@ -1,8 +1,8 @@
 import { BadgeCheck, Pencil, Settings2, X } from 'lucide-react';
 import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
-import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { BtnFollow } from '@/components/ui/btn-follow';
 import { Button } from '@/components/ui/button';
+import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
 import { FeaturedBadgeChip } from './featured-badge-chip';
 import type { Badge, ProfileUser, TransFn } from './types';
 export function ProfileHeader({

@@ -36,7 +36,6 @@ export default function ProfilePage() {
         setAvatarLoadFailed,
         isFollowing,
         followersCount,
-        followingCount,
         followLoading,
         showProfileEditor,
         setShowProfileEditor,

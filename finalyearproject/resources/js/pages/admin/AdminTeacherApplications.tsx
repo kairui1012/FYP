@@ -1,5 +1,5 @@
-import { router } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
+import { router } from '@inertiajs/react';
 import { BadgeCheck, Check, Eye, FileText, X } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';

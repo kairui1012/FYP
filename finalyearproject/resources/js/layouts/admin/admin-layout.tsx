@@ -1,6 +1,6 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { usePage } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
-import { reactLang } from '@erag/lang-sync-inertia';
 import { LayoutDashboard, ShieldAlert, UserCheck, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { AppHeaderAdmin } from '@/components/app-header-admin';

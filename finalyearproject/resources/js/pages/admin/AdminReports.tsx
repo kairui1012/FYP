@@ -1,5 +1,5 @@
-import { router } from '@inertiajs/react';
 import { reactLang } from '@erag/lang-sync-inertia';
+import { router } from '@inertiajs/react';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';

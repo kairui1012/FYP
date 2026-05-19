@@ -62,14 +62,15 @@ function DocxViewer({ src }: { src: string }) {
 
     useEffect(() => {
         let cancelled = false;
-        if (ref.current) ref.current.innerHTML = '';
+        const container = ref.current;
+        if (container) container.innerHTML = '';
 
         const loadDocument = async () => {
             try {
                 const response = await fetch(src);
                 if (!response.ok) throw new Error('Failed to fetch DOCX file.');
                 const blob = await response.blob();
-                if (!cancelled && ref.current) await renderAsync(blob, ref.current);
+                if (!cancelled && container) await renderAsync(blob, container);
             } catch {
                 if (!cancelled) setHasError(true);
             }
@@ -79,7 +80,7 @@ function DocxViewer({ src }: { src: string }) {
         void loadDocument();
         return () => {
             cancelled = true;
-            if (ref.current) ref.current.innerHTML = '';
+            if (container) container.innerHTML = '';
         };
     }, [src]);
 
@@ -366,6 +367,7 @@ export function PostAttachments({
     files = [],
     compact = false,
 }: PostAttachmentsProps) {
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
     const attachmentFiles = Array.isArray(files)
         ? files
         : typeof files === 'string' && files.trim() !== ''
@@ -376,8 +378,6 @@ export function PostAttachments({
 
     const images = attachmentFiles.filter((file) => !isDocumentFile(file));
     const documents = attachmentFiles.filter((file) => isDocumentFile(file));
-
-    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
     return (
         <>

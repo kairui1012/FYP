@@ -91,11 +91,11 @@ export function useProfilePage() {
 
     useEffect(() => {
         if (!followLoading) setIsFollowing(Boolean(profileUser.is_following));
-    }, [profileUser.is_following]);
+    }, [followLoading, profileUser.is_following]);
 
     useEffect(() => {
         if (!followLoading) setFollowersCount(profileUser.followers_count ?? 0);
-    }, [profileUser.followers_count]);
+    }, [followLoading, profileUser.followers_count]);
 
     useEffect(() => {
         setFollowingCount(profileUser.following_count ?? 0);
