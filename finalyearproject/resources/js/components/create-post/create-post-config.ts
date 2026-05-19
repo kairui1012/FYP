@@ -197,8 +197,6 @@ export type CreatePostText = {
     quizSectionHint: string;
     quizOptionLabel: string;
     quizOptionPlaceholder: string;
-    quizAddOption: string;
-    quizRemoveOption: string;
     quizAddQuiz: string;
     quizRemoveQuiz: string;
     quizNumberLabel: string;
@@ -349,8 +347,6 @@ export const buildCreatePostText = (
     quizSectionHint: trans('createPost.quiz_section_hint'),
     quizOptionLabel: trans('createPost.quiz_option_label'),
     quizOptionPlaceholder: trans('createPost.quiz_option_placeholder'),
-    quizAddOption: trans('createPost.quiz_add_option'),
-    quizRemoveOption: trans('createPost.quiz_remove_option'),
     quizAddQuiz: trans('createPost.quiz_add_quiz'),
     quizRemoveQuiz: trans('createPost.quiz_remove_quiz'),
     quizNumberLabel: trans('createPost.quiz_number_label'),

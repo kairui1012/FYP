@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\LeaderboardTitleService;
-use Illuminate\Contracts\Database\Query\Builder;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -33,12 +33,10 @@ class LeaderboardController extends Controller
         $user = $request->user();
         $user->show_on_leaderboard = ! $user->show_on_leaderboard;
         $user->save();
-
         Cache::forget("leaderboard.all_time.top-50");
         Cache::forget("leaderboard.weekly.top-50");
         Cache::forget("leaderboard.monthly.top-50");
         Cache::forget('leaderboard.titles.all-time.top-three');
-
         return back();
     }
 
@@ -47,12 +45,10 @@ class LeaderboardController extends Controller
         $user = $request->user();
         $user->show_leaderboard_badge = ! $user->show_leaderboard_badge;
         $user->save();
-
         Cache::forget("leaderboard.all_time.top-50");
         Cache::forget("leaderboard.weekly.top-50");
         Cache::forget("leaderboard.monthly.top-50");
         Cache::forget('leaderboard.titles.all-time.top-three');
-
         return back();
     }
 

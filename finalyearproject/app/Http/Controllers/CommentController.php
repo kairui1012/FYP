@@ -4,16 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\CommentLike;
-use App\Services\PointsService;
-use Illuminate\Database\QueryException;
-use Illuminate\Http\Request;
 use App\Models\Post;
 use App\Models\User;
+use App\Services\PointsService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 class CommentController extends Controller
@@ -349,7 +349,7 @@ class CommentController extends Controller
         ];
     }
 
-    private function buildCommentTree(Collection $comments, ?int $parentId = null, int $depth = 1): array
+        private function buildCommentTree(Collection $comments, ?int $parentId = null, int $depth = 1): array
     {
         return $comments
             ->filter(fn (Comment $comment) => $comment->parent_id === $parentId)
@@ -370,8 +370,12 @@ class CommentController extends Controller
 
     private function compareComments(Comment $left, Comment $right): int
     {
-        $leftScore = (int) ($left->upvotes_count ?? 0) - (int) ($left->downvotes_count ?? 0);
-        $rightScore = (int) ($right->upvotes_count ?? 0) - (int) ($right->downvotes_count ?? 0);
+        $leftScore = (int) ($left->upvotes_count ?? 0)
+            - (int) ($left->downvotes_count ?? 0)
+            - (2 * (int) ($left->wrong_votes_count ?? 0));
+        $rightScore = (int) ($right->upvotes_count ?? 0)
+            - (int) ($right->downvotes_count ?? 0)
+            - (2 * (int) ($right->wrong_votes_count ?? 0));
 
         if ($leftScore !== $rightScore) {
             return $rightScore <=> $leftScore;
@@ -397,5 +401,4 @@ class CommentController extends Controller
             ->first(fn ($account) => ! empty($account->avatar))
             ?->avatar;
     }
-
 }

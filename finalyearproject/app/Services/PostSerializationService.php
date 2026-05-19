@@ -164,7 +164,8 @@ class PostSerializationService
     {
         $upvotesCount = (int) ($comment->upvotes_count ?? $comment->likes_count ?? 0);
         $downvotesCount = (int) ($comment->downvotes_count ?? 0);
-        $score = (int) ($comment->score ?? ($upvotesCount - $downvotesCount));
+        $wrongVotesCount = (int) ($comment->wrong_votes_count ?? 0);
+        $score = (int) ($comment->score ?? ($upvotesCount - $downvotesCount - (2 * $wrongVotesCount)));
         $userVote = $this->resolveUserVote($comment);
 
         return [
@@ -178,11 +179,13 @@ class PostSerializationService
             'likes_count' => $upvotesCount,
             'upvotes_count' => $upvotesCount,
             'downvotes_count' => $downvotesCount,
+            'wrong_votes_count' => $wrongVotesCount,
             'score' => $score,
             'user_vote' => $userVote,
             'is_liked' => $userVote === 1,
             'is_upvoted' => $userVote === 1,
             'is_downvoted' => $userVote === -1,
+            'is_wrong' => $userVote === -2,
             'reply_to_user' => $comment->parent?->user ? [
                 'id' => $comment->parent->user->id,
                 'name' => $comment->parent->user->name,
@@ -231,7 +234,9 @@ class PostSerializationService
      */
     private function calculateCommentScore(Comment $comment): int
     {
-        return (int) ($comment->upvotes_count ?? 0) - (int) ($comment->downvotes_count ?? 0);
+        return (int) ($comment->upvotes_count ?? 0)
+            - (int) ($comment->downvotes_count ?? 0)
+            - (2 * (int) ($comment->wrong_votes_count ?? 0));
     }
 
     /**

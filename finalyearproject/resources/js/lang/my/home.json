@@ -44,16 +44,5 @@
     "view_achievements": "Lihat pencapaian",
     "your_answer": "Jawapan anda",
     "correct_answer": "Jawapan betul",
-    "untitled_post": "Kiriman tanpa tajuk",
-    "lo_button": "Apa Yang Akan Saya Pelajari?",
-    "lo_loading": "Menjana objektif pembelajaran...",
-    "lo_error": "Gagal menjana. Sila cuba lagi.",
-    "lo_retry": "Cuba lagi",
-    "lo_title": "Apa Yang Akan Anda Pelajari",
-    "lo_difficulty": "Tahap",
-    "lo_time": "Anggaran masa membaca",
-    "lo_beginner": "Asas",
-    "lo_intermediate": "Pertengahan",
-    "lo_advanced": "Lanjutan",
-    "lo_disclaimer": "Objektif dijana oleh AI. Gunakan sebagai panduan membaca."
+    "untitled_post": "Kiriman tanpa tajuk"
 }

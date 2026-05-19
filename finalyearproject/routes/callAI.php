@@ -744,271 +744,6 @@ Route::post('/ai-best-answer', function (Request $request) {
 
 })->middleware(['web', 'throttle:20,1']);
 
-Route::post('/ai-answer-feedback', function (Request $request) {
-    $request->validate([
-        'post_title'     => 'required|string|max:300',
-        'post_content'   => 'nullable|string|max:2000',
-        'answer_content' => 'required|string|max:2000',
-        'provider'       => 'nullable|in:deepseek,gemini',
-    ]);
-
-    $postTitle     = $request->input('post_title');
-    $postContent   = $request->input('post_content', '');
-    $answerContent = $request->input('answer_content');
-
-    $currentLocale = app()->getLocale();
-    $lang = match ($currentLocale) {
-        'zh'    => 'Chinese (Simplified)',
-        'my'    => 'Malay',
-        default => 'English',
-    };
-
-    $contextBlock = trim($postContent) !== ''
-        ? "Question: {$postTitle}\n\nContext / Description:\n{$postContent}\n\nStudent Answer:\n{$answerContent}"
-        : "Question: {$postTitle}\n\nStudent Answer:\n{$answerContent}";
-
-    $prompt = "You are an expert tutor giving formative feedback. Respond entirely in {$lang}. Return ONLY valid JSON. No markdown, no code fences, no extra text.\n\n"
-        . "Your goal is to help the student improve learning, not just judge the answer.\n"
-        . "Evaluate the student's answer against the question.\n\n"
-        . "Use exactly one status:\n"
-        . "- good: the answer is mostly correct and useful.\n"
-        . "- incomplete: the answer has useful parts but misses important explanation, steps, evidence, or accuracy.\n"
-        . "- wrong: the answer is mostly incorrect, misleading, or does not answer the question.\n\n"
-        . "Give specific feedback, mention what is strong, explain what is missing or wrong, and give one concrete next step.\n"
-        . "If the question is ambiguous or lacks enough information, say so and mark the status incomplete unless the answer is clearly wrong.\n\n"
-        . $contextBlock . "\n\n"
-        . "Return JSON in this exact shape:\n"
-        . '{"status":"good|incomplete|wrong","feedback":"string","strengths":["string"],"improvements":["string"],"next_step":"string","confidence":"high|medium|low"}';
-
-    $decodeResult = function (string $text) {
-        $trimmed = trim($text);
-        $candidates = [$trimmed];
-
-        if (str_starts_with($trimmed, '```')) {
-            $candidates[] = trim(preg_replace('/^```(?:json)?\s*|\s*```$/', '', $trimmed));
-        }
-
-        $start = strpos($trimmed, '{');
-        $end = strrpos($trimmed, '}');
-        if ($start !== false && $end !== false && $end > $start) {
-            $candidates[] = trim(substr($trimmed, $start, $end - $start + 1));
-        }
-
-        foreach ($candidates as $candidate) {
-            $decoded = json_decode($candidate, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                return $decoded;
-            }
-        }
-
-        throw new \Exception('AI returned invalid feedback JSON');
-    };
-
-    try {
-        $raw = (function () use ($prompt) {
-            $res = Http::withToken(config('services.deepseek.key'))
-                ->timeout(25)
-                ->post('https://api.deepseek.com/v1/chat/completions', [
-                    'model'       => 'deepseek-chat',
-                    'messages'    => [
-                        ['role' => 'system', 'content' => 'You are an expert tutor. Always respond with valid JSON only.'],
-                        ['role' => 'user',   'content' => $prompt],
-                    ],
-                    'temperature' => 0.35,
-                ]);
-
-            if (!$res->successful()) {
-                throw new \Exception('DeepSeek error: ' . $res->status());
-            }
-
-            $text = $res->json('choices.0.message.content');
-            if (!is_string($text) || trim($text) === '') {
-                throw new \Exception('DeepSeek returned empty feedback');
-            }
-
-            return $text;
-        })();
-
-        $decoded = $decodeResult($raw);
-
-        $status = isset($decoded['status']) && is_string($decoded['status'])
-            ? trim($decoded['status'])
-            : 'incomplete';
-        if (!in_array($status, ['good', 'incomplete', 'wrong'], true)) {
-            $status = 'incomplete';
-        }
-
-        $feedback = isset($decoded['feedback']) && is_string($decoded['feedback'])
-            ? trim($decoded['feedback'])
-            : '';
-        $nextStep = isset($decoded['next_step']) && is_string($decoded['next_step'])
-            ? trim($decoded['next_step'])
-            : '';
-        $confidence = isset($decoded['confidence']) && is_string($decoded['confidence'])
-            ? trim($decoded['confidence'])
-            : 'medium';
-        if (!in_array($confidence, ['high', 'medium', 'low'], true)) {
-            $confidence = 'medium';
-        }
-
-        $stringList = function ($value): array {
-            if (!is_array($value)) {
-                return [];
-            }
-
-            return array_values(array_filter(array_map(
-                fn ($item) => is_string($item) ? trim($item) : '',
-                $value,
-            )));
-        };
-
-        if ($feedback === '') {
-            throw new \Exception('AI returned missing feedback');
-        }
-
-        return response()->json([
-            'feedback' => [
-                'status'       => $status,
-                'feedback'     => $feedback,
-                'strengths'    => $stringList($decoded['strengths'] ?? []),
-                'improvements' => $stringList($decoded['improvements'] ?? []),
-                'next_step'    => $nextStep,
-                'confidence'   => $confidence,
-            ],
-            'provider' => 'deepseek',
-        ]);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'error'    => $e->getMessage(),
-        ], 502);
-    }
-
-})->middleware(['web', 'throttle:20,1']);
-
-Route::post('/ai-learning-objectives', function (Request $request) {
-    $request->validate([
-        'post_title'   => 'required|string|max:300',
-        'post_content' => 'nullable|string|max:3000',
-        'post_type'    => 'nullable|string|in:material,question,quiz,sharing',
-    ]);
-
-    $postTitle   = $request->input('post_title');
-    $postContent = $request->input('post_content', '');
-    $postType    = $request->input('post_type', 'sharing');
-
-    $currentLocale = app()->getLocale();
-    $lang = match ($currentLocale) {
-        'zh'    => 'Chinese (Simplified)',
-        'my'    => 'Malay',
-        default => 'English',
-    };
-
-    $typeLabel = match ($postType) {
-        'material' => 'a learning materials post',
-        'question' => 'a learning question',
-        'quiz'     => 'a quiz post',
-        default    => 'a learning sharing post',
-    };
-
-    $contentBlock = trim($postContent) !== ''
-        ? "Title: {$postTitle}\n\nContent:\n{$postContent}"
-        : "Title: {$postTitle}";
-
-    $prompt = "You are an expert educational designer. Respond entirely in {$lang}. Return ONLY valid JSON. No markdown, no code fences, no extra text.\n\n"
-        . "The following is {$typeLabel} on an educational platform. Your task:\n"
-        . "1. Write 3 to 5 clear learning objectives that describe what a student will understand or be able to do after reading this post.\n"
-        . "2. Each objective must start with an action verb (e.g. Understand, Explain, Apply, Identify, Solve, Compare).\n"
-        . "3. Keep each objective concise (one sentence).\n"
-        . "4. Estimate the difficulty level: beginner, intermediate, or advanced.\n"
-        . "5. Estimate the reading time as a short string (e.g. '3-5 minutes').\n\n"
-        . $contentBlock . "\n\n"
-        . "Return JSON in this exact shape:\n"
-        . '{"objectives":["string","string","string"],"difficulty":"beginner|intermediate|advanced","estimated_time":"string"}';
-
-    $decodeResult = function (string $text) {
-        $trimmed = trim($text);
-        $candidates = [$trimmed];
-
-        if (str_starts_with($trimmed, '```')) {
-            $candidates[] = trim(preg_replace('/^```(?:json)?\s*|\s*```$/', '', $trimmed));
-        }
-
-        $start = strpos($trimmed, '{');
-        $end   = strrpos($trimmed, '}');
-        if ($start !== false && $end !== false && $end > $start) {
-            $candidates[] = trim(substr($trimmed, $start, $end - $start + 1));
-        }
-
-        foreach ($candidates as $candidate) {
-            $decoded = json_decode($candidate, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                return $decoded;
-            }
-        }
-
-        throw new \Exception('AI returned invalid JSON');
-    };
-
-    try {
-        $raw = (function () use ($prompt) {
-            $res = Http::withToken(config('services.deepseek.key'))
-                ->timeout(25)
-                ->post('https://api.deepseek.com/v1/chat/completions', [
-                    'model'           => 'deepseek-chat',
-                    'messages'        => [
-                        ['role' => 'system', 'content' => 'You are an expert educational designer. Always respond with valid JSON only.'],
-                        ['role' => 'user',   'content' => $prompt],
-                    ],
-                    'temperature'     => 0.4,
-                    'response_format' => ['type' => 'json_object'],
-                ]);
-
-            if (!$res->successful()) {
-                throw new \Exception('DeepSeek error: ' . $res->status());
-            }
-
-            $text = $res->json('choices.0.message.content');
-            if (!is_string($text) || trim($text) === '') {
-                throw new \Exception('DeepSeek returned empty response');
-            }
-
-            return $text;
-        })();
-
-        $decoded    = $decodeResult($raw);
-        $objectives = isset($decoded['objectives']) && is_array($decoded['objectives'])
-            ? array_values(array_filter(array_map(fn ($v) => is_string($v) ? trim($v) : '', $decoded['objectives'])))
-            : [];
-        $difficulty = isset($decoded['difficulty']) && in_array($decoded['difficulty'], ['beginner', 'intermediate', 'advanced'], true)
-            ? $decoded['difficulty']
-            : 'intermediate';
-        $estimatedTime = isset($decoded['estimated_time']) && is_string($decoded['estimated_time'])
-            ? trim($decoded['estimated_time'])
-            : '';
-
-        if (count($objectives) < 3 || count($objectives) > 5) {
-            throw new \Exception('AI must return 3 to 5 learning objectives');
-        }
-
-        return response()->json([
-            'result' => [
-                'objectives'     => $objectives,
-                'difficulty'     => $difficulty,
-                'estimated_time' => $estimatedTime,
-            ],
-            'provider' => 'deepseek',
-        ]);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'error'    => $e->getMessage(),
-            'provider' => 'deepseek',
-        ], 502);
-    }
-
-})->middleware(['web', 'throttle:15,1']);
-
 Route::post('/ai-doubt-clarify', function (Request $request) {
     try {
         $validator = Validator::make($request->all(), [
@@ -1044,13 +779,18 @@ Route::post('/ai-doubt-clarify', function (Request $request) {
         };
 
         $contextBlock = trim($postContent) !== ''
-            ? "Original question:\n{$postTitle}\n\nQuestion context:\n{$postContent}\n\nComment/Answer the student is confused about:\n{$answerContent}\n\nStudent confusion:\n{$userConfusion}"
-            : "Original question:\n{$postTitle}\n\nComment/Answer the student is confused about:\n{$answerContent}\n\nStudent confusion:\n{$userConfusion}";
+            ? "Original question:\n{$postTitle}\n\nQuestion context:\n{$postContent}\n\nComment/Answer the student is confused about:
+            \n{$answerContent}\n\nStudent confusion:\n{$userConfusion}"
+            : "Original question:\n{$postTitle}\n\nComment/Answer the student is confused about:\n{$answerContent}\n\n
+            Student confusion:\n{$userConfusion}";
 
-        $prompt = "You are helping a student understand a Q&A comment/answer. Respond entirely in {$lang}. Return ONLY valid JSON. No markdown, no HTML, no code fences, no extra text.\n\n"
-            . "The student is confused about this specific comment/answer. Your job is to explain the comment clearly based on the original question and the comment content.\n\n"
+        $prompt = "You are helping a student understand a Q&A comment/answer. Respond entirely in {$lang}. Return ONLY valid JSON. 
+        No markdown, no HTML, no code fences, no extra text.\n\n"
+            . "The student is confused about this specific comment/answer. Your job is to explain the comment clearly 
+            based on the original question and the comment content.\n\n"
             . "Treat the student's confusion as: I do not understand this comment/answer because...\n\n"
-            . "Do not judge whether the comment is wrong unless it is necessary to explain the confusion. Do not mark the comment as an error. Do not treat this as a report.\n\n"
+            . "Do not judge whether the comment is wrong unless it is necessary to explain the confusion. 
+            Do not mark the comment as an error. Do not treat this as a report.\n\n"
             . "Provide a clear, simple explanation that helps the student understand the comment. Keep it student-friendly and concise.\n\n"
             . $contextBlock . "\n\n"
             . "Return JSON in this exact shape:\n"
@@ -1172,16 +912,31 @@ Route::post('/ai-validate-wrong', function (Request $request) {
             ? "Question:\n{$postTitle}\n\nContext:\n{$postContent}\n\nComment/Answer:\n{$answerContent}\n\nStudent report reason:\n{$userReasoning}"
             : "Question:\n{$postTitle}\n\nComment/Answer:\n{$answerContent}\n\nStudent report reason:\n{$userReasoning}";
 
-        $prompt = "You are checking whether a Q&A comment should be marked as wrong or problematic in an educational platform. Respond entirely in {$lang} except for the category value. Return strict JSON only. No markdown, no HTML, no code fences, no extra text.\n\n"
-            . "Be practical and student-friendly. Do not require formal proof, citations, or academic wording. The student's report reason can be short, informal, multilingual, or imperfect.\n\n"
-            . "However, the student must still explain WHY they think the comment is wrong/problematic. Treat the reason as a required hint, not as formal evidence.\n\n"
-            . "Mark the comment as wrong/problematic if it is factually wrong, logically wrong, misleading, irrelevant, nonsense, placeholder text, spam-like, empty, nearly empty, clearly unhelpful for the learning context, or does not answer the question.\n\n"
-            . "Accept simple explanatory reasons such as: This answer is useless; He is saying nonsense; 这个答案没有用; 没有解释; Jawapan ini tidak menjawab soalan; I don't understand because the answer does not explain anything.\n\n"
-            . "Do NOT mark it wrong when the student's reason is only a bare label with no explanation, such as: wrong, bad, incorrect, salah, 错, 有问题, I disagree. In those cases, return is_wrong false with category not_wrong and ask the user to explain what is wrong.\n\n"
-            . "Do not require a specific mathematical or factual correction if the issue is that the answer is meaningless, irrelevant, or not evaluable. But the reason should still identify that issue in simple words.\n\n"
+        $prompt = "You are checking whether a Q&A comment should be marked as wrong or problematic in an 
+        educational platform. Respond entirely in {$lang} except for the category value. 
+        Return strict JSON only. No markdown, no HTML, no code fences, no extra text.\n\n"
+            . "Be practical and student-friendly. Do not require formal proof, citations, 
+            or academic wording. The student's report reason can be short, informal, multilingual, 
+            or imperfect.\n\n"
+            . "However, the student must still explain WHY they think the comment is wrong/problematic. 
+            Treat the reason as a required hint, not as formal evidence.\n\n"
+            . "Mark the comment as wrong/problematic if it is factually wrong, logically wrong, misleading, 
+            irrelevant, nonsense, placeholder text, spam-like, empty, nearly empty, 
+            clearly unhelpful for the learning context, or does not answer the question.\n\n"
+            . "Accept simple explanatory reasons such as: This answer is useless; 
+            He is saying nonsense; 这个答案没有用; 没有解释; Jawapan ini tidak menjawab soalan; 
+            I don't understand because the answer does not explain anything.\n\n"
+            . "Do NOT mark it wrong when the student's reason is only a bare label with no explanation, 
+            such as: wrong, bad, incorrect, salah, 错, 有问题, I disagree. 
+            In those cases, return is_wrong false with category not_wrong and ask 
+            the user to explain what is wrong.\n\n"
+            . "Do not require a specific mathematical or factual correction 
+            if the issue is that the answer is meaningless, irrelevant, 
+            or not evaluable. But the reason should still identify that issue in simple words.\n\n"
             . "Return JSON in this exact shape:\n"
             . '{"is_wrong":true,"category":"nonsense","message":"short user-friendly explanation"}' . "\n\n"
-            . "Allowed category values: nonsense, irrelevant, factual_error, logical_error, misleading, insufficient_answer, not_wrong.\n\n"
+            . "Allowed category values: nonsense, irrelevant, factual_error, 
+            logical_error, misleading, insufficient_answer, not_wrong.\n\n"
             . $contextBlock . "\n\n"
             . "Decision:";
 

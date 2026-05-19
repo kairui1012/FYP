@@ -78,7 +78,6 @@
     "quiz_section_hint": "请填写选项，并在下方选择正确答案。",
     "quiz_option_label": "选项",
     "quiz_option_placeholder": "请输入选项",
-    "quiz_add_option": "添加选项",
     "quiz_remove_option": "删除",
     "quiz_add_quiz": "添加测验题",
     "quiz_remove_quiz": "删除测验",

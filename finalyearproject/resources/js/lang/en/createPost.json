@@ -78,7 +78,6 @@
     "quiz_section_hint": "Fill in options and choose the correct answer below.",
     "quiz_option_label": "Option",
     "quiz_option_placeholder": "Enter option",
-    "quiz_add_option": "Add Option",
     "quiz_remove_option": "Remove",
     "quiz_add_quiz": "Add Quiz",
     "quiz_remove_quiz": "Remove Quiz",

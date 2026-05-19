@@ -80,7 +80,7 @@ class PostCreateController extends Controller
             'is_anonymous' => ['nullable', 'boolean'],
             'quiz_questions' => ['nullable', 'array', 'min:1', 'required_if:post_type,quiz'],
             'quiz_questions.*.question' => ['required', 'string', 'max:500'],
-            'quiz_questions.*.options' => ['required', 'array', 'min:2', 'max:8'],
+            'quiz_questions.*.options' => ['required', 'array', 'min:2', 'max:4'],
             'quiz_questions.*.options.*' => ['required', 'string', 'max:255'],
             'quiz_questions.*.answer_index' => ['required', 'integer', 'min:0'],
             'quiz_questions.*.explanation' => ['nullable', 'string', 'max:700'],

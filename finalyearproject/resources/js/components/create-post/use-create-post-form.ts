@@ -89,15 +89,10 @@ const applyGeneratedOptionsToQuiz = (
     currentOptions: string[],
     generatedOptions: string[],
 ) => {
-    const normalizedGeneratedOptions = Array.from(
+    return Array.from(
         { length: AI_QUIZ_OPTION_COUNT },
         (_, index) => generatedOptions[index] ?? currentOptions[index] ?? '',
     );
-
-    return [
-        ...normalizedGeneratedOptions,
-        ...currentOptions.slice(AI_QUIZ_OPTION_COUNT),
-    ];
 };
 
 export function useCreatePostForm({
@@ -203,7 +198,7 @@ export function useCreatePostForm({
         quizzes.every(
             (q) =>
                 q.question.trim().length > 0 &&
-                q.options.length >= 2 &&
+                q.options.length === AI_QUIZ_OPTION_COUNT &&
                 q.options.every((o) => o.trim().length > 0) &&
                 q.answerIndex !== '' &&
                 parseInt(q.answerIndex) < q.options.length,
@@ -789,31 +784,6 @@ export function useCreatePostForm({
         );
     };
 
-    const addQuizOption = (qIndex: number) => {
-        setQuizzes((prev) =>
-            prev.map((q, i) => {
-                if (i !== qIndex || q.options.length >= 8) return q;
-                return { ...q, options: [...q.options, ''] };
-            }),
-        );
-    };
-
-    const removeQuizOption = (qIndex: number, optIndex: number) => {
-        setQuizzes((prev) =>
-            prev.map((q, i) => {
-                if (i !== qIndex || q.options.length <= 2) return q;
-                const newOptions = q.options.filter((_, oi) => oi !== optIndex);
-                let newAnswer = q.answerIndex;
-                if (q.answerIndex !== '') {
-                    const ai = parseInt(q.answerIndex);
-                    if (ai === optIndex) newAnswer = '';
-                    else if (ai > optIndex) newAnswer = String(ai - 1);
-                }
-                return { ...q, options: newOptions, answerIndex: newAnswer };
-            }),
-        );
-    };
-
     const generateQuizOptions = async (qIndex: number) => {
         const quiz = quizzes[qIndex];
 
@@ -1075,8 +1045,6 @@ export function useCreatePostForm({
         updateQuizOption,
         updateQuizAnswerIndex,
         updateQuizAiAnswerPlacement,
-        addQuizOption,
-        removeQuizOption,
         generateQuizOptions,
         generatingQuizOptionIds,
         quizOptionErrors,

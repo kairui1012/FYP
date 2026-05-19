@@ -55,7 +55,7 @@ class FollowerController extends Controller
             ]);
         }
 
-        return back()->with('status', $status);
+        return back()->with('status', $status); 
     }
 
     public function index(Request $request)

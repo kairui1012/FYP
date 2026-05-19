@@ -44,16 +44,5 @@
     "view_achievements": "View achievements",
     "your_answer": "Your answer",
     "correct_answer": "Correct answer",
-    "untitled_post": "Untitled post",
-    "lo_button": "What Will I Learn?",
-    "lo_loading": "Generating learning objectives...",
-    "lo_error": "Failed to generate. Please try again.",
-    "lo_retry": "Try again",
-    "lo_title": "What You'll Learn",
-    "lo_difficulty": "Level",
-    "lo_time": "Estimated read time",
-    "lo_beginner": "Beginner",
-    "lo_intermediate": "Intermediate",
-    "lo_advanced": "Advanced",
-    "lo_disclaimer": "AI-generated objectives. Treat as a reading guide."
+    "untitled_post": "Untitled post"
 }

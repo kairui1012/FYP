@@ -82,8 +82,6 @@ export default function CreatePostPage() {
         updateQuizOption,
         updateQuizAnswerIndex,
         updateQuizAiAnswerPlacement,
-        addQuizOption,
-        removeQuizOption,
         generateQuizOptions,
         generatingQuizOptionIds,
         quizOptionErrors,
@@ -243,8 +241,6 @@ export default function CreatePostPage() {
                                 onUpdateAiAnswerPlacement={
                                     updateQuizAiAnswerPlacement
                                 }
-                                onAddOption={addQuizOption}
-                                onRemoveOption={removeQuizOption}
                                 onGenerateQuizOptions={generateQuizOptions}
                                 generatingQuizOptionIds={
                                     generatingQuizOptionIds
@@ -261,8 +257,6 @@ export default function CreatePostPage() {
                                     quizOptionLabel: t.quizOptionLabel,
                                     quizOptionPlaceholder:
                                         t.quizOptionPlaceholder,
-                                    quizAddOption: t.quizAddOption,
-                                    quizRemoveOption: t.quizRemoveOption,
                                     quizAddQuiz: t.quizAddQuiz,
                                     quizRemoveQuiz: t.quizRemoveQuiz,
                                     quizAnswerLabel: t.quizAnswerLabel,

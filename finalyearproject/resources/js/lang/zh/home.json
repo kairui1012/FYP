@@ -44,16 +44,5 @@
     "view_achievements": "查看成就",
     "your_answer": "你的答案",
     "correct_answer": "正确答案",
-    "untitled_post": "未命名帖子",
-    "lo_button": "我会学到什么？",
-    "lo_loading": "正在生成学习目标...",
-    "lo_error": "生成失败，请重试。",
-    "lo_retry": "重试",
-    "lo_title": "你将学到",
-    "lo_difficulty": "难度",
-    "lo_time": "预计阅读时间",
-    "lo_beginner": "入门",
-    "lo_intermediate": "中级",
-    "lo_advanced": "进阶",
-    "lo_disclaimer": "AI 生成的学习目标，仅供参考。"
+    "untitled_post": "未命名帖子"
 }

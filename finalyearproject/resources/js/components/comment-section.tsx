@@ -1151,9 +1151,11 @@ function CommentCard({
                                 >
                                     {formatTimeAgo(comment.created_at)}
                                 </time>
-                                <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-500">
-                                    {scoreLabel}
-                                </span>
+                                {!isReply ? (
+                                    <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-500">
+                                        {scoreLabel}
+                                    </span>
+                                ) : null}
                             </div>
                         </div>
 

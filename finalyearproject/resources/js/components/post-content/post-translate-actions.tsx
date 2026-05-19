@@ -1,4 +1,3 @@
-import { PostLearningObjectives } from '@/components/post-learning-objectives';
 import { BtnAiTranslate } from '@/components/ui/btn-ai-translate';
 
 type PostTranslateActionsProps = {
@@ -6,7 +5,6 @@ type PostTranslateActionsProps = {
     title: string;
     content: string;
     texts?: string[];
-    postType?: string;
     onTranslate: (result: { title: string; content: string }) => void;
     onTranslateTexts?: (translations: Record<string, string>) => void;
 };
@@ -16,12 +14,9 @@ export function PostTranslateActions({
     title,
     content,
     texts,
-    postType,
     onTranslate,
     onTranslateTexts,
 }: PostTranslateActionsProps) {
-    const shouldShowLearningObjectives = false;
-
     return (
         <div className="my-3 px-4">
             <div className="flex flex-wrap items-center gap-3">
@@ -33,15 +28,6 @@ export function PostTranslateActions({
                     onTranslate={onTranslate}
                     onTranslateTexts={onTranslateTexts}
                 />
-                {shouldShowLearningObjectives ? (
-                    <PostLearningObjectives
-                        className="m-0"
-                        page={page}
-                        postTitle={title}
-                        postContent={content}
-                        postType={postType}
-                    />
-                ) : null}
             </div>
         </div>
     );

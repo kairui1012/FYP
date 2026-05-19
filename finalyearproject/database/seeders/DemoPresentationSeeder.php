@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Comment;
-use App\Models\CommentLike;
 use App\Models\BookmarkFolder;
 use App\Models\BookmarkItem;
+use App\Models\Comment;
+use App\Models\CommentLike;
 use App\Models\Like;
 use App\Models\Post;
 use App\Models\QuizAttempt;
@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class DemoPresentationSeeder extends Seeder
 {
@@ -79,6 +80,7 @@ class DemoPresentationSeeder extends Seeder
             ->values();
 
         $this->resetDemoData($allDemoUsers);
+        $this->seedTeacherVerificationRecords($allDemoUsers);
 
         $materials = [
             'vertex' => $this->createMaterial(
@@ -631,7 +633,7 @@ class DemoPresentationSeeder extends Seeder
         ];
 
         foreach ($extraQuizRows as $index => $quizRow) {
-            $quizzes['extra_' . $index] = $this->createQuiz(
+            $quizzes['extra_'.$index] = $this->createQuiz(
                 $teacher,
                 (int) $quizRow['material']->subject_id,
                 (int) $quizRow['material']->language_id,
@@ -871,12 +873,12 @@ class DemoPresentationSeeder extends Seeder
         $likedStudentPosts = $questionPosts->take(6)->push($studentReflection);
         foreach ($reviewers as $reviewer) {
             foreach ($likedStudentPosts as $post) {
-                Like::query()->create([
+                DB::table('likes')->insert($this->filterColumns('likes', [
                     'user_id' => $reviewer->id,
                     'post_id' => $post->id,
                     'created_at' => now()->subDays(3),
                     'updated_at' => now()->subDays(3),
-                ]);
+                ]));
             }
         }
 
@@ -890,109 +892,119 @@ class DemoPresentationSeeder extends Seeder
             $studentReflection,
         ];
 
-        $commentTexts = [
-            'The vertex form summary helped me identify h and k much faster.',
-            'I finally understood why the axis of symmetry is linked to the vertex.',
-            'The factorisation example was useful, but the hard question still needs one more worked step.',
-            'The quiz explanation made it easier to check why my answer was wrong.',
-            'I like the graph sketch checklist because it is easy to revise before a test.',
-            'The comparison between two similar graphs was helpful for avoiding careless mistakes.',
-            'I used the notes again today and the structure is easy to follow.',
-            'The factorisation section is the one I still revisit the most.',
-            'The sketching guide is concise and feels exam-focused.',
-            'The examples are useful because they show the common mistakes clearly.',
-            'I think one more non-factorisable graph example would help weaker students.',
-            'The linked quizzes make the materials easier to revise independently.',
-            'The discussion examples are practical and match school exam style.',
-            'I like how the explanations are short but still complete.',
-            'The content is suitable for self-study and group revision.',
-            'This helped me explain my method more clearly in class.',
-            'The revision order is helpful for students who are weak in basics.',
-            'The mistakes section made me more careful with sign errors.',
-            'This question is worth discussing because the mistake is very common.',
-            'The answer above is clear enough for beginners to follow.',
-            'I tried the same strategy and my quiz score improved.',
-            'The example helps connect the rule to the actual exam step.',
-            'This is a good place to compare two different solving methods.',
-            'The explanation avoids memorising blindly, which helps a lot.',
-            'I would add one more diagram, but the concept is already clear.',
-            'The wording is student-friendly and easy to revise from.',
-            'This helped me notice the difference between the method and the shortcut.',
-            'The correction note is practical for students who rush.',
-            'I used this in my study group and everyone understood faster.',
-            'The best part is the quick self-check before submitting an answer.',
+        $commentTemplates = [
+            [
+                'content' => 'This helped me finish today\'s revision faster. The example is simple enough to copy into my notes.',
+                'replies' => [
+                    'Same here. I wrote the shortcut beside my formula list.',
+                    'The short example is useful because it shows exactly where to start.',
+                    'I think this is the part most students will remember before a test.',
+                ],
+            ],
+            [
+                'content' => 'I understand the main idea, but I still get confused when the question changes the numbers slightly.',
+                'replies' => [
+                    'Try changing only one number first, then compare the working line by line.',
+                    'That happened to me too. Doing two similar questions together helped.',
+                ],
+            ],
+            [
+                'content' => 'Can someone check if my method is correct: I identify the key value first, then substitute it back to verify?',
+                'replies' => [
+                    'Yes, that is a safe check. The substitution step catches most careless mistakes.',
+                    'I would also write the final answer with units or coordinates if the question needs it.',
+                    'Good method. It slows you down a little but prevents wrong final answers.',
+                ],
+            ],
+            [
+                'content' => 'The explanation is helpful, but one more hard example would make this easier for weaker students.',
+                'replies' => [
+                    'Agree. A hard example with full working would make the discussion more complete.',
+                    'Maybe use an exam-style question so we can see the marking steps too.',
+                ],
+            ],
+            [
+                'content' => 'I tried the linked quiz after reading this and got a better score on my second attempt.',
+                'replies' => [
+                    'Nice. The instant feedback is the part that helped me fix mistakes fastest.',
+                    'Same, especially when the explanation points out the exact wrong step.',
+                ],
+            ],
+            [
+                'content' => 'This is clear for self-study. I like that the important steps are not hidden inside long paragraphs.',
+                'replies' => [
+                    'Short notes are easier to revise from during the last few days before exam.',
+                    'The layout also makes it easier to discuss in a study group.',
+                    'I bookmarked it for quick review later.',
+                ],
+            ],
+            [
+                'content' => 'I am not fully convinced by the final step. Shouldn\'t we check the sign before writing the answer?',
+                'replies' => [
+                    'Yes, checking the sign first is safer. That is where I usually lose marks.',
+                    'Good catch. The answer is right, but the sign check should be mentioned clearly.',
+                ],
+            ],
+            [
+                'content' => 'The worked step is not quite right for the second case. I think it skips a condition.',
+                'replies' => [
+                    'I noticed that too. The first case works, but the second needs one extra check.',
+                    'A teacher explanation here would be useful before we copy this method.',
+                    'Thanks for pointing it out. I nearly used the same shortcut everywhere.',
+                ],
+            ],
+            [
+                'content' => 'This question is worth discussing because a small mistake changes the whole answer.',
+                'replies' => [
+                    'Exactly. It looks easy until the signs start changing.',
+                    'The comments here helped more than reading the answer alone.',
+                ],
+            ],
         ];
 
         $rootComments = collect();
 
-        foreach ($commentTexts as $index => $text) {
-            $target = $commentTargets[$index % count($commentTargets)];
+        foreach ($commentTargets as $targetIndex => $target) {
+            $commentsPerPost = $targetIndex < 8 ? 5 : 3;
 
-            $rootComments->push(Comment::query()->create([
-                'user_id' => $student->id,
-                'post_id' => $target->id,
-                'parent_id' => null,
-                'content' => $text,
-                'attachments' => null,
-                'mentions' => null,
-                'created_at' => now()->subDays(4 - min(3, $index % 4)),
-                'updated_at' => now()->subDays(4 - min(3, $index % 4)),
-            ]));
-        }
+            for ($offset = 0; $offset < $commentsPerPost; $offset++) {
+                $templateIndex = ($targetIndex + $offset) % count($commentTemplates);
+                $commentUser = $allDemoUsers[($targetIndex + $offset + 1) % $allDemoUsers->count()];
+                $createdAt = now()
+                    ->subDays(max(1, 6 - (($targetIndex + $offset) % 6)))
+                    ->addHours($offset * 2);
 
-        $replyTexts = [
-            'I agree with this point. The worked steps are very practical.',
-            'Thanks for sharing this. I used the same method in revision.',
-            'This was helpful for me too, especially before quiz practice.',
-            'Maybe we can add one more challenge example for stronger students.',
-            'The summary is clear and easy to remember before exams.',
-            'Good point. I had the same confusion last week.',
-            'The linked quiz feedback helped me fix my mistakes quickly.',
-            'I think this should be pinned for our next study session.',
-            'This answer is clear. I will use this method tonight.',
-            'The worked examples look simple, but the strategy is solid.',
-            'I like this because it explains both concept and exam technique.',
-        ];
-
-        foreach ($rootComments as $index => $rootComment) {
-            $firstReplyUser = $reviewers[$index % $reviewers->count()];
-            $secondReplyUser = $reviewers[($index + 3) % $reviewers->count()];
-            $thirdReplyUser = $reviewers[($index + 7) % $reviewers->count()];
-            $replyCreatedAt = now()->subDays(max(1, 3 - ($index % 3)));
-
-            Comment::query()->create([
-                'user_id' => $firstReplyUser->id,
-                'post_id' => $rootComment->post_id,
-                'parent_id' => $rootComment->id,
-                'content' => $replyTexts[$index % count($replyTexts)],
-                'attachments' => null,
-                'mentions' => null,
-                'created_at' => $replyCreatedAt,
-                'updated_at' => $replyCreatedAt,
-            ]);
-
-            Comment::query()->create([
-                'user_id' => $secondReplyUser->id,
-                'post_id' => $rootComment->post_id,
-                'parent_id' => $rootComment->id,
-                'content' => $replyTexts[($index + 2) % count($replyTexts)],
-                'attachments' => null,
-                'mentions' => null,
-                'created_at' => $replyCreatedAt->copy()->addHours(2),
-                'updated_at' => $replyCreatedAt->copy()->addHours(2),
-            ]);
-
-            if ($index % 2 === 0) {
-                Comment::query()->create([
-                    'user_id' => $thirdReplyUser->id,
-                    'post_id' => $rootComment->post_id,
-                    'parent_id' => $rootComment->id,
-                    'content' => $replyTexts[($index + 5) % count($replyTexts)],
+                $rootComment = Comment::query()->create([
+                    'user_id' => $commentUser->id,
+                    'post_id' => $target->id,
+                    'parent_id' => null,
+                    'content' => $commentTemplates[$templateIndex]['content'],
                     'attachments' => null,
                     'mentions' => null,
-                    'created_at' => $replyCreatedAt->copy()->addHours(4),
-                    'updated_at' => $replyCreatedAt->copy()->addHours(4),
+                    'created_at' => $createdAt,
+                    'updated_at' => $createdAt,
                 ]);
+
+                $rootComments->push($rootComment);
+
+                foreach ($commentTemplates[$templateIndex]['replies'] as $replyIndex => $replyText) {
+                    $replyUser = $allDemoUsers[($targetIndex + $offset + $replyIndex + 5) % $allDemoUsers->count()];
+
+                    if ($replyUser->id === $commentUser->id) {
+                        $replyUser = $allDemoUsers[($targetIndex + $offset + $replyIndex + 9) % $allDemoUsers->count()];
+                    }
+
+                    Comment::query()->create([
+                        'user_id' => $replyUser->id,
+                        'post_id' => $target->id,
+                        'parent_id' => $rootComment->id,
+                        'content' => $replyText,
+                        'attachments' => null,
+                        'mentions' => null,
+                        'created_at' => $createdAt->copy()->addMinutes(25 + ($replyIndex * 35)),
+                        'updated_at' => $createdAt->copy()->addMinutes(25 + ($replyIndex * 35)),
+                    ]);
+                }
             }
         }
 
@@ -1003,6 +1015,7 @@ class DemoPresentationSeeder extends Seeder
         foreach ($allSeededComments as $index => $comment) {
             $voterA = $reviewers[$index % $reviewers->count()];
             $voterB = $reviewers[($index + 4) % $reviewers->count()];
+            $voterC = $reviewers[($index + 9) % $reviewers->count()];
             $votedAt = now()->subDays(max(1, 3 - ($index % 3)));
 
             if ($voterA->id !== $comment->user_id) {
@@ -1013,13 +1026,34 @@ class DemoPresentationSeeder extends Seeder
             }
 
             if ($voterB->id !== $comment->user_id) {
-                $vote = $index % 7 === 0 ? -1 : 1;
+                $vote = match (true) {
+                    $index % 11 === 0 => -2,
+                    $index % 5 === 0 => -1,
+                    default => 1,
+                };
                 CommentLike::query()->updateOrCreate(
                     ['user_id' => $voterB->id, 'comment_id' => $comment->id],
                     [
                         'vote' => $vote,
                         'created_at' => $votedAt->copy()->addMinutes(15),
                         'updated_at' => $votedAt->copy()->addMinutes(15),
+                    ],
+                );
+            }
+
+            if ($comment->parent_id === null && $voterC->id !== $comment->user_id) {
+                $vote = match (true) {
+                    $index % 9 === 0 => -2,
+                    $index % 4 === 0 => -1,
+                    default => 1,
+                };
+
+                CommentLike::query()->updateOrCreate(
+                    ['user_id' => $voterC->id, 'comment_id' => $comment->id],
+                    [
+                        'vote' => $vote,
+                        'created_at' => $votedAt->copy()->addMinutes(45),
+                        'updated_at' => $votedAt->copy()->addMinutes(45),
                     ],
                 );
             }
@@ -1239,7 +1273,7 @@ class DemoPresentationSeeder extends Seeder
                 'user_id' => $userId,
                 'version_number' => $versionNumber,
                 'title' => $title,
-                'content' => 'Content for version ' . $versionNumber,
+                'content' => 'Content for version '.$versionNumber,
                 'change_summary' => $changeSummary,
                 'created_at' => $createdAt,
                 'updated_at' => now()->subDay(),
@@ -1376,6 +1410,12 @@ class DemoPresentationSeeder extends Seeder
         if (Schema::hasTable('points_transactions')) {
             DB::table('points_transactions')->whereIn('user_id', $userIds)->delete();
         }
+        if (Schema::hasTable('teacher_verification_documents')) {
+            DB::table('teacher_verification_documents')->whereIn('user_id', $userIds)->delete();
+        }
+        if (Schema::hasTable('teacher_applications')) {
+            DB::table('teacher_applications')->whereIn('user_id', $userIds)->delete();
+        }
         if (Schema::hasTable('users')) {
             DB::table('users')
                 ->whereIn('id', $userIds)
@@ -1388,6 +1428,106 @@ class DemoPresentationSeeder extends Seeder
         if (Schema::hasTable('posts')) {
             Post::query()->whereIn('user_id', $userIds)->delete();
         }
+    }
+
+    private function seedTeacherVerificationRecords(Collection $users): void
+    {
+        if (! Schema::hasTable('teacher_applications')) {
+            return;
+        }
+
+        $teachers = $users
+            ->filter(fn (User $user) => ($user->role ?? 'student') === 'teacher')
+            ->values();
+
+        foreach ($teachers as $index => $teacher) {
+            $createdAt = now()->subDays(32 - min($index, 10));
+            $documentPath = "teacher-verification/demo/{$teacher->id}/teaching-certificate.pdf";
+
+            Storage::disk('local')->put(
+                $documentPath,
+                $this->fakeVerificationPdfContent($teacher, 'Teaching Certificate'),
+            );
+
+            $applicationId = DB::table('teacher_applications')->insertGetId($this->filterColumns('teacher_applications', [
+                'user_id' => $teacher->id,
+                'qualification' => 'Bachelor of Education with classroom teaching experience',
+                'bio' => 'Demo teacher account seeded for presentation. Applicant agreed to teacher responsibilities and content quality guidelines.',
+                'reason' => 'Demo teacher verification application for seeded learning materials.',
+                'document_path' => $documentPath,
+                'document_original_name' => 'teaching-certificate.pdf',
+                'status' => 'approved',
+                'admin_note' => 'Approved for demo data so teacher material and verification flows are visible.',
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt->copy()->addHours(2),
+            ]));
+
+            if (! (bool) ($teacher->is_verified ?? false) || ! Schema::hasTable('teacher_verification_documents')) {
+                continue;
+            }
+
+            $documents = [
+                [
+                    'path' => $documentPath,
+                    'original_name' => 'teaching-certificate.pdf',
+                    'document_type' => 'teaching_certificate',
+                    'verification_notes' => 'Fake certificate file added for demo verification flow.',
+                ],
+                [
+                    'path' => "teacher-verification/demo/{$teacher->id}/education-degree.pdf",
+                    'original_name' => 'education-degree.pdf',
+                    'document_type' => 'degree',
+                    'verification_notes' => 'Fake degree file added for certified demo teacher.',
+                ],
+            ];
+
+            foreach ($documents as $docIndex => $document) {
+                Storage::disk('local')->put(
+                    $document['path'],
+                    $this->fakeVerificationPdfContent($teacher, $document['original_name']),
+                );
+
+                DB::table('teacher_verification_documents')->insert($this->filterColumns('teacher_verification_documents', [
+                    'teacher_application_id' => $applicationId,
+                    'user_id' => $teacher->id,
+                    'path' => $document['path'],
+                    'original_name' => $document['original_name'],
+                    'file_path' => $document['path'],
+                    'document_type' => $document['document_type'],
+                    'status' => 'verified',
+                    'verification_notes' => $document['verification_notes'],
+                    'verified_at' => $createdAt->copy()->addHours(4 + $docIndex),
+                    'created_at' => $createdAt->copy()->addMinutes(10 + $docIndex),
+                    'updated_at' => $createdAt->copy()->addHours(4 + $docIndex),
+                ]));
+            }
+        }
+    }
+
+    private function fakeVerificationPdfContent(User $teacher, string $documentTitle): string
+    {
+        $lines = [
+            'Demo Teacher Verification Document',
+            'Document: '.$documentTitle,
+            'Teacher: '.$teacher->name,
+            'Email: '.$teacher->email,
+        ];
+        $text = implode(' | ', array_map(
+            fn (string $line) => str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $line),
+            $lines,
+        ));
+
+        $stream = "BT /F1 12 Tf 72 720 Td ({$text}) Tj ET\n";
+
+        return "%PDF-1.4\n"
+            ."1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n"
+            ."2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n"
+            ."3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n"
+            .'4 0 obj << /Length '.strlen($stream)." >> stream\n"
+            .$stream
+            ."endstream endobj\n"
+            ."5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\n"
+            ."trailer << /Root 1 0 R >>\n%%EOF\n";
     }
 
     private function createQuestion(

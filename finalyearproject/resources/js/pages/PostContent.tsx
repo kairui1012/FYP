@@ -130,7 +130,6 @@ export default function PostContent({ post }: PostContentProps) {
                         title={post.title}
                         content={post.content ?? ''}
                         texts={materialTranslationTexts}
-                        postType={post.post_type}
                         onTranslate={controller.setTranslated}
                         onTranslateTexts={
                             post.post_type === 'material'
