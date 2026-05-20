@@ -53,7 +53,9 @@ export default function HomePage({
         handleLike,
         handleSave,
         handleFollowToggle,
-    } = usePostInteractions(posts);
+    } = usePostInteractions(posts, {
+        refreshFollowingPage: isFollowingPage,
+    });
 
     const homeText = buildHomeText(page as any);
 
@@ -136,9 +138,7 @@ export default function HomePage({
                             <PaginationControls
                                 pagination={pagination}
                                 appendQuery={
-                                    isHomePage
-                                        ? { tab: activeTab }
-                                        : undefined
+                                    isHomePage ? { tab: activeTab } : undefined
                                 }
                             />
                         </section>

@@ -16,7 +16,7 @@ export function useHomePageState(pageContext: 'home' | 'following') {
     useEffect(() => {
         if (isFollowingPage && sessionStorage.getItem('followingPageDirty')) {
             sessionStorage.removeItem('followingPageDirty');
-            router.reload({ only: ['posts'] });
+            router.reload({ only: ['posts', 'pagination'] });
         }
     }, [isFollowingPage]);
 

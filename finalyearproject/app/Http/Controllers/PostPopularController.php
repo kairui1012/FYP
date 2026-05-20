@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Language;
 use App\Models\Post;
-use App\Models\Subject;
 use App\Services\PostSerializationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -18,28 +16,26 @@ class PostPopularController extends Controller
 {
     private const FEED_PER_PAGE = 10;
 
-    public function __construct(private readonly PostSerializationService $serializationService)
-    {
-    }
+    public function __construct(private readonly PostSerializationService $serializationService) {}
 
     public function index(Request $request): Response
     {
         $validated = $request->validate([
-            'range'         => ['nullable', 'string', Rule::in(['today', 'week', 'month', 'all'])],
-            'sort'          => ['nullable', 'string', Rule::in(['newest', 'hottest'])],
+            'range' => ['nullable', 'string', Rule::in(['today', 'week', 'month', 'all'])],
+            'sort' => ['nullable', 'string', Rule::in(['newest', 'hottest'])],
             'language_code' => ['nullable', 'string', Rule::exists('languages', 'code')],
-            'subject_id'    => ['nullable', 'integer', Rule::exists('subjects', 'id')],
-            'post_type'     => ['nullable', 'string', Rule::in(['material', 'question', 'quiz'])],
+            'subject_id' => ['nullable', 'integer', Rule::exists('subjects', 'id')],
+            'post_type' => ['nullable', 'string', Rule::in(['material', 'question', 'quiz'])],
         ]);
 
         $languageCode = $validated['language_code'] ?? '';
-        $subjectId    = isset($validated['subject_id']) ? (int) $validated['subject_id'] : null;
-        $postType     = $validated['post_type'] ?? '';
+        $subjectId = isset($validated['subject_id']) ? (int) $validated['subject_id'] : null;
+        $postType = $validated['post_type'] ?? '';
 
         $hasCategoryFilter = $languageCode !== '' || $subjectId !== null || $postType !== '';
 
         $range = $validated['range'] ?? ($hasCategoryFilter ? 'all' : 'week');
-        $sort  = $validated['sort'] ?? ($hasCategoryFilter ? 'newest' : 'hottest');
+        $sort = $validated['sort'] ?? ($hasCategoryFilter ? 'newest' : 'hottest');
         [$startAt, $endAt] = $this->resolvePopularRange($range);
 
         $followingIds = $request->user()
@@ -70,6 +66,10 @@ class PostPopularController extends Controller
                 'likes as is_liked' => fn ($query) => $query->where('user_id', Auth::id()),
                 'bookmarkItems as is_saved' => fn ($query) => $query->where('user_id', Auth::id()),
             ]);
+
+        if ($range !== 'all') {
+            $popularPostsQuery->whereBetween('created_at', [$startAt, $endAt]);
+        }
 
         if ($languageCode !== '') {
             $popularPostsQuery->whereHas('language', fn ($q) => $q->where('code', $languageCode));
@@ -102,15 +102,15 @@ class PostPopularController extends Controller
             ->values();
 
         return Inertia::render('LearningTrendsPage', [
-            'posts'      => $posts,
+            'posts' => $posts,
             'pagination' => $this->paginationMeta($paginator),
             'activeRange' => $range,
             'activeSort' => $sort,
             'rangeOptions' => [
                 'today' => __('popular.today'),
-                'week'  => __('popular.week'),
+                'week' => __('popular.week'),
                 'month' => __('popular.month'),
-                'all'   => __('popular.all'),
+                'all' => __('popular.all'),
             ],
         ]);
     }

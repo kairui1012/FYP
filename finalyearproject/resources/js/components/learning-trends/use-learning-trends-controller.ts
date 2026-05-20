@@ -257,6 +257,7 @@ export function useLearningTrendsController({
                 ...prev,
                 [userId]: payload.is_following,
             }));
+            sessionStorage.setItem('followingPageDirty', '1');
         } catch {
             setFollowStateByUser((prev) => ({
                 ...prev,
