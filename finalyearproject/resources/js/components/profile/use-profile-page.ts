@@ -26,7 +26,8 @@ export function useProfilePage() {
         attachmentPlural: trans('profile.attachment_plural'),
     };
 
-    const currentUserId = usePage<{ auth?: { user?: { id?: number } } }>().props.auth?.user?.id;
+    const currentUserId = usePage<{ auth?: { user?: { id?: number } } }>().props
+        .auth?.user?.id;
     const isOwnProfile = currentUserId === profileUser.id;
 
     const earnedBadges: Badge[] = profileUser.badges ?? [];
@@ -44,18 +45,32 @@ export function useProfilePage() {
         avatar: profileUser.avatar ?? null,
         about: profileUser.about ?? null,
     });
-    const [isFollowing, setIsFollowing] = useState(Boolean(profileUser.is_following));
-    const [followersCount, setFollowersCount] = useState(profileUser.followers_count ?? 0);
-    const [followingCount, setFollowingCount] = useState(profileUser.following_count ?? 0);
+    const [isFollowing, setIsFollowing] = useState(
+        Boolean(profileUser.is_following),
+    );
+    const [followersCount, setFollowersCount] = useState(
+        profileUser.followers_count ?? 0,
+    );
+    const [followingCount, setFollowingCount] = useState(
+        profileUser.following_count ?? 0,
+    );
     const [followLoading, setFollowLoading] = useState(false);
     const [showProfileEditor, setShowProfileEditor] = useState(false);
     const [profileSaving, setProfileSaving] = useState(false);
-    const [profileSaveError, setProfileSaveError] = useState<string | null>(null);
+    const [profileSaveError, setProfileSaveError] = useState<string | null>(
+        null,
+    );
     const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
     const [profileNameInput, setProfileNameInput] = useState(profileUser.name);
-    const [profileAboutInput, setProfileAboutInput] = useState(profileUser.about ?? '');
-    const [profileAvatarFile, setProfileAvatarFile] = useState<File | null>(null);
-    const [profileAvatarPreview, setProfileAvatarPreview] = useState<string | null>(null);
+    const [profileAboutInput, setProfileAboutInput] = useState(
+        profileUser.about ?? '',
+    );
+    const [profileAvatarFile, setProfileAvatarFile] = useState<File | null>(
+        null,
+    );
+    const [profileAvatarPreview, setProfileAvatarPreview] = useState<
+        string | null
+    >(null);
 
     const displayName = displayProfile.name?.trim() || t.defaultUserName;
     const firstLetter = displayName.charAt(0).toUpperCase();
@@ -74,7 +89,9 @@ export function useProfilePage() {
 
     const aboutMainText = currentAbout?.trim() ?? defaultAboutMain;
 
-    const featuredBadges = earnedBadges.filter((b) => featuredBadgeIds.includes(b.id));
+    const featuredBadges = earnedBadges.filter((b) =>
+        featuredBadgeIds.includes(b.id),
+    );
 
     useEffect(() => {
         setAvatarLoadFailed(false);
@@ -87,19 +104,34 @@ export function useProfilePage() {
         setProfileAboutInput(profileUser.about ?? '');
         setProfileAvatarFile(null);
         setProfileAvatarPreview(null);
-    }, [profileUser.avatar, profileUser.name, profileUser.about]);
+        setProfileSaveError(null);
+        setProfileSaveSuccess(false);
+    }, [
+        profileUser.id,
+        profileUser.avatar,
+        profileUser.name,
+        profileUser.about,
+    ]);
 
     useEffect(() => {
-        if (!followLoading) setIsFollowing(Boolean(profileUser.is_following));
-    }, [followLoading, profileUser.is_following]);
-
-    useEffect(() => {
-        if (!followLoading) setFollowersCount(profileUser.followers_count ?? 0);
-    }, [followLoading, profileUser.followers_count]);
-
-    useEffect(() => {
+        setFollowLoading(false);
+        setIsFollowing(Boolean(profileUser.is_following));
+        setFollowersCount(profileUser.followers_count ?? 0);
         setFollowingCount(profileUser.following_count ?? 0);
-    }, [profileUser.following_count]);
+    }, [
+        profileUser.id,
+        profileUser.is_following,
+        profileUser.followers_count,
+        profileUser.following_count,
+    ]);
+
+    useEffect(() => {
+        setActiveTab('posts');
+        setShowBadgeEditor(false);
+        setFeaturedBadgeIds(profileUser.featured_badge_ids ?? []);
+        setSavingBadges(false);
+        setSaveSuccess(false);
+    }, [profileUser.id, profileUser.featured_badge_ids]);
 
     useEffect(() => {
         if (!profileAvatarFile) {
@@ -112,7 +144,12 @@ export function useProfilePage() {
     }, [profileAvatarFile]);
 
     const handleFollowToggle = async () => {
-        if (!profileUser.id || !currentUserId || currentUserId === profileUser.id || followLoading)
+        if (
+            !profileUser.id ||
+            !currentUserId ||
+            currentUserId === profileUser.id ||
+            followLoading
+        )
             return;
         const previous = isFollowing;
         const optimistic = !previous;
@@ -122,7 +159,8 @@ export function useProfilePage() {
         setIsFollowing(optimistic);
         setFollowersCount((c) => Math.max(0, c + (optimistic ? 1 : -1)));
         const csrfToken =
-            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
+            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+                ?.content ?? '';
         try {
             const response = await fetch(`/users/${profileUser.id}/follow`, {
                 method: 'POST',
@@ -134,10 +172,14 @@ export function useProfilePage() {
                 },
             });
             if (!response.ok) throw new Error('Follow toggle failed.');
-            const payload = (await response.json()) as { is_following: boolean };
+            const payload = (await response.json()) as {
+                is_following: boolean;
+            };
             setIsFollowing(payload.is_following);
             if (payload.is_following !== optimistic) {
-                setFollowersCount((c) => Math.max(0, c + (payload.is_following ? 1 : -1)));
+                setFollowersCount((c) =>
+                    Math.max(0, c + (payload.is_following ? 1 : -1)),
+                );
             }
             sessionStorage.setItem('followingPageDirty', '1');
         } catch {
@@ -151,7 +193,8 @@ export function useProfilePage() {
 
     const handleBadgeToggle = (badgeId: number) => {
         setFeaturedBadgeIds((prev) => {
-            if (prev.includes(badgeId)) return prev.filter((id) => id !== badgeId);
+            if (prev.includes(badgeId))
+                return prev.filter((id) => id !== badgeId);
             if (prev.length >= MAX_FEATURED) return prev;
             return [...prev, badgeId];
         });
@@ -160,7 +203,8 @@ export function useProfilePage() {
     const handleSaveFeaturedBadges = async () => {
         setSavingBadges(true);
         const csrfToken =
-            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
+            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+                ?.content ?? '';
         try {
             await fetch(`/users/${profileUser.id}/featured-badges`, {
                 method: 'POST',
@@ -208,7 +252,8 @@ export function useProfilePage() {
         setProfileSaveError(null);
 
         const csrfToken =
-            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
+            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+                ?.content ?? '';
         const formData = new FormData();
         formData.append('name', nextName);
         formData.append('about', profileAboutInput.trim());
@@ -228,7 +273,11 @@ export function useProfilePage() {
             if (!response.ok) throw new Error('Profile update failed.');
 
             const payload = (await response.json()) as {
-                profileUser: { name: string; avatar: string | null; about: string | null };
+                profileUser: {
+                    name: string;
+                    avatar: string | null;
+                    about: string | null;
+                };
             };
             setDisplayProfile({
                 name: payload.profileUser.name,
