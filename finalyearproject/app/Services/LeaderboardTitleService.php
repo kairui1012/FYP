@@ -7,17 +7,20 @@ use Illuminate\Support\Facades\DB;
 
 class LeaderboardTitleService
 {
+    // Mapping of leaderboard rank (1-3) to display titles
     private const TITLES = [
         1 => 'champion',
         2 => 'runner_up',
         3 => 'third_place',
     ];
 
+    // Get the title string for a given rank (1st, 2nd, or 3rd place)
     public function titleForRank(int $rank): ?string
     {
         return self::TITLES[$rank] ?? null;
     }
 
+    // Get the leaderboard title for a user if they hold a top 3 rank and have chosen to display it
     public function titleForUserId(?int $userId): ?string
     {
         if (! $userId) {

@@ -20,6 +20,11 @@ class CommentController extends Controller
 {
     public function __construct(private readonly PointsService $pointsService) {}
 
+    /**
+     * Create a new comment or reply on a post.
+     * Awards points for comment/answer. Supports nested replies (parent_id).
+     * Returns refreshed comment tree as JSON (if JSON expected) or redirects.
+     */
     public function store(Request $request, Post $post)
     {
         $validated = $request->validate([
@@ -94,6 +99,10 @@ class CommentController extends Controller
         return back();
     }
 
+    /**
+     * Update comment content. Only comment owner can edit.
+     * Returns updated comment tree as JSON.
+     */
     public function update(Request $request, Comment $comment): JsonResponse
     {
         if ((int) $comment->user_id !== (int) Auth::id()) {
@@ -143,6 +152,11 @@ class CommentController extends Controller
         ]);
     }
 
+    /**
+     * Delete a comment and all its nested replies (in a transaction).
+     * Revokes all points earned by deleted comments and their likes.
+     * Returns updated comment tree as JSON.
+     */
     public function destroy(Comment $comment): JsonResponse
     {
         if ((int) $comment->user_id !== (int) Auth::id()) {
@@ -190,6 +204,7 @@ class CommentController extends Controller
     }
 
     /**
+     * Revoke all points earned by a branch of comments (including nested) and their likes.
      * @param  int[]  $commentIds
      */
     private function revokeCommentBranchPoints(array $commentIds): void
@@ -225,6 +240,9 @@ class CommentController extends Controller
         }
     }
 
+    /**
+     * Collect IDs of a comment and all its descendants (replies, replies to replies, etc).
+     */
     private function collectCommentBranchIds(int $rootCommentId): array
     {
         $allIds = [$rootCommentId];
@@ -248,6 +266,10 @@ class CommentController extends Controller
         return array_values(array_unique($allIds));
     }
 
+    /**
+     * Build query to load all comments for a post with nested relations and vote data.
+     * Supports both old like-based voting and new vote column (upvote/downvote/wrong).
+     */
     private function buildRefreshedCommentsQuery(Post $post, bool $supportsCommentVotes)
     {
         $refreshedComments = $post->comments()
@@ -283,6 +305,9 @@ class CommentController extends Controller
             ]);
     }
 
+    /**
+     * Check if the comment_likes table has a 'vote' column (for up/down/wrong voting).
+     */
     private function supportsCommentVotes(): bool
     {
         try {
@@ -292,6 +317,9 @@ class CommentController extends Controller
         }
     }
 
+    /**
+     * Detect if a query exception is due to missing 'vote' column.
+     */
     private function isVoteColumnMissingException(QueryException $exception): bool
     {
         $message = strtolower($exception->getMessage());
@@ -300,6 +328,9 @@ class CommentController extends Controller
             || str_contains($message, 'unknown column `vote`');
     }
 
+    /**
+     * Serialize a single comment with votes, user info, and reply target.
+     */
     private function serializeComment(Comment $comment): array
     {
         $upvotesCount = (int) ($comment->upvotes_count ?? $comment->likes_count ?? 0);
@@ -349,7 +380,16 @@ class CommentController extends Controller
         ];
     }
 
-        private function buildCommentTree(Collection $comments, ?int $parentId = null, int $depth = 1): array
+    /**
+     * Build nested comment tree from flat collection. Recursively nests replies under parents.
+     * Sorted by score, then upvotes, then date. Tracks depth for UI rendering.
+     *
+     * @param Collection $comments Flat collection of all comments
+     * @param int|null $parentId Filter comments to those with this parent (null for root level)
+     * @param int $depth Current nesting level (incremented for each recursion)
+     * @return array Nested array structure with replies embedded
+     */
+    private function buildCommentTree(Collection $comments, ?int $parentId = null, int $depth = 1): array
     {
         return $comments
             ->filter(fn (Comment $comment) => $comment->parent_id === $parentId)
@@ -368,6 +408,10 @@ class CommentController extends Controller
             ->all();
     }
 
+    /**
+     * Compare two comments for sorting: score > upvotes > creation time.
+     * Returns comparison result for <=>.
+     */
     private function compareComments(Comment $left, Comment $right): int
     {
         $leftScore = (int) ($left->upvotes_count ?? 0)
@@ -391,6 +435,9 @@ class CommentController extends Controller
         return ($left->created_at?->getTimestamp() ?? 0) <=> ($right->created_at?->getTimestamp() ?? 0);
     }
 
+    /**
+     * Extract avatar URL from user's social accounts.
+     */
     private function resolveAvatar(User $user): ?string
     {
         $socialAccounts = $user->relationLoaded('socialAccounts')

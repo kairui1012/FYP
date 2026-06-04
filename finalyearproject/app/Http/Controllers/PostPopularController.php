@@ -18,6 +18,11 @@ class PostPopularController extends Controller
 
     public function __construct(private readonly PostSerializationService $serializationService) {}
 
+    /**
+     * Display trending/popular posts filtered by time range (today/week/month/all) and sort.
+     * Supports filtering by language, subject, and post type.
+     * Defaults to week range and hottest sort unless category filters applied.
+     */
     public function index(Request $request): Response
     {
         $validated = $request->validate([
@@ -115,6 +120,9 @@ class PostPopularController extends Controller
         ]);
     }
 
+    /**
+     * Extract pagination metadata for frontend from paginator.
+     */
     private function paginationMeta(LengthAwarePaginator $paginator): array
     {
         return [
@@ -130,6 +138,7 @@ class PostPopularController extends Controller
     }
 
     /**
+     * Resolve time range (today/week/month/all) to start and end Carbon dates.
      * @return array{0: Carbon|null, 1: Carbon|null}
      */
     private function resolvePopularRange(string $range): array

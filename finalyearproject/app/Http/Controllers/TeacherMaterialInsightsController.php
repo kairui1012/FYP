@@ -15,6 +15,10 @@ use Inertia\Response;
 
 class TeacherMaterialInsightsController extends Controller
 {
+    /**
+     * Display teacher material insights dashboard with low-rated materials and frequently wrong quiz questions.
+     * Filters by material, subject, quiz, and time range. Only accessible to teachers.
+     */
     public function index(Request $request): Response
     {
         /** @var \App\Models\User $user */
@@ -63,6 +67,10 @@ class TeacherMaterialInsightsController extends Controller
         ]);
     }
 
+    /**
+     * Get list of all study materials for filter dropdown.
+     * Includes material title and subject association.
+     */
     private function materialOptions(): array
     {
         return Post::query()
@@ -80,6 +88,9 @@ class TeacherMaterialInsightsController extends Controller
             ->all();
     }
 
+    /**
+     * Get list of all quizzes with their parent material association for filter dropdown.
+     */
     private function quizOptions(): array
     {
         if (! Schema::hasColumn('posts', 'parent_material_id')) {
@@ -103,6 +114,10 @@ class TeacherMaterialInsightsController extends Controller
     }
 
     /**
+     * Build insights of low-rated materials (by average feedback rating).
+     * Filters by material, subject, quiz parent, and time range.
+     * Can sort by low_rating (ascending) or high_rating (descending).
+     *
      * @return array<int, array<string, mixed>>
      */
     private function buildLowRatedMaterialsInsights(?int $materialId, ?int $subjectId, ?int $quizId, ?CarbonInterface $since, string $sort, int $teacherId): array
@@ -153,6 +168,10 @@ class TeacherMaterialInsightsController extends Controller
     }
 
     /**
+     * Build insights of frequently wrong quiz questions (by wrong answer count and error rate).
+     * Filters by material, subject, quiz, and time range.
+     * Returns top 20 questions with highest wrong count.
+     *
      * @return array<int, array<string, mixed>>
      */
     private function buildFrequentlyWrongQuestionsInsights(?int $materialId, ?int $subjectId, ?int $quizId, ?CarbonInterface $since, string $sort): array

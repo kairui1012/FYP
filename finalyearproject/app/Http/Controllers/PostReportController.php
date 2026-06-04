@@ -12,6 +12,10 @@ use Throwable;
 
 class PostReportController extends Controller
 {
+    /**
+     * Submit a report on a post. Prevents duplicate reports by same user.
+     * Queues report for moderation processing. Handles missing table gracefully.
+     */
     public function store(Request $request, Post $post): JsonResponse
     {
         $validated = $request->validate([

@@ -16,6 +16,15 @@ class AchievementService
     public const POINTS_PER_POST = 10;
     public const POINTS_PER_LIKE_RECEIVED = 2;
 
+    /**
+     * Calculate and update user points, sync earned badges, and return achievement stats.
+     *
+     * Points are calculated from posts and likes received. Newly earned badges are automatically
+     * awarded when user points reach the required threshold.
+     *
+     * @param User $user The user to sync
+     * @return array Contains points, posts_count, likes_received_count, earned_badges, and next_badge
+     */
     public function syncUser(User $user): array
     {
         $postsCount = $user->posts()->count();

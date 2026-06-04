@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schema;
 
 trait HandlesPostComments
 {
+    // Eagerly load post relations with comments, including user info and votes/likes based on feature support
     private function loadPostWithComments(Post $post, ?int $userId, bool $supportsCommentVotes): void
     {
         $post->load([
@@ -50,6 +51,7 @@ trait HandlesPostComments
             ->loadCount(['likes', 'comments', 'bookmarkItems as saves_count']);
     }
 
+    // Check if the comment_likes table has been migrated to support vote types (upvote, downvote, wrong)
     private function supportsCommentVotes(): bool
     {
         try {
@@ -59,6 +61,7 @@ trait HandlesPostComments
         }
     }
 
+    // Detect if a query exception is due to the vote column not existing in comment_likes table
     private function isVoteColumnMissingException(QueryException $exception): bool
     {
         $message = strtolower($exception->getMessage());

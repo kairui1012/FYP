@@ -15,6 +15,10 @@ class CommentLikeController extends Controller
 {
     public function __construct(private readonly PointsService $pointsService) {}
 
+    /**
+     * Toggle vote on a comment (upvote/downvote/wrong if vote column exists, else simple like).
+     * Toggle same vote type to remove. Syncs points to comment owner.
+     */
     public function toggle(Request $request, Comment $comment): JsonResponse
     {
         $supportsVoteColumn = $this->supportsVoteColumn();
@@ -109,6 +113,9 @@ class CommentLikeController extends Controller
         ]);
     }
 
+    /**
+     * Check if comment_likes table supports voting (upvote/downvote/wrong).
+     */
     private function supportsVoteColumn(): bool
     {
         try {
@@ -118,6 +125,9 @@ class CommentLikeController extends Controller
         }
     }
 
+    /**
+     * Detect if query exception is due to missing vote column.
+     */
     private function isVoteColumnMissingException(QueryException $exception): bool
     {
         $message = strtolower($exception->getMessage());
@@ -126,7 +136,10 @@ class CommentLikeController extends Controller
             || str_contains($message, 'unknown column `vote`');
     }
 
-    /** @return array{0:int|null,1:int,2:int,3:CommentLike|null} */
+    /**
+     * Toggle legacy like (before vote column existed).
+     * @return array{0:int|null,1:int,2:int,3:CommentLike|null}
+     */
     private function toggleLegacyLike(Request $request, Comment $comment, ?CommentLike $existingLike): array
     {
         $finalVote = null;
@@ -149,6 +162,10 @@ class CommentLikeController extends Controller
         return [$finalVote, $upvotesCount, 0, $pointsSource];
     }
 
+    /**
+     * Sync points to comment owner when vote changes.
+     * Revokes previous vote points and awards new vote points.
+     */
     private function syncLeaderboardVotePoints(
         Comment $comment,
         User $actor,
@@ -184,6 +201,9 @@ class CommentLikeController extends Controller
         }
     }
 
+    /**
+     * Map vote type to leaderboard action for points.
+     */
     private function leaderboardActionForVote(int $vote): ?string
     {
         return match ($vote) {

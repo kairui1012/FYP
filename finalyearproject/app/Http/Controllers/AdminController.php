@@ -17,6 +17,9 @@ use Inertia\Inertia;
 
 class AdminController extends Controller
 {
+    /**
+     * List all users with basic info (newest first).
+     */
     public function users()
     {
         $users = User::with('profile')
@@ -36,8 +39,13 @@ class AdminController extends Controller
         return Inertia::render('admin/AdminUsers', compact('users'));
     }
 
+    /**
+     * List all comment and post reports (newest first).
+     * Filters by 'pending' status if column exists (backward compat check).
+     */
     public function reports()
     {
+        // Fetch comment reports (pending only if status column exists)
         $commentReportsQuery = CommentReport::with(['user:id,name,email', 'comment.user:id,name'])
             ->orderBy('created_at', 'desc');
 
@@ -60,6 +68,7 @@ class AdminController extends Controller
                 'created_at' => $r->created_at?->toDateString(),
             ]);
 
+        // Fetch post reports (if post_reports table exists; pending only if status column exists)
         $postReports = collect();
         if (Schema::hasTable('post_reports')) {
             $postReportsQuery = PostReport::with(['user:id,name,email', 'post.user:id,name'])
@@ -85,6 +94,7 @@ class AdminController extends Controller
                 ]);
         }
 
+        // Merge comment and post reports, sort newest first
         $reports = $commentReports
             ->concat($postReports)
             ->sortByDesc('created_at')
@@ -93,6 +103,9 @@ class AdminController extends Controller
         return Inertia::render('admin/AdminReports', compact('reports'));
     }
 
+    /**
+     * Dismiss a comment report (mark as dismissed if status column exists, else delete).
+     */
     public function deleteCommentReport(CommentReport $report)
     {
         if (Schema::hasColumn('comment_reports', 'status')) {
@@ -104,6 +117,9 @@ class AdminController extends Controller
         return back();
     }
 
+    /**
+     * Delete the reported comment (content removal).
+     */
     public function deleteReportedComment(Comment $comment)
     {
         $comment->delete();
@@ -111,6 +127,9 @@ class AdminController extends Controller
         return back();
     }
 
+    /**
+     * Dismiss a post report (mark as dismissed if status column exists, else delete).
+     */
     public function deletePostReport(PostReport $report)
     {
         if (Schema::hasColumn('post_reports', 'status')) {
@@ -122,6 +141,9 @@ class AdminController extends Controller
         return back();
     }
 
+    /**
+     * Delete the reported post (content removal).
+     */
     public function deleteReportedPost(Post $post)
     {
         $post->delete();
@@ -129,6 +151,9 @@ class AdminController extends Controller
         return back();
     }
 
+    /**
+     * List all teacher applications with documents, sorted newest first.
+     */
     public function teacherApplications()
     {
         $applications = TeacherApplication::with(['user:id,name,email,role,is_verified', 'documents'])
@@ -158,6 +183,9 @@ class AdminController extends Controller
         return Inertia::render('admin/AdminTeacherApplications', compact('applications'));
     }
 
+    /**
+     * Approve a teacher application and promote the user to teacher role.
+     */
     public function approveApplication(TeacherApplication $application)
     {
         if (($application->status ?? 'pending') !== 'pending') {
@@ -170,6 +198,9 @@ class AdminController extends Controller
         return back();
     }
 
+    /**
+     * Reject a teacher application with optional admin note.
+     */
     public function rejectApplication(Request $request, TeacherApplication $application)
     {
         if (($application->status ?? 'pending') !== 'pending') {
@@ -184,6 +215,10 @@ class AdminController extends Controller
         return back();
     }
 
+    /**
+     * Toggle a teacher's verification status (verify/unverify).
+     * Only works on approved applications where user is a teacher.
+     */
     public function toggleVerification(TeacherApplication $application)
     {
         $user = $application->user;
@@ -202,6 +237,10 @@ class AdminController extends Controller
         return back();
     }
 
+    /**
+     * Download a teacher verification document securely.
+     * Returns file with proper MIME type and inline disposition.
+     */
     public function downloadVerificationDocument(TeacherVerificationDocument $document)
     {
         if (! Storage::disk('local')->exists($document->path)) {
@@ -217,6 +256,9 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * Toggle user block status. Admins cannot be blocked.
+     */
     public function toggleBlock(User $user)
     {
         if ($user->role === 'admin') {
@@ -228,6 +270,10 @@ class AdminController extends Controller
         return back();
     }
 
+    /**
+     * Update a user's role (student/teacher/admin).
+     * Admins cannot change their own role. Removes verification if demoting from teacher.
+     */
     public function updateUserRole(Request $request, User $user)
     {
         if ((int) $request->user()->id === (int) $user->id) {
@@ -239,6 +285,7 @@ class AdminController extends Controller
         $newRole = $request->string('role')->toString();
         $updates = ['role' => $newRole];
 
+        // Remove verification if user is no longer a teacher
         if ($newRole !== 'teacher' && $user->is_verified) {
             $updates['is_verified'] = false;
         }
@@ -249,6 +296,10 @@ class AdminController extends Controller
         return back();
     }
 
+    /**
+     * Clear all leaderboard cache keys.
+     * Called when user roles or verification status changes.
+     */
     private function clearLeaderboardCache(): void
     {
         Cache::forget('leaderboard.all_time.top-50');

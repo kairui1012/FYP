@@ -6,6 +6,21 @@ use App\Http\Controllers\Settings\TeacherCertificationController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
 use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| Settings Routes
+|--------------------------------------------------------------------------
+|
+| User settings pages. The basic profile group only requires `auth`,
+| while the rest also require a verified account.
+|
+*/
+
+/*
+|--------------------------------------------------------------------------
+| Profile (auth)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', '/settings/profile');
 
@@ -13,20 +28,29 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Account settings (auth + verified)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // --- Password ---
     Route::get('settings/password', [PasswordController::class, 'edit'])->name('user-password.edit');
 
     Route::put('settings/password', [PasswordController::class, 'update'])
         ->middleware('throttle:6,1')
         ->name('user-password.update');
 
+    // --- Appearance ---
     Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
 
+    // --- Two-factor authentication ---
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
 
+    // --- Teacher certification ---
     Route::get('settings/teacher-certification', [TeacherCertificationController::class, 'show'])
         ->name('teacher-certification.show');
     Route::post('settings/teacher-certification', [TeacherCertificationController::class, 'store'])

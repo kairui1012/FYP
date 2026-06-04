@@ -5,9 +5,34 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 
+/*
+|--------------------------------------------------------------------------
+| AI Routes (DeepSeek)
+|--------------------------------------------------------------------------
+|
+| All AI-powered endpoints. Every route is behind the `auth` middleware
+| group and is individually rate-limited. They all call the DeepSeek
+| chat completions API and return JSON tagged with `provider => deepseek`.
+|
+| POST /translate          - Translate UI strings to the current locale   (30/min)
+| POST /ai-explain         - Explain a quiz answer / detect creator errors (20/min)
+| POST /ai-quiz-options    - Generate quiz options (teachers/admins only)  (see route)
+| POST /ai-material-quiz   - Generate a quiz question from material text   (see route)
+| POST /ai-best-answer     - Explain why a forum "best answer" is correct  (12/min)
+| POST /ai-doubt-clarify   - Clarify a student's confusion about an answer (see route)
+| POST /ai-validate-wrong  - Validate a "this answer is wrong" report      (15/min)
+|
+*/
+
 Route::middleware(['auth'])->group(function () {
 
-Route::post('/translate', function (Request $request) {
+    /*
+    |----------------------------------------------------------------------
+    | POST /translate
+    | Translate a batch of UI strings into the user's current locale.
+    |----------------------------------------------------------------------
+    */
+    Route::post('/translate', function (Request $request) {
     $request->validate([
         'texts'    => 'required|array|max:200',
         'texts.*'  => 'string|max:500',
@@ -77,7 +102,14 @@ Route::post('/translate', function (Request $request) {
 
 })->middleware(['web', 'throttle:30,1']);
 
-Route::post('/ai-explain', function (Request $request) {
+    /*
+    |----------------------------------------------------------------------
+    | POST /ai-explain
+    | Explain a quiz answer, and flag when the AI disagrees with the
+    | quiz creator's intended correct answer.
+    |----------------------------------------------------------------------
+    */
+    Route::post('/ai-explain', function (Request $request) {
     $request->validate([
         'question'    => 'required|string|max:500',
         'options'     => 'required|array|min:2|max:8',
@@ -265,7 +297,13 @@ Route::post('/ai-explain', function (Request $request) {
 
 })->middleware(['web', 'throttle:20,1']);
 
-Route::post('/ai-quiz-options', function (Request $request) {
+    /*
+    |----------------------------------------------------------------------
+    | POST /ai-quiz-options
+    | Generate quiz options for a question. Restricted to teachers/admins.
+    |----------------------------------------------------------------------
+    */
+    Route::post('/ai-quiz-options', function (Request $request) {
     $user = $request->user();
     $role = strtolower((string) ($user?->role ?? ''));
     if (!in_array($role, ['teacher', 'admin'], true)) {
@@ -498,7 +536,13 @@ Route::post('/ai-quiz-options', function (Request $request) {
     }
 })->middleware(['web', 'throttle:20,1']);
 
-Route::post('/ai-material-quiz', function (Request $request) {
+    /*
+    |----------------------------------------------------------------------
+    | POST /ai-material-quiz
+    | Generate a quiz question from a piece of material content.
+    |----------------------------------------------------------------------
+    */
+    Route::post('/ai-material-quiz', function (Request $request) {
     $request->validate([
         'material_title' => 'required|string|max:300',
         'material_content' => 'required|string|max:4000',
@@ -633,12 +677,18 @@ Route::post('/ai-material-quiz', function (Request $request) {
     }
 })->middleware(['web', 'throttle:12,1']);
 
-Route::post('/ai-best-answer', function (Request $request) {
+    /*
+    |----------------------------------------------------------------------
+    | POST /ai-best-answer
+    | Explain why a forum post's accepted "best answer" is correct.
+    |----------------------------------------------------------------------
+    */
+    Route::post('/ai-best-answer', function (Request $request) {
     $request->validate([
         'post_title'     => 'required|string|max:300',
         'post_content'   => 'nullable|string|max:2000',
         'answer_content' => 'required|string|max:2000',
-        'provider'       => 'nullable|in:deepseek,gemini',
+        'provider'       => 'nullable|in:deepseek',
     ]);
 
     $postTitle     = $request->input('post_title');
@@ -744,7 +794,13 @@ Route::post('/ai-best-answer', function (Request $request) {
 
 })->middleware(['web', 'throttle:20,1']);
 
-Route::post('/ai-doubt-clarify', function (Request $request) {
+    /*
+    |----------------------------------------------------------------------
+    | POST /ai-doubt-clarify
+    | Clarify a specific point of confusion a student has about an answer.
+    |----------------------------------------------------------------------
+    */
+    Route::post('/ai-doubt-clarify', function (Request $request) {
     try {
         $validator = Validator::make($request->all(), [
             'post_title'     => ['required', 'string', 'max:300'],
@@ -868,7 +924,13 @@ Route::post('/ai-doubt-clarify', function (Request $request) {
 
 })->middleware(['web', 'throttle:20,1']);
 
-Route::post('/ai-validate-wrong', function (Request $request) {
+    /*
+    |----------------------------------------------------------------------
+    | POST /ai-validate-wrong
+    | Validate a user's report that a given answer is wrong.
+    |----------------------------------------------------------------------
+    */
+    Route::post('/ai-validate-wrong', function (Request $request) {
     try {
         $validator = Validator::make($request->all(), [
             'post_title'     => ['required', 'string', 'max:300'],

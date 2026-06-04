@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Schema;
 
 class LearningProgressService
 {
+    // Aggregate learning progress data into a single overview dashboard
     public function buildLearningOverview(?User $user): array
     {
         return [
@@ -27,6 +28,7 @@ class LearningProgressService
         ];
     }
 
+    // Find the nearest unachieved milestone; prioritize by progress percentage, then remaining items
     private function getClosestMilestone(?User $user): ?array
     {
         $achievements = Achievement::query()
@@ -89,6 +91,7 @@ class LearningProgressService
             ->first();
     }
 
+    // Get latest 3 posts: user's own posts if available, otherwise community posts
     private function getLatestPosts(?User $user): array
     {
         $query = Post::query()
@@ -138,6 +141,7 @@ class LearningProgressService
         ];
     }
 
+    // Calculate today's learning score based on completed quizzes (5 points per quiz)
     private function getTodayScore(?User $user): array
     {
         if (! $user || ! Schema::hasTable('quiz_completions')) {
@@ -158,6 +162,7 @@ class LearningProgressService
         ];
     }
 
+    // Get user's leaderboard rank and points; returns null rank if user hides from leaderboard
     private function getLeaderboardPoints(?User $user): array
     {
         if (! $user) {
@@ -223,6 +228,7 @@ class LearningProgressService
         ];
     }
 
+    // Fetch the 3 most recent incorrect quiz attempts for learning from mistakes
     private function getMistakeReview(?User $user): array
     {
         if (! $user || ! Schema::hasTable('quiz_mistakes')) {
@@ -242,6 +248,7 @@ class LearningProgressService
             ->all();
     }
 
+    // Transform a quiz mistake into a displayable format with question and answer details
     private function serializeMistake(QuizAttempt $mistake): ?array
     {
         $post = $mistake->post;
@@ -270,11 +277,13 @@ class LearningProgressService
         ];
     }
 
+    // Convert timestamp to ISO 8601 format for consistent API serialization
     private function serializeTimestamp(?CarbonInterface $timestamp): ?string
     {
         return $timestamp?->toISOString();
     }
 
+    // Extract question text and answer options from quiz data; handles both structured and flat formats
     private function extractQuizQuestionDetails(
         array $quizData,
         int $questionIndex,
@@ -320,6 +329,7 @@ class LearningProgressService
         ];
     }
 
+    // Get the numeric value for a given progress metric (e.g., answered questions, accuracy percentage)
     private function resolveMetricValue(string $metric, ?UserProgress $progress): int
     {
         if (! $progress) {

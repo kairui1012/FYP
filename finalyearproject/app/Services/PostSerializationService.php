@@ -9,15 +9,28 @@ use Illuminate\Support\Facades\Auth;
 
 class PostSerializationService
 {
+    /**
+     * Service that converts `Post` models into the unified array structure
+     * expected by the front-end API. Handles normalization of fields,
+     * relation serialization, comment tree construction, and small
+     * compatibility fixes (e.g. image normalization).
+     *
+     * Injected into controllers that return post data to clients.
+     */
     public function __construct(private readonly LeaderboardTitleService $leaderboardTitleService) {}
 
     /**
-     * Serialize a single post for API response
+     * Serialize a single Post model into an array suitable for JSON responses.
+     *
+     * @param Post $post The post to serialize (may have relations preloaded)
+     * @param array $followingIds List of user ids that the current user follows
+     * @return array Normalized post data for the API
      */
     public function serialize(Post $post, array $followingIds = []): array
     {
         $currentUserId = Auth::id();
         $images = $post->image;
+        // Normalize `image` field to always be an array of strings.
         if (is_string($images)) {
             $images = trim($images) === '' ? [] : [$images];
         } elseif (! is_array($images)) {
@@ -40,7 +53,9 @@ class PostSerializationService
             'saved_at' => optional($post->saved_at)->toISOString(),
             'bookmark_folder_id' => $post->bookmark_folder_id ?? $post->pivot?->bookmark_folder_id,
             'is_anonymous' => (bool) ($post->is_anonymous ?? false),
+            // Ownership flag for the currently authenticated user.
             'is_owner' => $currentUserId !== null && (int) $post->user_id === (int) $currentUserId,
+            // Serialized user info (null for anonymous posts).
             'user' => $this->serializeUser($post, $followingIds),
             'language' => $this->serializeLanguage($post),
             'subject' => $this->serializeSubject($post),
@@ -59,6 +74,8 @@ class PostSerializationService
             'saves_count' => $post->saves_count,
             'is_liked' => (bool) ($post->is_liked ?? false),
             'is_saved' => (bool) ($post->is_saved ?? false),
+            // If comments are preloaded, build a nested tree; otherwise
+            // return null so the caller can choose to lazy-load comments.
             'comments' => $post->relationLoaded('comments')
                 ? $this->buildCommentTree($post->comments)
                 : null,
@@ -66,7 +83,12 @@ class PostSerializationService
     }
 
     /**
-     * Serialize user information — returns null for anonymous posts to prevent identity leaks.
+     * Serialize user information. Returns null for anonymous posts to avoid
+     * leaking the author's identity.
+     *
+     * @param Post $post
+     * @param array $followingIds
+     * @return array|null
      */
     private function serializeUser(Post $post, array $followingIds): ?array
     {
@@ -92,7 +114,11 @@ class PostSerializationService
     }
 
     /**
-     * Serialize language information
+     * Serialize language relation to a compact array or return null if
+     * no language is associated with the post.
+     *
+     * @param Post $post
+     * @return array|null
      */
     private function serializeLanguage(Post $post): ?array
     {
@@ -107,7 +133,11 @@ class PostSerializationService
     }
 
     /**
-     * Serialize subject information
+     * Serialize subject relation to a compact array or return null if
+     * no subject is associated with the post.
+     *
+     * @param Post $post
+     * @return array|null
      */
     private function serializeSubject(Post $post): ?array
     {
@@ -122,7 +152,11 @@ class PostSerializationService
     }
 
     /**
-     * Serialize lesson information
+     * Serialize lesson relation to a compact array or return null if no
+     * lesson is associated with the post.
+     *
+     * @param Post $post
+     * @return array|null
      */
     private function serializeLesson(Post $post): ?array
     {
@@ -138,7 +172,14 @@ class PostSerializationService
     }
 
     /**
-     * Build comment tree from flat collection
+     * Convert a flat collection of Comment models into a nested tree.
+     *
+     * @param Collection $comments Flat collection of Comment models
+     * @param int|null $parentId Parent id to filter children for (used
+     *                           recursively)
+     * @param int $depth Current depth in the comment tree (used for
+     *                   presentation/limitations)
+     * @return array Nested comments array
      */
     private function buildCommentTree(Collection $comments, ?int $parentId = null, int $depth = 1): array
     {
@@ -158,7 +199,12 @@ class PostSerializationService
     }
 
     /**
-     * Serialize a single comment
+     * Serialize a single Comment model into an array used by the API.
+     * Adds vote counts, computed score, and nested reply info when available.
+     *
+     * @param Comment $comment
+     * @param int $depth
+     * @return array
      */
     private function serializeComment(Comment $comment, int $depth): array
     {
@@ -208,7 +254,12 @@ class PostSerializationService
     }
 
     /**
-     * Compare comments for sorting
+     * Comparison function used to order comments. Sorts primarily by
+     * computed score, then by upvote count, then by creation time.
+     *
+     * @param Comment $left
+     * @param Comment $right
+     * @return int
      */
     private function compareComments(Comment $left, Comment $right): int
     {
@@ -230,7 +281,11 @@ class PostSerializationService
     }
 
     /**
-     * Calculate comment score
+     * Calculate a numeric score for a comment using upvotes, downvotes and
+     * wrong-vote penalties. This value is used for ordering comments.
+     *
+     * @param Comment $comment
+     * @return int
      */
     private function calculateCommentScore(Comment $comment): int
     {
@@ -240,7 +295,12 @@ class PostSerializationService
     }
 
     /**
-     * Resolve user vote on comment
+     * Resolve the current authenticated user's vote for the comment.
+     * Falls back to the `is_liked` flag if detailed vote relations are not
+     * loaded.
+     *
+     * @param Comment $comment
+     * @return int 1 = upvote, -1 = downvote, -2 = wrong, 0 = none
      */
     private function resolveUserVote(Comment $comment): int
     {

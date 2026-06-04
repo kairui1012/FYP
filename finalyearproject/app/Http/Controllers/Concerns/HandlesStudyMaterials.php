@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Schema;
 
 trait HandlesStudyMaterials
 {
+    /**
+     * Record a user's view of a study material (increments view count).
+     */
     private function recordMaterialView(Post $post, ?int $userId): void
     {
         if (! $userId || ! Schema::hasTable('study_material_views')) {
@@ -31,6 +34,9 @@ trait HandlesStudyMaterials
         ])->save();
     }
 
+    /**
+     * Record a user's quiz attempt linked to a material with score and result.
+     */
     private function recordMaterialQuizAttempt(User $user, Post $quizPost, bool $isCorrect): void
     {
         if (
@@ -50,6 +56,9 @@ trait HandlesStudyMaterials
         ]);
     }
 
+    /**
+     * Check if a material has any feedback (ratings or votes) submitted by users.
+     */
     private function materialHasFeedback(Post $post): bool
     {
         return Schema::hasTable('study_material_feedback')
@@ -62,6 +71,9 @@ trait HandlesStudyMaterials
                 ->exists();
     }
 
+    /**
+     * Build aggregated feedback summary for a material (ratings, votes, recommendations).
+     */
     private function buildMaterialFeedbackSummary(Post $post, ?int $userId): array
     {
         if (! Schema::hasTable('study_material_feedback')) {
@@ -98,6 +110,9 @@ trait HandlesStudyMaterials
         ];
     }
 
+    /**
+     * Get current user's feedback on a material (rating, vote, timestamps).
+     */
     private function buildMaterialUserFeedback(Post $post, ?int $userId): ?array
     {
         if (! $userId || ! Schema::hasTable('study_material_feedback')) {
@@ -122,6 +137,10 @@ trait HandlesStudyMaterials
         ];
     }
 
+    /**
+     * Build analytics for a material (views, quiz attempts, average scores, user improvements).
+     * Includes feedback and view statistics for teacher insights.
+     */
     private function buildLearningAnalytics(Post $post): array
     {
         $viewStats = ['views' => 0, 'unique_users' => 0];
@@ -183,6 +202,10 @@ trait HandlesStudyMaterials
         ];
     }
 
+    /**
+     * Get all quizzes linked to a material with user's completion status.
+     * Returns serialized quiz data including user follow status.
+     */
     private function buildLinkedQuizzes(Post $post, array $followingIds, ?int $userId = null): array
     {
         if (! Schema::hasColumn('posts', 'parent_material_id')) {
@@ -217,6 +240,10 @@ trait HandlesStudyMaterials
             ->all();
     }
 
+    /**
+     * Attach learning state and path to material posts in a collection.
+     * Sets material_learning_state and material_learning_path attributes.
+     */
     private function attachMaterialLearningStates(Collection $posts, ?int $userId): void
     {
         $materialIds = $posts
@@ -242,6 +269,10 @@ trait HandlesStudyMaterials
         });
     }
 
+    /**
+     * Attach feedback summary to material posts in a collection.
+     * Sets material_feedback_summary attribute for each material post.
+     */
     private function attachMaterialFeedbackSummaries(Collection $posts, ?int $userId): void
     {
         $posts->each(function (Post $post) use ($userId) {
@@ -369,6 +400,9 @@ trait HandlesStudyMaterials
         return $result;
     }
 
+    /**
+     * Determine learning state of a material based on user's progress (unread, read, in_progress, completed).
+     */
     private function determineMaterialLearningState(
         bool $hasLinkedQuiz,
         bool $hasViewed,
@@ -427,6 +461,9 @@ trait HandlesStudyMaterials
         ];
     }
 
+    /**
+     * Sync average rating and rating count to the latest version of a material.
+     */
     private function syncLatestVersionRating(int $postId): void
     {
         if (

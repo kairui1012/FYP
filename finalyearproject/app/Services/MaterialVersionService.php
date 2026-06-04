@@ -7,10 +7,27 @@ use App\Models\StudyMaterialFeedback;
 use App\Models\StudyMaterialVersion;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Service responsible for creating and building snapshots (versions)
+ * for study material posts. A snapshot captures the post content and
+ * aggregated feedback metrics at a point in time.
+ *
+ * Used by controllers and concerns to persist and compute material
+ * version data (see PostCreateController, PostController,
+ * StudyMaterialFeedbackController, and HandlesStudyMaterials).
+ */
 class MaterialVersionService
 {
+    /**
+     * Create a version snapshot for a study material post.
+     *
+     * Returns the created `StudyMaterialVersion` or null if the post is not
+     * a material or the versions table does not exist.
+     */
     public function createSnapshot(Post $post): ?StudyMaterialVersion
     {
+        // Only create snapshots for posts of type 'material' and if the
+        // `study_material_versions` table exists in the database.
         if (
             $post->post_type !== 'material'
             || ! Schema::hasTable('study_material_versions')
@@ -18,11 +35,16 @@ class MaterialVersionService
             return null;
         }
 
+        // Build feedback summary (ratings, votes) to include in the snapshot.
         $snapshot = $this->buildFeedbackSnapshot($post);
+
+        // Determine the next version number for this post.
         $nextVersionNumber = ((int) StudyMaterialVersion::query()
             ->where('post_id', $post->id)
             ->max('version_number')) + 1;
 
+        // Only include attributes that exist on the `study_material_versions`
+        // table to keep this service resilient to schema changes.
         $columns = array_flip(Schema::getColumnListing('study_material_versions'));
         $attributes = [
             'post_id' => $post->id,
@@ -31,10 +53,12 @@ class MaterialVersionService
         ];
 
         $optionalAttributes = [
+            // Post ownership and content
             'user_id' => $post->user_id,
             'content' => $post->content ?? '',
             'content_blocks' => $post->content_blocks,
             'change_summary' => 'Initial version',
+            // Aggregated feedback metrics computed above
             'average_rating' => $snapshot['average_rating'],
             'rating_count' => $snapshot['rating_count'],
             'recommended_count' => $snapshot['recommended_count'],
@@ -48,6 +72,7 @@ class MaterialVersionService
             }
         }
 
+        // Persist and return the created StudyMaterialVersion model.
         return StudyMaterialVersion::query()->create($attributes);
     }
 

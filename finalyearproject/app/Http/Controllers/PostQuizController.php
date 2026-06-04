@@ -19,6 +19,11 @@ class PostQuizController extends Controller
         private readonly ProgressService $progressService,
     ) {}
 
+    /**
+     * Complete a lesson (deprecated - lesson progress tracking removed).
+     * Returns status "removed" as a placeholder.
+     * no used
+     */
     public function completeLesson(Request $request, Post $post): JsonResponse
     {
         if (! $request->expectsJson()) {
@@ -39,6 +44,10 @@ class PostQuizController extends Controller
         ]);
     }
 
+    /**
+     * Submit quiz answers and record completion/attempt.
+     * Supports both multi-question and single-question quiz formats.
+     */
     public function completeQuiz(Request $request, Post $post): JsonResponse
     {
         if (! $request->expectsJson()) {
@@ -61,6 +70,9 @@ class PostQuizController extends Controller
         return $this->completeSingleQuestionQuiz($request, $post, $quizData);
     }
 
+    /**
+     * Handle multi-question quiz submission. Records answer attempt and marks quiz complete on last correct answer.
+     */
     private function completeMultiQuestionQuiz(Request $request, Post $post, array $quizData): JsonResponse
     {
         $validated = $request->validate([
@@ -98,6 +110,9 @@ class PostQuizController extends Controller
         return $this->recordQuizResult($request, $post, $questionIndex, $selectedIndex, $isCorrect, $isFirstCompletion);
     }
 
+    /**
+     * Handle single-question quiz submission. Records answer attempt and marks quiz complete if correct.
+     */
     private function completeSingleQuestionQuiz(Request $request, Post $post, array $quizData): JsonResponse
     {
         $answerIndex = isset($quizData['answer_index']) ? (int) $quizData['answer_index'] : null;
@@ -134,6 +149,10 @@ class PostQuizController extends Controller
         return $this->recordQuizResult($request, $post, 0, $selectedIndex, $isCorrect, $isFirstCompletion);
     }
 
+    /**
+     * Record quiz attempt result, sync progress, and sync achievements.
+     * Returns appropriate response based on correctness and completion status.
+     */
     private function recordQuizResult(
         Request $request,
         Post $post,

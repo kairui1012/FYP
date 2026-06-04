@@ -29,6 +29,10 @@ class PostCreateController extends Controller
         private readonly ProgressService $progressService,
     ) {}
 
+    /**
+     * Show create post form with available subjects and existing materials.
+     * Checks if user can publish study materials.
+     */
     public function create(): Response
     {
         /** @var \App\Models\User $user */
@@ -63,6 +67,11 @@ class PostCreateController extends Controller
         ]);
     }
 
+    /**
+     * Create a new post (material, question, or quiz).
+     * Validates post type permissions, processes material blocks, quiz questions, and attachments.
+     * Awards points and syncs achievements/progress for non-anonymous posts.
+     */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -227,6 +236,10 @@ class PostCreateController extends Controller
             ->with('success', 'Post created successfully.');
     }
 
+    /**
+     * Normalize and validate material blocks from creation request.
+     * Processes text, video, image, and document blocks. Handles file uploads.
+     */
     private function normalizeMaterialBlocks(Request $request, array $blocks): array
     {
         $normalized = [];
@@ -279,6 +292,10 @@ class PostCreateController extends Controller
         return $normalized;
     }
 
+    /**
+     * Extract plain text content from material blocks (title + text blocks + file names + URLs).
+     * Used for searchable content storage and indexing.
+     */
     private function buildMaterialPlainText(string $title, array $blocks): string
     {
         $parts = [$title];
@@ -299,6 +316,10 @@ class PostCreateController extends Controller
             ->implode("\n\n");
     }
 
+    /**
+     * Validate that material block URL is a valid http/https URL.
+     * Throws ValidationException if invalid.
+     */
     private function validateMaterialVideoUrl(string $url, int|string $index): void
     {
         if ($this->isValidHttpUrl($url)) {
@@ -310,6 +331,9 @@ class PostCreateController extends Controller
         ]);
     }
 
+    /**
+     * Check if URL is a valid http or https URL.
+     */
     private function isValidHttpUrl(string $url): bool
     {
         if (! filter_var($url, FILTER_VALIDATE_URL)) {

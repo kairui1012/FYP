@@ -43,21 +43,36 @@ class PostController extends Controller
         private readonly PointsService $pointsService,
     ) {}
 
+    /**
+     * Display home page feed with all post types, newest first.
+     */
     public function index(Request $request): Response
     {
         return $this->renderHomePage($request);
     }
 
+    /**
+     * Display questions feed (questions and quizzes only).
+     * no used
+     */
     public function questions(Request $request): Response
     {
         return $this->renderHomePage($request, ['question', 'quiz'], 'questions');
     }
 
+    /**
+     * Display learning materials feed (material posts only).
+     * no used
+     */
     public function learningMaterials(Request $request): Response
     {
         return $this->renderHomePage($request, 'material', 'materials');
     }
 
+    /**
+     * Return learning progress overview (learning paths, completion %) as JSON.
+     * no used
+     */
     public function learningOverview(Request $request): JsonResponse
     {
         return response()->json([
@@ -65,6 +80,9 @@ class PostController extends Controller
         ]);
     }
 
+    /**
+     * Display categories page with available languages and subjects, filtered by post type and filters.
+     */
     public function categories(Request $request): Response
     {
         $validated = $request->validate([
@@ -134,6 +152,13 @@ class PostController extends Controller
         ]);
     }
 
+    /**
+     * Render home page with paginated posts, filtered by type/language/subject.
+     * Attaches learning states and material feedback summaries to posts.
+     *
+     * @param string|array|null $forcedPostType Force posts to specific type(s), overriding user filter
+     * @param string $pageContext Page identifier for frontend context (home, questions, materials)
+     */
     private function renderHomePage(Request $request, string|array|null $forcedPostType = null, string $pageContext = 'home'): Response
     {
         $followingIds = $request->user()
@@ -193,6 +218,9 @@ class PostController extends Controller
         ]);
     }
 
+    /**
+     * Extract pagination metadata from paginator for JSON response.
+     */
     private function paginationMeta(LengthAwarePaginator $paginator): array
     {
         return [
@@ -207,6 +235,11 @@ class PostController extends Controller
         ];
     }
 
+    /**
+     * Display full post content with comments, votes, and learning metadata.
+     * For materials, includes feedback summary and linked quizzes.
+     * For quizzes, includes completion status and past attempts.
+     */
     public function show(Post $post): Response
     {
         $userId = Auth::id();
@@ -258,6 +291,10 @@ class PostController extends Controller
         ]);
     }
 
+    /**
+     * Update post content. Only owner can edit. For materials, handles block structure and file uploads.
+     * Creates version snapshot for materials if feedback was received.
+     */
     public function update(Request $request, Post $post): \Illuminate\Http\RedirectResponse
     {
         /** @var \App\Models\User $user */
@@ -323,6 +360,10 @@ class PostController extends Controller
         return redirect()->route('posts.show', $post);
     }
 
+    /**
+     * Normalize and validate material blocks from update request.
+     * Handles new file uploads, retains existing file references, and validates video URLs.
+     */
     private function normalizeMaterialBlocksForUpdate(Request $request, Post $post, array $blocks): array
     {
         $normalized = [];
@@ -387,6 +428,10 @@ class PostController extends Controller
         return $normalized;
     }
 
+    /**
+     * Extract plain text content from material blocks (title + text blocks + file names).
+     * Used for searchable content storage.
+     */
     private function buildMaterialPlainText(string $title, array $blocks): string
     {
         $parts = [$title];
@@ -404,6 +449,10 @@ class PostController extends Controller
         return collect($parts)->flatten()->filter()->implode("\n\n");
     }
 
+    /**
+     * Validate that material block URL is a valid http/https URL.
+     * Throws ValidationException if invalid.
+     */
     private function validateMaterialVideoUrl(string $url, int|string $index): void
     {
         if ($this->isValidHttpUrl($url)) {
@@ -415,6 +464,9 @@ class PostController extends Controller
         ]);
     }
 
+    /**
+     * Check if URL is a valid http or https URL.
+     */
     private function isValidHttpUrl(string $url): bool
     {
         if (! filter_var($url, FILTER_VALIDATE_URL)) {
@@ -426,6 +478,9 @@ class PostController extends Controller
         return in_array($scheme, ['http', 'https'], true);
     }
 
+    /**
+     * Delete a post (owner or admin only). Revokes points earned by the post creator.
+     */
     public function destroy(Request $request, Post $post): \Illuminate\Http\RedirectResponse
     {
         /** @var \App\Models\User $user */
@@ -453,6 +508,9 @@ class PostController extends Controller
         return redirect()->route('homePage');
     }
 
+    /**
+     * Check if user has completed a quiz (has entry in quiz_completions table).
+     */
     private function hasCompletedQuiz(int $userId, int $postId): bool
     {
         if (! Schema::hasTable('quiz_completions')) {

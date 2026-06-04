@@ -28,6 +28,10 @@ class LeaderboardController extends Controller
 
     public function __construct(private readonly LeaderboardTitleService $leaderboardTitleService) {}
 
+    /**
+     * Toggle whether the current user appears on the leaderboard.
+     * Invalidates leaderboard caches after toggling visibility state.
+     */
     public function toggleVisibility(Request $request): \Illuminate\Http\RedirectResponse
     {
         $user = $request->user();
@@ -40,6 +44,10 @@ class LeaderboardController extends Controller
         return back();
     }
 
+    /**
+     * Toggle whether the current user shows their leaderboard title badge.
+     * Invalidates leaderboard caches after toggling badge visibility state.
+     */
     public function toggleTitleBadge(Request $request): \Illuminate\Http\RedirectResponse
     {
         $user = $request->user();
@@ -52,6 +60,10 @@ class LeaderboardController extends Controller
         return back();
     }
 
+    /**
+     * Display the leaderboard with podium (top 3) and paginated ranked list.
+     * Supports filtering by period (all_time, weekly, monthly). Returns current user's rank and points history.
+     */
     public function index(Request $request): Response
     {
         $validated = $request->validate([
@@ -129,6 +141,10 @@ class LeaderboardController extends Controller
         );
     }
 
+    /**
+     * Get the current user's rank, points, and progress to next rank for a given period.
+     * Returns null if user is not found.
+     */
     private function currentUserRank(?User $user, string $period): ?array
     {
         if (! $user) {
@@ -154,6 +170,9 @@ class LeaderboardController extends Controller
         ];
     }
 
+    /**
+     * Get total points for a user in a given period (all_time uses total_points, others use transactions).
+     */
     private function pointsForUser(User $user, string $period): int
     {
         if ($period === self::PERIOD_ALL_TIME) {
@@ -166,6 +185,9 @@ class LeaderboardController extends Controller
             ->sum('points');
     }
 
+    /**
+     * Calculate user's rank based on points and tie-breaking by user ID (earliest wins).
+     */
     private function rankForUser(User $user, string $period, int $points): int
     {
         return (int) DB::query()
@@ -182,6 +204,10 @@ class LeaderboardController extends Controller
             ->count() + 1;
     }
 
+    /**
+     * Calculate how many points user needs to advance to the next rank.
+     * Returns null if user is already at the top rank.
+     */
     private function pointsToNextRank(User $user, string $period, int $points): ?int
     {
         $nextRank = DB::query()
@@ -206,6 +232,10 @@ class LeaderboardController extends Controller
         return max(0, (int) $nextRank->points - $points);
     }
 
+    /**
+     * Build query to fetch ranked users for a period with their avatar and leaderboard settings.
+     * Joins with social_accounts to get the user's avatar.
+     */
     private function leaderboardQuery(string $period): Builder
     {
         return DB::query()
@@ -226,6 +256,10 @@ class LeaderboardController extends Controller
             ->orderBy('ranked_users.id');
     }
 
+    /**
+     * Build base query to fetch all users with their points for a given period.
+     * For all_time, uses total_points column. For weekly/monthly, sums recent transactions.
+     */
     private function rankableUsersQuery(string $period): Builder
     {
         if ($period === self::PERIOD_ALL_TIME) {
@@ -281,6 +315,9 @@ class LeaderboardController extends Controller
             ->all();
     }
 
+    /**
+     * Get the start date for a given period. Returns null for all_time.
+     */
     private function periodStart(string $period): ?\Carbon\CarbonInterface
     {
         return match ($period) {

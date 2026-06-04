@@ -12,6 +12,10 @@ use Throwable;
 
 class CommentReportController extends Controller
 {
+    /**
+     * Submit a report on a comment. Prevents duplicate reports by same user.
+     * Queues report for moderation processing. Handles missing table gracefully.
+     */
     public function store(Request $request, Comment $comment): JsonResponse
     {
         $validated = $request->validate([

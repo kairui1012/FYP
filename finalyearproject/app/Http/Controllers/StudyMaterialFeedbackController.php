@@ -17,6 +17,10 @@ class StudyMaterialFeedbackController extends Controller
 
     public function __construct(private readonly MaterialVersionService $materialVersionService) {}
 
+    /**
+     * Submit or update feedback (vote and/or rating) on a study material.
+     * Syncs the latest version's rating and returns updated feedback summary.
+     */
     public function store(Request $request, Post $post): JsonResponse
     {
         if (! $request->expectsJson()) {
@@ -63,6 +67,11 @@ class StudyMaterialFeedbackController extends Controller
         ]);
     }
 
+    /**
+     * Delete user's feedback on a study material.
+     * Syncs the latest version's rating and returns updated feedback summary.
+     * no used
+     */
     public function destroy(Request $request, Post $post): JsonResponse
     {
         if (! $request->expectsJson()) {

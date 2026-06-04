@@ -8,6 +8,11 @@ use Illuminate\Http\Request;
 
 class LocaleController extends Controller
 {
+    /**
+     * Switch user's locale. Can be set explicitly or cycle through supported locales.
+     * Updates session, user record, and sets cookie for persistence.
+     * Supported locales: en, zh, my.
+     */
     public function switchMethod(Request $request): RedirectResponse
     {
         $supportedLocales = ['en', 'zh', 'my'];

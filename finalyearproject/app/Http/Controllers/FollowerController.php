@@ -21,6 +21,11 @@ class FollowerController extends Controller
         private readonly PointsService $pointsService,
     ) {}
 
+    /**
+     * Toggle follow status for a user. Prevents self-follow.
+     * Awards/revokes follower points to the target user.
+     * Returns JSON or redirect depending on request type.
+     */
     public function toggle(Request $request, User $user): JsonResponse|RedirectResponse
     {
         $authUser = $request->user();
@@ -58,6 +63,10 @@ class FollowerController extends Controller
         return back()->with('status', $status); 
     }
 
+    /**
+     * Display paginated feed of posts from users the authenticated user follows.
+     * Excludes blocked users. Includes post engagement counts and user info.
+     */
     public function index(Request $request)
     {
         $followingIds = $request->user()
@@ -120,6 +129,9 @@ class FollowerController extends Controller
         ]);
     }
 
+    /**
+     * Extract pagination metadata from paginator for frontend.
+     */
     private function paginationMeta(LengthAwarePaginator $paginator): array
     {
         return [

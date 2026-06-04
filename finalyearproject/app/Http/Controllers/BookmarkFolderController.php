@@ -11,6 +11,10 @@ use Illuminate\Validation\Rule;
 
 class BookmarkFolderController extends Controller
 {
+    /**
+     * Create a new bookmark folder for the authenticated user.
+     * Folder name must be unique within the user's folders.
+     */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -42,6 +46,10 @@ class BookmarkFolderController extends Controller
         ], 201);
     }
 
+    /**
+     * Update folder name.
+     * Only the folder owner can update. Name must be unique within user's folders.
+     */
     public function update(Request $request, BookmarkFolder $bookmarkFolder): JsonResponse
     {
         $this->assertOwnership($request, $bookmarkFolder);
@@ -74,6 +82,10 @@ class BookmarkFolderController extends Controller
         ]);
     }
 
+    /**
+     * Delete a bookmark folder.
+     * Default folder cannot be deleted. Items in deleted folder move to user's default folder.
+     */
     public function destroy(Request $request, BookmarkFolder $bookmarkFolder): JsonResponse
     {
         $this->assertOwnership($request, $bookmarkFolder);
@@ -84,6 +96,7 @@ class BookmarkFolderController extends Controller
             ], 422);
         }
 
+        // Move items to user's default folder before deletion
         $defaultFolder = BookmarkFolder::defaultFor($request->user());
 
         BookmarkItem::query()
@@ -97,12 +110,17 @@ class BookmarkFolderController extends Controller
         ]);
     }
 
+    /**
+     * Move a post to a specific bookmark folder.
+     * Creates or updates the bookmark item with new folder.
+     */
     public function movePost(Request $request, Post $post): JsonResponse
     {
         $validated = $request->validate([
             'folder_id' => ['required', 'integer', Rule::exists('bookmark_folders', 'id')],
         ]);
 
+        // Ensure folder belongs to current user
         $folder = BookmarkFolder::query()
             ->where('id', $validated['folder_id'])
             ->where('user_id', $request->user()->id)
@@ -123,11 +141,17 @@ class BookmarkFolderController extends Controller
         ]);
     }
 
+    /**
+     * Verify that the authenticated user owns the folder.
+     */
     private function assertOwnership(Request $request, BookmarkFolder $bookmarkFolder): void
     {
         abort_unless($bookmarkFolder->user_id === $request->user()->id, 403);
     }
 
+    /**
+     * Serialize folder data for API response.
+     */
     private function serializeFolder(BookmarkFolder $folder): array
     {
         return [

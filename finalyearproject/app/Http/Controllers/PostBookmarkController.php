@@ -18,6 +18,10 @@ class PostBookmarkController extends Controller
     {
     }
 
+    /**
+     * Display user's bookmarked posts by folder, or quiz review page (correct/wrong answers).
+     * Tracks completed quizzes and quiz attempt history for study mode.
+     */
     public function index(Request $request): Response
     {
         $user = $request->user();
@@ -113,6 +117,7 @@ class PostBookmarkController extends Controller
     }
 
     /**
+     * Get IDs of quizzes user has completed.
      * @return int[]
      */
     private function getCompletedQuizPostIds(int $userId): array
@@ -129,6 +134,9 @@ class PostBookmarkController extends Controller
             ->all();
     }
 
+    /**
+     * Count quiz attempts that are correct or wrong for study review.
+     */
     private function getQuizReviewCount(int $userId, bool $isCorrect): int
     {
         if (! Schema::hasTable('quiz_mistakes')) {
@@ -142,6 +150,7 @@ class PostBookmarkController extends Controller
     }
 
     /**
+     * Get quiz review items (correct or wrong) with question/answer details.
      * @return array<int, array<string, mixed>>
      */
     private function getQuizReviewItems(int $userId, bool $isCorrect): array
@@ -163,6 +172,7 @@ class PostBookmarkController extends Controller
     }
 
     /**
+     * Serialize a quiz attempt for review display (question, selected/correct answer).
      * @return array<string, mixed>|null
      */
     private function serializeQuizReviewItem(QuizAttempt $mistake): ?array
@@ -195,6 +205,7 @@ class PostBookmarkController extends Controller
     }
 
     /**
+     * Extract question text and answer options from quiz data by index.
      * @return array{question_text: string|null, selected_answer: string|null, correct_answer: string|null}
      */
     private function extractQuizQuestionDetails(

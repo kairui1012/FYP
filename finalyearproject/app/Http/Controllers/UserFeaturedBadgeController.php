@@ -11,6 +11,11 @@ class UserFeaturedBadgeController extends Controller
 {
     private const MAX_FEATURED = 3;
 
+    /**
+     * Update user's featured badge selection (max 3 badges).
+     * Only user can update their own featured badges. Validates user owns all selected badges.
+     * Replaces featured badges atomically.
+     */
     public function update(Request $request, User $user): JsonResponse
     {
         /** @var User $viewer */

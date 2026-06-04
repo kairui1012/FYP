@@ -21,9 +21,10 @@ class LikeController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Toggle like status for a post. Awards/revokes points and updates achievement/progress.
+     * Only awards points for question/quiz/material posts.
+     * Returns JSON or redirect response depending on request type.
      */
-
     public function toggle(Request $request, Post $posts): RedirectResponse|JsonResponse
     {
         $existingLike = Like::query()
@@ -69,59 +70,10 @@ class LikeController extends Controller
         return redirect()->back()->with('success', $isLiked ? 'Post liked.' : 'Like removed.');
     }
 
-    public function index()
-    {
-        //
-    }
-
     /**
-     * Show the form for creating a new resource.
+     * Determine the leaderboard action for a post type.
+     * Only question/quiz/material posts award points for likes.
      */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Like $like)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Like $like)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Like $like)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Like $like)
-    {
-        //
-    }
-
     private function leaderboardActionForPost(Post $post): ?string
     {
         return in_array($post->post_type, ['question', 'quiz', 'material'], true)

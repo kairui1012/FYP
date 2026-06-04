@@ -18,6 +18,10 @@ class PostBookmarkToggleController extends Controller
         private readonly AchievementService $achievementService,
     ) {}
 
+    /**
+     * Toggle bookmark (save) status for a post. Saves to user's default folder.
+     * Awards/revokes points to post owner. Re-evaluates achievements.
+     */
     public function toggle(Request $request, Post $post): JsonResponse
     {
         $user = $request->user();

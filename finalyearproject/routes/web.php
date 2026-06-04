@@ -28,6 +28,11 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
+/*
+|--------------------------------------------------------------------------
+| Public landing page
+|--------------------------------------------------------------------------
+*/
 Route::get('/', function () {
     if (Auth::check()) {
         return redirect()->route('homePage');
@@ -40,44 +45,64 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+/*
+|--------------------------------------------------------------------------
+| Authenticated app (auth + verified)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'verified'])->group(function () {
+    // --- Pages / feeds ---
     Route::get('/homePage', [PostController::class, 'index'])->name('homePage');
     Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
     Route::get('/learning/overview', [PostController::class, 'learningOverview'])->name('learning.overview');
     Route::get('/questions', [PostController::class, 'questions'])->name('questionsPage');
     Route::get('/learning-materials', [PostController::class, 'learningMaterials'])->name('learningMaterialsPage');
     Route::get('/following', [FollowerController::class, 'index'])->name('followingPage');
+    Route::get('/popularPage', [PostPopularController::class, 'index'])->name('popularPage');
+    Route::get('/createPostPage', [PostCreateController::class, 'create'])->name('createPostPage');
+
+    // --- Profile ---
     Route::get('/profilePage/{user?}', [ProfilePageController::class, 'show'])->whereNumber('user')->name('profilePage');
     Route::post('/profilePage', [ProfilePageController::class, 'update'])->name('profilePage.update');
+
+    // --- Posts ---
     Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+    Route::post('/posts', [PostCreateController::class, 'store'])->name('posts.store');
+    Route::patch('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+    Route::post('/posts/{post}/report', [PostReportController::class, 'store'])->name('posts.report');
+    Route::post('/posts/{posts}/like', [LikeController::class, 'toggle'])->name('like.toggle');
+
+    // --- Comments ---
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::patch('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
     Route::post('/comments/{comment}/vote', [CommentLikeController::class, 'toggle'])->name('comments.vote.toggle');
     Route::post('/comments/{comment}/report', [CommentReportController::class, 'store'])->name('comments.report');
-    Route::post('/posts/{post}/report', [PostReportController::class, 'store'])->name('posts.report');
-    Route::get('/popularPage', [PostPopularController::class, 'index'])->name('popularPage');
-    Route::get('/createPostPage', [PostCreateController::class, 'create'])->name('createPostPage');
-    Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
-    Route::post('/leaderboard/toggle-visibility', [LeaderboardController::class, 'toggleVisibility'])->name('leaderboard.toggle-visibility');
-    Route::post('/leaderboard/toggle-title-badge', [LeaderboardController::class, 'toggleTitleBadge'])->name('leaderboard.toggle-title-badge');
-    Route::post('/posts', [PostCreateController::class, 'store'])->name('posts.store');
-    Route::patch('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
-    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+
+    // --- Lessons / quizzes / material feedback ---
     Route::post('/posts/{post}/complete', [PostQuizController::class, 'completeLesson'])->name('posts.complete');
     Route::post('/posts/{post}/complete-quiz', [PostQuizController::class, 'completeQuiz'])->name('posts.completeQuiz');
     Route::post('/posts/{post}/material-feedback', [StudyMaterialFeedbackController::class, 'store'])->name('posts.materialFeedback');
     Route::delete('/posts/{post}/material-feedback', [StudyMaterialFeedbackController::class, 'destroy'])->name('posts.materialFeedback.destroy');
-    Route::post('/posts/{posts}/like', [LikeController::class, 'toggle'])->name('like.toggle');
+
+    // --- Leaderboard ---
+    Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
+    Route::post('/leaderboard/toggle-visibility', [LeaderboardController::class, 'toggleVisibility'])->name('leaderboard.toggle-visibility');
+    Route::post('/leaderboard/toggle-title-badge', [LeaderboardController::class, 'toggleTitleBadge'])->name('leaderboard.toggle-title-badge');
+
+    // --- Social: follow / featured badges ---
     Route::post('/posts/{post}/bookmark', [PostBookmarkToggleController::class, 'toggle'])->name('posts.bookmark.toggle');
     Route::post('/users/{user}/follow', [FollowerController::class, 'toggle'])->name('users.follow.toggle');
     Route::post('/users/{user}/featured-badges', [UserFeaturedBadgeController::class, 'update'])->name('users.featured-badges.update');
+
+    // --- Bookmark folders ---
     Route::post('/bookmarks/folders', [BookmarkFolderController::class, 'store'])->name('bookmarks.folders.store');
     Route::patch('/bookmarks/folders/{bookmarkFolder}', [BookmarkFolderController::class, 'update'])->name('bookmarks.folders.update');
     Route::delete('/bookmarks/folders/{bookmarkFolder}', [BookmarkFolderController::class, 'destroy'])->name('bookmarks.folders.destroy');
     Route::post('/bookmarks/posts/{post}/move', [BookmarkFolderController::class, 'movePost'])->name('bookmarks.posts.move');
 
-    // New pages routes
+    // --- Other pages ---
     Route::get('/achievements', [AchievementsController::class, 'index'])->name('achievements');
     Route::get('/categories', [PostController::class, 'categories'])->name('categories');
     Route::get('/rules', fn () => Inertia::render('RulesPage'))->name('rules');
@@ -86,13 +111,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/search', [SearchController::class, 'search'])->name('search');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Google OAuth
+|--------------------------------------------------------------------------
+*/
 Route::get('/login/google', [GoogleAuthController::class, 'redirectToProvider'])->name('login.google');
-
 Route::get('/login/google/callback', [GoogleAuthController::class, 'handleProviderCallback']);
 
+/*
+|--------------------------------------------------------------------------
+| Static / SEO pages
+|--------------------------------------------------------------------------
+*/
 Route::get('/privacy-policy', fn () => Inertia::render('PrivacyPolicyPage'))->name('privacy-policy');
 Route::get('/terms-of-service', fn () => Inertia::render('TermsOfServicePage'))->name('terms-of-service');
 
+/*
+|--------------------------------------------------------------------------
+| Sitemap
+|--------------------------------------------------------------------------
+*/
 Route::get('/sitemap.xml', function () {
     $lastmod = now()->toDateString();
 
@@ -124,9 +163,18 @@ Route::get('/sitemap.xml', function () {
     return response($xml, 200)->header('Content-Type', 'application/xml');
 })->name('sitemap');
 
+/*
+|--------------------------------------------------------------------------
+| Localization
+|--------------------------------------------------------------------------
+*/
 Route::post('/change-language-setting', [LocaleController::class, 'switchMethod'])->name('language.switch');
 
-// Admin routes
+/*
+|--------------------------------------------------------------------------
+| Admin (auth + admin, prefix: /admin)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', fn () => redirect()->route('admin.users'))->name('index');
     Route::get('/users', [AdminController::class, 'users'])->name('users');
@@ -144,7 +192,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/verification-documents/{document}/download', [AdminController::class, 'downloadVerificationDocument'])->name('verification-document.download');
 });
 
-// Teacher application (authenticated users can submit, including unverified students)
+/*
+|--------------------------------------------------------------------------
+| Teacher application
+|--------------------------------------------------------------------------
+| Authenticated users can submit, including unverified students.
+|
+*/
 Route::middleware(['auth'])->post('/teacher-applications', function (\Illuminate\Http\Request $request) {
     $request->validate(['qualification' => 'required|string|max:255', 'bio' => 'nullable|string|max:2000']);
     \App\Models\TeacherApplication::create([
@@ -155,6 +209,10 @@ Route::middleware(['auth'])->post('/teacher-applications', function (\Illuminate
     return back()->with('success', 'Application submitted.');
 })->name('teacher-applications.store');
 
+/*
+|--------------------------------------------------------------------------
+| Additional route files
+|--------------------------------------------------------------------------
+*/
 require __DIR__.'/callAI.php';
-
 require __DIR__.'/settings.php';

@@ -8,15 +8,27 @@ use Illuminate\Support\Facades\Auth;
 
 class PostQueryBuilder
 {
+    /**
+     * Eloquent query builder for the Post model that this class wraps and
+     * augments with common scopes and eager loads used across the app.
+     */
     private Builder $query;
 
+    /**
+     * Initialize with a fresh Post query builder.
+     */
     public function __construct()
     {
+        // Start from the Post model query; methods below mutate this builder
+        // and return $this for chainability.
         $this->query = Post::query();
     }
 
     /**
-     * Load standard relations for post display
+     * Load a set of commonly-needed relations to avoid N+1 queries when
+     * rendering posts in listings or detail views.
+     *
+     * @return $this
      */
     public function withStandardRelations(): self
     {
@@ -32,7 +44,9 @@ class PostQueryBuilder
     }
 
     /**
-     * Load standard counts
+     * Add common relationship counts (likes, comments, saves) to the query.
+     *
+     * @return $this
      */
     public function withStandardCounts(): self
     {
@@ -42,7 +56,12 @@ class PostQueryBuilder
     }
 
     /**
-     * Load user-specific flags (is_liked, is_saved)
+     * Add boolean flags that indicate whether the given user has liked or
+     * saved each post. If $userId is null the currently authenticated
+     * user id will be used.
+     *
+     * @param int|null $userId
+     * @return $this
      */
     public function withUserFlags(?int $userId = null): self
     {
@@ -57,7 +76,9 @@ class PostQueryBuilder
     }
 
     /**
-     * Exclude posts from blocked users
+     * Exclude posts authored by users who are blocked.
+     *
+     * @return $this
      */
     public function excludeBlockedUsers(): self
     {
@@ -67,7 +88,11 @@ class PostQueryBuilder
     }
 
     /**
-     * Apply post type filter
+     * Filter posts by post type. Accepts a single type string, an array of
+     * types, or null to skip the filter.
+     *
+     * @param string|array|null $postType
+     * @return $this
      */
     public function filterByPostType(string|array|null $postType): self
     {
@@ -81,7 +106,11 @@ class PostQueryBuilder
     }
 
     /**
-     * Apply language filter
+     * Filter posts by language code (e.g. 'en', 'zh'). Empty string will
+     * skip the filter.
+     *
+     * @param string $languageCode
+     * @return $this
      */
     public function filterByLanguage(string $languageCode): self
     {
@@ -93,7 +122,10 @@ class PostQueryBuilder
     }
 
     /**
-     * Apply subject filter
+     * Filter posts by subject id. Passing null skips the filter.
+     *
+     * @param int|null $subjectId
+     * @return $this
      */
     public function filterBySubject(int|null $subjectId): self
     {
@@ -105,7 +137,9 @@ class PostQueryBuilder
     }
 
     /**
-     * Order by latest
+     * Order the query by newest posts first.
+     *
+     * @return $this
      */
     public function latest(): self
     {
@@ -115,7 +149,10 @@ class PostQueryBuilder
     }
 
     /**
-     * Get the built query
+     * Return the underlying Eloquent query builder for further customization
+     * or to execute advanced queries.
+     *
+     * @return Builder
      */
     public function getQuery()
     {
@@ -123,7 +160,9 @@ class PostQueryBuilder
     }
 
     /**
-     * Execute and get results
+     * Execute the query and return the resulting collection of Post models.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function get()
     {
@@ -131,7 +170,9 @@ class PostQueryBuilder
     }
 
     /**
-     * Get single result
+     * Execute the query and return the first matching Post or null.
+     *
+     * @return Post|null
      */
     public function first()
     {
