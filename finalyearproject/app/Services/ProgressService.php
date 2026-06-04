@@ -8,10 +8,27 @@ use App\Models\QuizAttempt;
 use App\Models\User;
 use App\Models\UserProgress;
 
+/**
+ * ProgressService
+ *
+ * Tracks and updates user learning progress metrics such as quiz attempts,
+ * total posts, and likes received. This service writes consolidated
+ * information into the `user_progress` table and triggers achievement
+ * re-evaluation via the `AchievementService` when relevant metrics change.
+ */
 class ProgressService
 {
+    /**
+     * @param AchievementService $achievementService Service used to evaluate
+     *                                               and unlock achievements
+     */
     public function __construct(private readonly AchievementService $achievementService) {}
 
+    /**
+     * Record or update a QuizAttempt for a specific user/post/question.
+     * This keeps a canonical record of which answers the user selected
+     * and whether they were correct, used for mistake-review features.
+     */
     public function syncMistakeReview(
         User $user,
         Post $post,
@@ -19,6 +36,8 @@ class ProgressService
         int $selectedAnswerIndex,
         bool $isCorrect,
     ): void {
+        // Insert or update the single attempt row for this user/post/question
+        // so repeated reviews overwrite the previous selection and timestamp.
         QuizAttempt::query()->updateOrCreate(
             [
                 'user_id' => $user->id,
