@@ -81,9 +81,6 @@ export default function RulesPage() {
 
             <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 md:px-6 lg:px-8">
                 <header className="border-b border-zinc-200 pb-5">
-                    <p className="text-sm font-semibold text-[#de6b89]">
-                        {trans('navigation.rules')}
-                    </p>
                     <h1 className="mt-2 text-2xl font-semibold text-zinc-950 md:text-3xl">
                         {trans('rules.title')}
                     </h1>

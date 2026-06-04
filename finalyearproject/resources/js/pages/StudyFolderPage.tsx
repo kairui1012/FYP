@@ -6,6 +6,7 @@ import { SavedPostsPanel } from '@/components/studyfolder/saved-posts-panel';
 import { StudyFolderHeader } from '@/components/studyfolder/study-folder-header';
 import { StudyFolderSidebar } from '@/components/studyfolder/study-folder-sidebar';
 import { useStudyFolder } from '@/components/studyfolder/use-study-folder';
+import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -48,6 +49,10 @@ export default function StudyFolderPage() {
         handleToggleSave,
         handleMovePost,
     } = useStudyFolder();
+
+    // Saved-post lists are loaded server-side; re-fetch on focus so saves
+    // toggled on other pages show up here without a manual refresh.
+    useRefreshOnFocus();
 
     return (
         <>

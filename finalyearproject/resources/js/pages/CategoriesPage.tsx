@@ -6,6 +6,7 @@ import { CategoryResultsPanel } from '@/components/categories/category-results-p
 import type { CategoriesPageProps } from '@/components/categories/types';
 import { useCategoryFilters } from '@/hooks/use-category-filters';
 import { usePostInteractions } from '@/hooks/use-post-interactions';
+import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
 import AppLayout from '@/layouts/app-layout';
 import { categories as categoriesRoute } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
@@ -48,6 +49,10 @@ export default function CategoriesPage() {
         handleSave,
         handleFollowToggle,
     } = usePostInteractions(localPosts);
+
+    // Only re-fetch the result list on focus (not the whole page) so the user's
+    // chosen filters and view stay intact while like/save/follow state updates.
+    useRefreshOnFocus(['filteredPosts']);
 
     return (
         <>

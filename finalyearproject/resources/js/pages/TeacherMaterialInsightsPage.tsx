@@ -8,6 +8,7 @@ import type {
     TeacherMaterialInsightsData,
     TeacherMaterialInsightsFilters,
 } from '@/components/teacher-material-insights/types';
+import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -29,6 +30,11 @@ export default function TeacherMaterialInsightsPage({
     generated_at,
 }: TeacherMaterialInsightsPageProps) {
     const { trans } = reactLang();
+
+    // Insights aggregate student feedback computed server-side; re-fetch on
+    // focus to pick up new ratings (filters come from props, so they hold).
+    useRefreshOnFocus();
+
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: trans('navigation.home'),

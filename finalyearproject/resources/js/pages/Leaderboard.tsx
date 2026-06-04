@@ -10,6 +10,7 @@ import type {
 } from '@/components/leaderboard/types';
 import { useLeaderboardController } from '@/components/leaderboard/use-leaderboard-controller';
 import { PodiumCard } from '@/components/PodiumCard';
+import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
 import AppLayout from '@/layouts/app-layout';
 import { leaderboard as leaderboardRoute } from '@/routes';
 import type { Auth, BreadcrumbItem } from '@/types';
@@ -38,6 +39,10 @@ export default function Leaderboard({ leaderboard }: LeaderboardProps) {
     const controller = useLeaderboardController({
         activePeriod: leaderboard.activePeriod,
     });
+
+    // Rankings/points are computed server-side and change when others like or
+    // follow you, so re-fetch on focus to keep standings current.
+    useRefreshOnFocus();
 
     const isCurrentUser = (user: LeaderboardUser) => user.id === currentUserId;
 

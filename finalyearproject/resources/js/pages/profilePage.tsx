@@ -9,6 +9,7 @@ import { ProfilePostsTab } from '@/components/profile/profile-posts-tab';
 import { ProfileStats } from '@/components/profile/profile-stats';
 import { ProfileTabBar } from '@/components/profile/profile-tab-bar';
 import { useProfilePage } from '@/components/profile/use-profile-page';
+import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
 import AppLayout from '@/layouts/app-layout';
 
 export default function ProfilePage() {
@@ -55,6 +56,10 @@ export default function ProfilePage() {
         setProfileAboutInput,
         setProfileAvatarFile,
     } = useProfilePage();
+
+    // Follow state / counts are computed server-side; re-fetch on focus so
+    // follows made elsewhere show up without a manual refresh.
+    useRefreshOnFocus();
 
     return (
         <>

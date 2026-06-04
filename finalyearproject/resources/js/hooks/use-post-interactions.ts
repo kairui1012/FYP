@@ -54,23 +54,49 @@ export function usePostInteractions(
     );
     const [followingUserIds, setFollowingUserIds] = useState<number[]>([]);
 
-    const followStateKey = useMemo(
+    const postStateKey = useMemo(
         () =>
             posts
                 .map(
                     (post) =>
-                        `${post.user?.id ?? 'anonymous'}:${post.user?.is_following ? 1 : 0}`,
+                        `${post.id}:${post.is_liked ? 1 : 0}:${post.likes_count ?? 0}:${post.is_saved ? 1 : 0}:${post.saves_count ?? 0}:${post.user?.id ?? 'anonymous'}:${post.user?.is_following ? 1 : 0}`,
                 )
                 .join('|'),
         [posts],
     );
 
-    // Re-seed follow state when Inertia updates props without remounting this page.
+    // Re-seed like/save/follow state when Inertia updates props (e.g. a reload
+    // on focus) without remounting this page. Without this, counts and toggled
+    // states stay stale until a full page refresh.
     useEffect(() => {
+        setLikeStateByPost(
+            Object.fromEntries(
+                posts.map((post) => [
+                    post.id,
+                    {
+                        liked: Boolean(post.is_liked),
+                        likesCount: post.likes_count ?? 0,
+                    },
+                ]),
+            ),
+        );
+        setSaveStateByPost(
+            Object.fromEntries(
+                posts.map((post) => [
+                    post.id,
+                    {
+                        saved: Boolean(post.is_saved),
+                        savesCount: post.saves_count ?? 0,
+                    },
+                ]),
+            ),
+        );
         setFollowStateByUser(buildFollowState(posts));
+        setLikingPostIds([]);
+        setSavingPostIds([]);
         setFollowingUserIds([]);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [followStateKey]);
+    }, [postStateKey]);
 
     const handleLike = (postId: number) => {
         if (likingPostIds.includes(postId)) return;

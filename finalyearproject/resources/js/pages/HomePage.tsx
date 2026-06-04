@@ -12,6 +12,7 @@ import type { StudyHomeOverview } from '@/components/home/study-home-dashboard';
 import { PaginationControls } from '@/components/pagination-controls';
 import { useHomePageState } from '@/hooks/use-home-page-state';
 import { usePostInteractions } from '@/hooks/use-post-interactions';
+import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
 import AppLayout from '@/layouts/app-layout';
 import { homePage } from '@/routes';
 import type { BreadcrumbItem, PaginationMeta, PostItem } from '@/types';
@@ -56,6 +57,10 @@ export default function HomePage({
     } = usePostInteractions(posts, {
         refreshFollowingPage: isFollowingPage,
     });
+
+    // Only re-fetch the feed on focus (not the whole page) so the learn/feed
+    // tab stays put while like/save/follow counts and states stay current.
+    useRefreshOnFocus(['posts', 'pagination']);
 
     const homeText = buildHomeText(page as any);
 

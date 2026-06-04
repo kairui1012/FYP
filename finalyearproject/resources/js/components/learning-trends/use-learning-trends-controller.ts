@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { popularPage } from '@/routes';
 import like from '@/routes/like';
 import type { PostItem } from '@/types';
@@ -48,40 +48,65 @@ export function useLearningTrendsController({
     >({});
     const [followingUserIds, setFollowingUserIds] = useState<number[]>([]);
 
+    // Refs mirror the in-flight id lists so syncStateFromPosts (a stable
+    // useCallback) can read the latest values without being re-created.
+    const likingPostIdsRef = useRef<number[]>(likingPostIds);
+    const savingPostIdsRef = useRef<number[]>(savingPostIds);
+    const followingUserIdsRef = useRef<number[]>(followingUserIds);
+    likingPostIdsRef.current = likingPostIds;
+    savingPostIdsRef.current = savingPostIds;
+    followingUserIdsRef.current = followingUserIds;
+
     const syncStateFromPosts = useCallback((nextPosts: PostItem[]) => {
         setPosts(nextPosts);
 
-        setLikeStateByPost(
-            Object.fromEntries(
-                nextPosts.map((post) => [
-                    post.id,
-                    {
-                        liked: Boolean(post.is_liked),
-                        likesCount: post.likes_count ?? 0,
-                    },
-                ]),
-            ),
-        );
-
-        setSaveStateByPost(
-            Object.fromEntries(
-                nextPosts.map((post) => [
-                    post.id,
-                    {
-                        saved: Boolean(post.is_saved),
-                        savesCount: post.saves_count ?? 0,
-                    },
-                ]),
-            ),
-        );
-
-        const nextFollowState: Record<number, boolean> = {};
-        nextPosts.forEach((post) => {
-            if (post.user?.id) {
-                nextFollowState[post.user.id] = Boolean(post.user.is_following);
-            }
+        // Re-seed from server data, but keep any post/user that currently has an
+        // in-flight optimistic action so a props update doesn't clobber it.
+        setLikeStateByPost((prev) => {
+            const next: Record<number, { liked: boolean; likesCount: number }> =
+                {};
+            nextPosts.forEach((post) => {
+                next[post.id] = likingPostIdsRef.current.includes(post.id)
+                    ? (prev[post.id] ?? {
+                          liked: Boolean(post.is_liked),
+                          likesCount: post.likes_count ?? 0,
+                      })
+                    : {
+                          liked: Boolean(post.is_liked),
+                          likesCount: post.likes_count ?? 0,
+                      };
+            });
+            return next;
         });
-        setFollowStateByUser(nextFollowState);
+
+        setSaveStateByPost((prev) => {
+            const next: Record<number, { saved: boolean; savesCount: number }> =
+                {};
+            nextPosts.forEach((post) => {
+                next[post.id] = savingPostIdsRef.current.includes(post.id)
+                    ? (prev[post.id] ?? {
+                          saved: Boolean(post.is_saved),
+                          savesCount: post.saves_count ?? 0,
+                      })
+                    : {
+                          saved: Boolean(post.is_saved),
+                          savesCount: post.saves_count ?? 0,
+                      };
+            });
+            return next;
+        });
+
+        setFollowStateByUser((prev) => {
+            const next: Record<number, boolean> = {};
+            nextPosts.forEach((post) => {
+                const userId = post.user?.id;
+                if (!userId) return;
+                next[userId] = followingUserIdsRef.current.includes(userId)
+                    ? (prev[userId] ?? Boolean(post.user?.is_following))
+                    : Boolean(post.user?.is_following);
+            });
+            return next;
+        });
     }, []);
 
     useEffect(() => {

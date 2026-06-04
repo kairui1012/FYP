@@ -14,6 +14,7 @@ import { PointsBadgesSection } from '@/components/achievements/PointsBadgesSecti
 import { QuizAccuracyStats } from '@/components/achievements/QuizAccuracyStats';
 import { SummaryStats } from '@/components/achievements/SummaryStats';
 import type { PageProps } from '@/components/achievements/types';
+import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
 import AppLayout from '@/layouts/app-layout';
 import { achievements as achievementsRoute } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
@@ -26,6 +27,10 @@ export default function AchievementsPage() {
     const { trans } = reactLang();
     const { summary, badges, next_badge, achievements, user_progress } =
         usePage<PageProps>().props;
+
+    // Achievement totals are computed server-side, so re-fetch on focus to pick
+    // up progress earned elsewhere (posting, liking, following, etc.).
+    useRefreshOnFocus();
 
     const [activeFilter, setActiveFilter] = useState('all');
 

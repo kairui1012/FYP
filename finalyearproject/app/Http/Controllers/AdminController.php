@@ -104,15 +104,13 @@ class AdminController extends Controller
     }
 
     /**
-     * Dismiss a comment report (mark as dismissed if status column exists, else delete).
+     * Delete a comment report. Removing the row (rather than marking it
+     * dismissed) clears the (user_id, comment_id) unique constraint so the user
+     * can report the comment again if it becomes problematic later.
      */
     public function deleteCommentReport(CommentReport $report)
     {
-        if (Schema::hasColumn('comment_reports', 'status')) {
-            $report->update(['status' => 'dismissed']);
-        } else {
-            $report->delete();
-        }
+        $report->delete();
 
         return back();
     }
@@ -128,15 +126,13 @@ class AdminController extends Controller
     }
 
     /**
-     * Dismiss a post report (mark as dismissed if status column exists, else delete).
+     * Delete a post report. Removing the row (rather than marking it dismissed)
+     * clears the (user_id, post_id) unique constraint so the user can report the
+     * post again if it becomes problematic later.
      */
     public function deletePostReport(PostReport $report)
     {
-        if (Schema::hasColumn('post_reports', 'status')) {
-            $report->update(['status' => 'dismissed']);
-        } else {
-            $report->delete();
-        }
+        $report->delete();
 
         return back();
     }

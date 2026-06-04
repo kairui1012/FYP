@@ -12,7 +12,7 @@ return [
     'learning_milestones' => 'Learning Milestones',
     'learning_milestones_subtitle' => 'Track the closest achievement and keep your momentum visible.',
     'latest_posts' => 'Latest Learning Posts',
-    'latest_posts_subtitle' => 'Jump back into the newest questions, notes, and study materials.',
+    'latest_posts_subtitle' => 'If you have published posts, only your latest posts are shown here.',
     'your_recent_posts' => 'Your recent learning posts',
     'community_latest_posts' => 'Community learning posts',
     'no_posts_yet' => 'No posts yet.',

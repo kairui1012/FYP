@@ -1,9 +1,18 @@
+// ============================================================================
+// Logic controller hook for the Create Post page (CreatePostPage.tsx)
+// ----------------------------------------------------------------------------
+// This hook centralizes all the front-end logic of the post form: form state,
+// file-upload validation, the math/science symbol panels, AI question
+// generation, and finally assembling every field into a FormData and POSTing
+// it to the backend. The page component only handles "how it looks" (JSX);
+// all behavior is provided by this hook and returned to the page.
+// ============================================================================
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, DragEvent, FormEvent } from 'react';
-import { requestMaterialQuiz } from '@/lib/ai-material-quiz';
-import { requestQuizOptions } from '@/lib/ai-quiz-options';
-import { formatFormulaText } from '@/lib/formula-display';
+import { requestMaterialQuiz } from '@/lib/ai-material-quiz'; // calls /ai-material-quiz (generate quiz from material)
+import { requestQuizOptions } from '@/lib/ai-quiz-options'; // calls /ai-quiz-options (AI-generated options)
+import { formatFormulaText } from '@/lib/formula-display'; // turns LaTeX commands into readable symbols (preview)
 import type { PostSubject } from '@/types';
 import {
     LANGUAGE_OPTIONS,
@@ -24,16 +33,19 @@ import type {
     QuizItem,
 } from './create-post-config';
 
+// Hook params: all provided by the backend via Inertia to the page, then passed in here
 type UseCreatePostFormParams = {
-    subjects: PostSubject[];
-    learningMaterials: LearningMaterialOption[];
-    canPublishStudyMaterial: boolean;
-    t: CreatePostText;
-    trans: (key: string) => string;
+    subjects: PostSubject[]; // available subjects
+    learningMaterials: LearningMaterialOption[]; // materials a quiz can be linked to
+    canPublishStudyMaterial: boolean; // whether the user can post materials (teacher/admin)
+    t: CreatePostText; // text strings for the current language
+    trans: (key: string) => string; // translation function (look up by key)
 };
 
+// Each quiz question has a fixed 4 options
 const AI_QUIZ_OPTION_COUNT = 4;
 
+// Read a named cookie value (used to get Laravel's XSRF-TOKEN)
 function getCookieValue(name: string): string {
     const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const match = document.cookie.match(
@@ -43,6 +55,7 @@ function getCookieValue(name: string): string {
     return match ? decodeURIComponent(match[1]) : '';
 }
 
+// Read the CSRF token from <meta name="csrf-token"> (fallback when cookie is unavailable)
 function getMetaCsrfToken(): string {
     return (
         document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
@@ -50,9 +63,11 @@ function getMetaCsrfToken(): string {
     );
 }
 
+// Build 4 empty strings as the blank options for one question
 const createEmptyQuizOptions = () =>
     Array.from({ length: AI_QUIZ_OPTION_COUNT }, () => '');
 
+// Build a brand-new blank quiz question
 const createEmptyQuiz = (): QuizItem => ({
     question: '',
     options: createEmptyQuizOptions(),
@@ -61,6 +76,7 @@ const createEmptyQuiz = (): QuizItem => ({
     explanation: '',
 });
 
+// Check whether a question is "completely empty" (no stem/options/answer/explanation)
 const isEmptyQuiz = (quiz: QuizItem | undefined): boolean => {
     if (!quiz) {
         return true;
@@ -74,6 +90,7 @@ const isEmptyQuiz = (quiz: QuizItem | undefined): boolean => {
     return !(hasQuestion || hasAnyOption || hasAnswer || hasExplanation);
 };
 
+// Build a new study-material content block (text/video/image/document); id uses timestamp + random for uniqueness
 const createMaterialBlock = (
     type: MaterialBlockType,
 ): MaterialContentBlock => ({
@@ -85,6 +102,7 @@ const createMaterialBlock = (
     preview: null,
 });
 
+// Fill AI-generated options into the current question: use AI's when present, otherwise keep existing, up to 4
 const applyGeneratedOptionsToQuiz = (
     currentOptions: string[],
     generatedOptions: string[],
@@ -102,44 +120,50 @@ export function useCreatePostForm({
     t,
     trans,
 }: UseCreatePostFormParams) {
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-    const attachmentsRef = useRef<LocalAttachment[]>([]);
+    // --- refs: point to real DOM or hold the latest value without re-rendering ---
+    const fileInputRef = useRef<HTMLInputElement | null>(null); // hidden file picker
+    const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null); // content textarea (need caret position when inserting symbols)
+    const attachmentsRef = useRef<LocalAttachment[]>([]); // always holds latest attachments, for preview-URL cleanup on unmount
 
-    const [title, setTitle] = useState('');
-    const [content, setContent] = useState('');
+    // --- form content state ---
+    const [title, setTitle] = useState(''); // title
+    const [content, setContent] = useState(''); // body (unused for material type)
     const [materialBlocks, setMaterialBlocks] = useState<
         MaterialContentBlock[]
-    >([createMaterialBlock('text')]);
-    const [quizzes, setQuizzes] = useState<QuizItem[]>([createEmptyQuiz()]);
-    const [selectedPostType, setSelectedPostType] = useState<string>('');
-    const [selectedMaterialId, setSelectedMaterialId] = useState<string>('');
-    const [selectedSubject, setSelectedSubject] = useState<string>('');
-    const [selectedLanguage, setSelectedLanguage] = useState<string>('');
-    const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
-    const [videoUrl, setVideoUrl] = useState('');
-    const [isAnonymous, setIsAnonymous] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
-    const [fileError, setFileError] = useState<string | null>(null);
+    >([createMaterialBlock('text')]); // study-material content blocks, defaults to one text block
+    const [quizzes, setQuizzes] = useState<QuizItem[]>([createEmptyQuiz()]); // quiz questions, defaults to one empty question
+    const [selectedPostType, setSelectedPostType] = useState<string>(''); // post type: question/material/quiz
+    const [selectedMaterialId, setSelectedMaterialId] = useState<string>(''); // which material a quiz is linked to
+    const [selectedSubject, setSelectedSubject] = useState<string>(''); // selected subject
+    const [selectedLanguage, setSelectedLanguage] = useState<string>(''); // selected language
+    const [attachments, setAttachments] = useState<LocalAttachment[]>([]); // attachments (images OR documents, not mixed)
+    const [videoUrl, setVideoUrl] = useState(''); // video link
+    const [isAnonymous, setIsAnonymous] = useState(false); // post anonymously (only for question)
+
+    // --- UI / status flags ---
+    const [isSubmitting, setIsSubmitting] = useState(false); // submitting (prevents double submit)
+    const [isDragging, setIsDragging] = useState(false); // drag-over highlight for file drop
+    const [fileError, setFileError] = useState<string | null>(null); // attachment error message
     const [materialBlockError, setMaterialBlockError] = useState<string | null>(
         null,
-    );
+    ); // material-block error message
     const [generatingQuizOptionIds, setGeneratingQuizOptionIds] = useState<
         number[]
-    >([]);
+    >([]); // which questions are currently AI-generating options (show loading)
     const [quizOptionErrors, setQuizOptionErrors] = useState<
         Record<number, string>
-    >({});
-    const [generatingMaterialQuiz, setGeneratingMaterialQuiz] = useState(false);
+    >({}); // per-question AI option-generation error
+    const [generatingMaterialQuiz, setGeneratingMaterialQuiz] = useState(false); // currently AI-generating a quiz from material
     const [materialQuizError, setMaterialQuizError] = useState<string | null>(
         null,
-    );
+    ); // error for generating a quiz from material
 
+    // Sync attachments into the ref on every change so the cleanup fn sees the latest value
     useEffect(() => {
         attachmentsRef.current = attachments;
     }, [attachments]);
 
+    // On unmount, release all temporary image-preview URLs to avoid memory leaks
     useEffect(() => {
         return () => {
             attachmentsRef.current.forEach((attachment) => {
@@ -150,6 +174,7 @@ export function useCreatePostForm({
         };
     }, []);
 
+    // Remaining characters for title/body (shown next to the inputs)
     const remainingTitleChars = useMemo(
         () => MAX_TITLE_LENGTH - title.length,
         [title.length],
@@ -159,6 +184,7 @@ export function useCreatePostForm({
         [content.length],
     );
 
+    // Look up the subject name from the selected subject id
     const selectedSubjectName = useMemo(() => {
         const matchedSubject = subjects.find(
             (subject) => String(subject?.id) === selectedSubject,
@@ -166,6 +192,7 @@ export function useCreatePostForm({
         return matchedSubject?.name ?? '';
     }, [selectedSubject, subjects]);
 
+    // Detect math/physics/chemistry from the subject name (decides which symbol panel to show)
     const isMathSubjectSelected = useMemo(
         () => selectedSubjectName.toLowerCase().includes('math'),
         [selectedSubjectName],
@@ -179,13 +206,16 @@ export function useCreatePostForm({
         [selectedSubjectName],
     );
 
+    // Only science subjects show the "symbol preview/insert" area
     const showSymbolPreview =
         isMathSubjectSelected ||
         isPhysicsSubjectSelected ||
         isChemistrySubjectSelected;
+    // Convert LaTeX in the body to readable symbols for live preview
     const previewContent = useMemo(() => formatFormulaText(content), [content]);
-    const isQuizSelected = selectedPostType === 'quiz';
-    const isMaterialSelected = selectedPostType === 'material';
+    const isQuizSelected = selectedPostType === 'quiz'; // currently creating a quiz?
+    const isMaterialSelected = selectedPostType === 'material'; // currently creating a material?
+    // Whether the material has at least one valid block (text has content / video has URL / file uploaded)
     const hasValidMaterialBlocks =
         materialBlocks.length > 0 &&
         materialBlocks.some((block) => {
@@ -193,6 +223,7 @@ export function useCreatePostForm({
             if (block.type === 'video') return block.url.trim().length > 0;
             return Boolean(block.file);
         });
+    // Whether every quiz question is fully filled in (stem + 4 options + a chosen correct answer)
     const hasValidQuiz =
         quizzes.length >= 1 &&
         quizzes.every(
@@ -204,6 +235,7 @@ export function useCreatePostForm({
                 parseInt(q.answerIndex) < q.options.length,
         );
 
+    // Math symbol panel presets: label is shown on the button, snippet is the LaTeX inserted into the body on click
     const mathFormulaPresets = useMemo(
         () => [
             { key: 'inline', label: t.mathInline, snippet: '$$' },
@@ -254,6 +286,7 @@ export function useCreatePostForm({
         ],
     );
 
+    // Physics symbol panel presets (shown only for physics)
     const physicsSymbolPresets = useMemo(
         () => [
             { key: 'force', label: t.physicsForce, snippet: '\\vec{F}' },
@@ -295,6 +328,7 @@ export function useCreatePostForm({
         ],
     );
 
+    // Chemistry symbol panel presets (shown only for chemistry)
     const chemistrySymbolPresets = useMemo(
         () => [
             {
@@ -351,6 +385,7 @@ export function useCreatePostForm({
         ],
     );
 
+    // Post-type button list: filters out material for non-teacher/admin, plus active/idle styles
     const postTypeOptions = useMemo(
         () =>
             POST_TYPE_OPTIONS.filter(
@@ -376,6 +411,7 @@ export function useCreatePostForm({
         [canPublishStudyMaterial, t],
     );
 
+    // Subject dropdown: translate the subject name to the current language (fall back to the raw name), with an icon
     const subjectOptions = useMemo(
         () =>
             subjects.map((subject) => {
@@ -395,6 +431,7 @@ export function useCreatePostForm({
         [subjects, trans],
     );
 
+    // Language button list: each language gets its own active/idle color styles
     const languageOptions = useMemo(
         () =>
             LANGUAGE_OPTIONS.map((language) => ({
@@ -416,6 +453,7 @@ export function useCreatePostForm({
         [],
     );
 
+    // Whether submit is enabled: title, body/material, type, subject, language all present; quiz/material each valid; not already submitting
     const canSubmit =
         title.trim().length > 0 &&
         (isMaterialSelected || content.trim().length > 0) &&
@@ -426,6 +464,7 @@ export function useCreatePostForm({
         (!isMaterialSelected || hasValidMaterialBlocks) &&
         !isSubmitting;
 
+    // Switch post type: block material if not allowed; clear selected material when leaving quiz; force-off anonymous for material
     const setPostType = (value: string) => {
         if (value === 'material' && !canPublishStudyMaterial) {
             return;
@@ -442,6 +481,7 @@ export function useCreatePostForm({
         }
     };
 
+    // Whether the file is a supported document type (by extension)
     const isSupportedDocument = (file: File) => {
         const extension = file.name.toLowerCase().split('.').pop() ?? '';
         const supportedExtensions = [
@@ -457,6 +497,7 @@ export function useCreatePostForm({
         return supportedExtensions.includes(extension);
     };
 
+    // Whether the file is a supported image type (by extension)
     const isSupportedImage = (file: File) => {
         const extension = file.name.toLowerCase().split('.').pop() ?? '';
         const supportedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
@@ -464,9 +505,12 @@ export function useCreatePostForm({
         return supportedExtensions.includes(extension);
     };
 
+    // Whether a file counts as "image" or "document"
     const getAttachmentKind = (file: File): LocalAttachment['type'] =>
         isSupportedImage(file) ? 'image' : 'document';
 
+    // Add newly selected/dropped files to the attachment list, running a series of checks:
+    // supported type, per-file size, no mixing images and documents, dedupe, total-size cap
     const appendFiles = (incomingFiles: FileList | File[]) => {
         setFileError(null);
 
@@ -540,6 +584,7 @@ export function useCreatePostForm({
         });
     };
 
+    // Fires after picking files via the input; clear value so the same file can be picked again
     const onSelectFiles = (event: ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
             appendFiles(event.target.files);
@@ -547,6 +592,7 @@ export function useCreatePostForm({
         event.target.value = '';
     };
 
+    // Fires when files are dropped onto the upload area
     const onDropFiles = (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         setIsDragging(false);
@@ -555,6 +601,7 @@ export function useCreatePostForm({
         }
     };
 
+    // Remove an attachment and release its image-preview URL
     const removeAttachment = (indexToRemove: number) => {
         setAttachments((prev) => {
             const target = prev[indexToRemove];
@@ -565,6 +612,7 @@ export function useCreatePostForm({
         });
     };
 
+    // Insert a symbol snippet at the caret position in the body textarea, then restore focus/caret
     const insertMathSnippet = (snippet: string) => {
         const textarea = contentTextareaRef.current;
 
@@ -596,6 +644,7 @@ export function useCreatePostForm({
         });
     };
 
+    // Submit the whole form: build a FormData (needed because of file uploads) and POST it via Inertia to /posts
     const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!canSubmit) {
@@ -605,6 +654,7 @@ export function useCreatePostForm({
         setIsSubmitting(true);
         setFileError(null);
 
+        // Prefer the XSRF cookie; fall back to the meta CSRF token in the body
         const csrfToken = getMetaCsrfToken();
         const xsrfToken = getCookieValue('XSRF-TOKEN');
         const formData = new FormData();
@@ -613,6 +663,7 @@ export function useCreatePostForm({
             formData.append('_token', csrfToken);
         }
 
+        // --- common fields for every post type ---
         formData.append('title', title.trim());
         formData.append('content', isMaterialSelected ? '' : content.trim());
         formData.append('post_type', selectedPostType);
@@ -623,10 +674,12 @@ export function useCreatePostForm({
         );
         formData.append('language_code', selectedLanguage);
 
+        // Link a quiz to its parent material, if chosen
         if (selectedMaterialId && isQuizSelected) {
             formData.append('parent_material_id', selectedMaterialId);
         }
 
+        // --- quiz fields: flatten each question into bracketed FormData keys ---
         if (isQuizSelected) {
             quizzes.forEach((quiz, qi) => {
                 formData.append(
@@ -652,6 +705,7 @@ export function useCreatePostForm({
             });
         }
 
+        // --- material fields: append each block; only the field matching its type ---
         if (isMaterialSelected) {
             setMaterialBlockError(null);
 
@@ -677,14 +731,17 @@ export function useCreatePostForm({
             });
         }
 
+        // Optional video link
         if (videoUrl.trim()) {
             formData.append('video_url', videoUrl.trim());
         }
 
+        // All attachment files
         attachments.forEach((attachment) => {
             formData.append('attachments[]', attachment.file);
         });
 
+        // POST via Inertia; forceFormData makes it send multipart so files upload correctly
         router.post('/posts', formData, {
             forceFormData: true,
             headers: {
@@ -692,6 +749,7 @@ export function useCreatePostForm({
                     ? { 'X-XSRF-TOKEN': xsrfToken }
                     : { 'X-CSRF-TOKEN': csrfToken }),
             },
+            // On validation failure, surface backend errors next to the relevant inputs
             onError: (errors) => {
                 const uploadError = Object.entries(errors).find(([key]) =>
                     key.startsWith('attachments'),
@@ -708,6 +766,7 @@ export function useCreatePostForm({
                     setMaterialBlockError(materialUploadError);
                 }
             },
+            // On success, release preview URLs and reset the whole form to its initial state
             onSuccess: () => {
                 attachmentsRef.current.forEach((attachment) => {
                     if (attachment.preview) {
@@ -727,25 +786,31 @@ export function useCreatePostForm({
                 setIsAnonymous(false);
                 setMaterialBlockError(null);
             },
+            // Always clear the submitting flag when the request finishes
             onFinish: () => setIsSubmitting(false),
         });
     };
 
+    // --- quiz question editing helpers ---
+    // Add a new empty quiz question
     const addQuiz = () => {
         setQuizzes((prev) => [...prev, createEmptyQuiz()]);
     };
 
+    // Remove a quiz question (always keep at least one)
     const removeQuiz = (qIndex: number) => {
         if (quizzes.length <= 1) return;
         setQuizzes((prev) => prev.filter((_, i) => i !== qIndex));
     };
 
+    // Update the question stem of one quiz
     const updateQuizQuestion = (qIndex: number, value: string) => {
         setQuizzes((prev) =>
             prev.map((q, i) => (i === qIndex ? { ...q, question: value } : q)),
         );
     };
 
+    // Update one option of one quiz
     const updateQuizOption = (
         qIndex: number,
         optIndex: number,
@@ -765,6 +830,7 @@ export function useCreatePostForm({
         );
     };
 
+    // Update which option is the correct answer for one quiz
     const updateQuizAnswerIndex = (qIndex: number, value: string) => {
         setQuizzes((prev) =>
             prev.map((q, i) =>
@@ -773,6 +839,7 @@ export function useCreatePostForm({
         );
     };
 
+    // Update the preferred slot for AI to place the correct answer (A/B/C/D/random)
     const updateQuizAiAnswerPlacement = (
         qIndex: number,
         value: QuizAiAnswerPlacement,
@@ -784,6 +851,7 @@ export function useCreatePostForm({
         );
     };
 
+    // AI-generate the 4 options for a question (requires the stem first); marks loading and handles errors per question
     const generateQuizOptions = async (qIndex: number) => {
         const quiz = quizzes[qIndex];
 
@@ -819,13 +887,13 @@ export function useCreatePostForm({
                 prev.map((item, index) =>
                     index === qIndex
                         ? {
-                              ...item,
-                              options: applyGeneratedOptionsToQuiz(
-                                  item.options,
-                                  result.options,
-                              ),
-                              answerIndex: String(result.answerIndex),
-                          }
+                            ...item,
+                            options: applyGeneratedOptionsToQuiz(
+                                item.options,
+                                result.options,
+                            ),
+                            answerIndex: String(result.answerIndex),
+                        }
                         : item,
                 ),
             );
@@ -849,6 +917,7 @@ export function useCreatePostForm({
         }
     };
 
+    // AI-generate a full quiz question from the selected material's content, then add it to the quiz list
     const generateQuizFromMaterial = async () => {
         const material = learningMaterials.find(
             (item) => String(item.id) === selectedMaterialId,
@@ -899,6 +968,7 @@ export function useCreatePostForm({
                 explanation: firstQuestion.explanation?.trim() ?? '',
             };
 
+            // Replace the list if it's just one empty placeholder; otherwise append
             setQuizzes((prev) => {
                 if (
                     prev.length === 0 ||
@@ -910,6 +980,7 @@ export function useCreatePostForm({
                 return [...prev, generatedQuiz];
             });
 
+            // Auto-fill a title/body from the material if the user left them blank
             if (!title.trim()) {
                 setTitle(`${material.title} Quiz`.slice(0, MAX_TITLE_LENGTH));
             }
@@ -934,10 +1005,13 @@ export function useCreatePostForm({
         }
     };
 
+    // --- study-material block editing helpers ---
+    // Append a new block of the given type
     const addMaterialBlock = (type: MaterialBlockType) => {
         setMaterialBlocks((prev) => [...prev, createMaterialBlock(type)]);
     };
 
+    // Patch fields of one block (by id)
     const updateMaterialBlock = (
         blockId: string,
         updates: Partial<MaterialContentBlock>,
@@ -949,6 +1023,7 @@ export function useCreatePostForm({
         );
     };
 
+    // Set/replace a block's file with validation; swaps its image preview URL and releases the old one
     const updateMaterialBlockFile = (blockId: string, file: File | null) => {
         setMaterialBlockError(null);
 
@@ -996,6 +1071,7 @@ export function useCreatePostForm({
         );
     };
 
+    // Remove a block (releasing its preview); never leave the list empty — fall back to one text block
     const removeMaterialBlock = (blockId: string) => {
         setMaterialBlocks((prev) => {
             const target = prev.find((block) => block.id === blockId);
@@ -1007,6 +1083,7 @@ export function useCreatePostForm({
         });
     };
 
+    // Move a block up (-1) or down (+1) in the list
     const moveMaterialBlock = (blockId: string, direction: -1 | 1) => {
         setMaterialBlocks((prev) => {
             const index = prev.findIndex((block) => block.id === blockId);
@@ -1022,6 +1099,7 @@ export function useCreatePostForm({
         });
     };
 
+    // Expose all state, derived values, and handlers for the page component (CreatePostPage.tsx) to render with
     return {
         fileInputRef,
         contentTextareaRef,

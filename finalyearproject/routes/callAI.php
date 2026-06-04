@@ -136,7 +136,7 @@ Route::middleware(['auth'])->group(function () {
         })
         ->implode("\n");
 
-    $prompt = "You are an expert quiz tutor. Respond entirely in {$lang}. Return ONLY valid JSON. No markdown, no code fences, no extra text.\n\n"
+    $prompt = "You are an expert quiz tutor. Return ONLY valid JSON. No markdown, no code fences, no extra text.\n\n"
         . "You must:\n"
         . "1. Analyze the question carefully.\n"
         . "2. Evaluate ALL options.\n"
@@ -152,7 +152,8 @@ Route::middleware(['auth'])->group(function () {
         . "Student selected answer: {$userAnswer}\n\n"
         . "Quiz creator's answer: {$creatorAnswer}\n\n"
         . "Return JSON in this exact shape:\n"
-        . '{"aiAnswer":"string","isUserCorrect":false,"matchesCreator":false,"explanation":"string","discrepancyAnalysis":"string","creatorReasoning":"string","ambiguityNote":"string","confidence":"high|medium|low"}';
+        . '{"aiAnswer":"string","isUserCorrect":false,"matchesCreator":false,"explanation":"string","discrepancyAnalysis":"string","creatorReasoning":"string","ambiguityNote":"string","confidence":"high|medium|low"}' . "\n\n"
+        . "CRITICAL LANGUAGE REQUIREMENT: The question and options above may be written in any language, but you MUST write EVERY text field in your JSON output (aiAnswer, explanation, discrepancyAnalysis, creatorReasoning, ambiguityNote) entirely in {$lang}. Do NOT mirror the language of the question or options. Translate any concepts into {$lang}. The ONLY exception is keeping technical terms, proper nouns, or option labels that have no natural {$lang} equivalent. Output language: {$lang}.";
 
     $decodeAnalysis = function (string $text) {
         $trimmed = trim($text);
@@ -184,7 +185,7 @@ Route::middleware(['auth'])->group(function () {
             ->post('https://api.deepseek.com/v1/chat/completions', [
                 'model'       => 'deepseek-chat',
                 'messages'    => [
-                    ['role' => 'system', 'content' => 'You are an expert quiz tutor. Always respond with valid JSON only.'],
+                    ['role' => 'system', 'content' => "You are an expert quiz tutor. Always respond with valid JSON only. All human-readable text in your response must be written in {$lang}, regardless of the language used in the question or options."],
                     ['role' => 'user',   'content' => $prompt],
                 ],
                 'temperature' => 0.4,
@@ -355,7 +356,7 @@ Route::middleware(['auth'])->group(function () {
             . "11. Keep math notation plain and concise, such as x = -9 or -9. Do not add extra explanation inside the options.\n"
         : '';
 
-    $prompt = "You are an expert teacher creating multiple-choice quiz options for students. Respond entirely in {$targetLanguage}. Return ONLY valid JSON. No markdown, no code fences, no extra text.\n\n"
+    $prompt = "You are an expert teacher creating multiple-choice quiz options for students. Return ONLY valid JSON. No markdown, no code fences, no extra text.\n\n"
         . "Task:\n"
         . "1. Generate exactly 4 answer options for the quiz question.\n"
         . "2. Exactly 1 option must be clearly correct.\n"
@@ -370,7 +371,8 @@ Route::middleware(['auth'])->group(function () {
         . "Question: {$question}\n\n"
         . $existingOptionsBlock
         . "Return JSON in this exact shape:\n"
-        . '{"options":["string","string","string","string"],"answerIndex":0,"explanation":"string"}';
+        . '{"options":["string","string","string","string"],"answerIndex":0,"explanation":"string"}' . "\n\n"
+        . "CRITICAL LANGUAGE REQUIREMENT: The question above may be written in any language, but you MUST write EVERY text field in your JSON output (every item in options, explanation) entirely in {$targetLanguage}. Do NOT mirror the language of the question. The ONLY exception is keeping technical terms or proper nouns that have no natural {$targetLanguage} equivalent. Output language: {$targetLanguage}.";
 
     $decodeResult = function (string $text) {
         $trimmed = trim($text);
@@ -397,13 +399,13 @@ Route::middleware(['auth'])->group(function () {
     };
 
     try {
-        $raw = (function () use ($prompt) {
+        $raw = (function () use ($prompt, $targetLanguage) {
             $res = Http::withToken(config('services.deepseek.key'))
                 ->timeout(25)
                 ->post('https://api.deepseek.com/v1/chat/completions', [
                     'model' => 'deepseek-chat',
                     'messages' => [
-                        ['role' => 'system', 'content' => 'You are an expert quiz writer. Always respond with valid JSON only.'],
+                        ['role' => 'system', 'content' => "You are an expert quiz writer. Always respond with valid JSON only. All human-readable text in your response must be written in {$targetLanguage}, regardless of the language used in the question."],
                         ['role' => 'user', 'content' => $prompt],
                     ],
                     'temperature' => 0.45,
@@ -565,7 +567,7 @@ Route::middleware(['auth'])->group(function () {
 
     $subjectLine = $subject !== '' ? "Subject: {$subject}\n" : '';
 
-    $prompt = "You are an expert teacher creating a quiz from a Study Material. Respond entirely in {$targetLanguage}. Return ONLY valid JSON. No markdown, no code fences, no extra text.\n\n"
+    $prompt = "You are an expert teacher creating a quiz from a Study Material. Return ONLY valid JSON. No markdown, no code fences, no extra text.\n\n"
         . "Task:\n"
         . "1. Generate exactly 1 multiple-choice question from the Study Material.\n"
         . "2. The question must check understanding of the material, not trivia outside it.\n"
@@ -578,7 +580,8 @@ Route::middleware(['auth'])->group(function () {
         . "Study Material Title: {$materialTitle}\n\n"
         . "Study Material Content:\n{$materialContent}\n\n"
         . "Return JSON in this exact shape:\n"
-        . '{"questions":[{"question":"string","options":["string","string","string","string"],"answerIndex":0,"explanation":"string"}]}';
+        . '{"questions":[{"question":"string","options":["string","string","string","string"],"answerIndex":0,"explanation":"string"}]}' . "\n\n"
+        . "CRITICAL LANGUAGE REQUIREMENT: The study material above may be written in any language, but you MUST write EVERY text field in your JSON output (question, every item in options, explanation) entirely in {$targetLanguage}. Do NOT mirror the language of the material. Translate any concepts into {$targetLanguage}. The ONLY exception is keeping technical terms or proper nouns that have no natural {$targetLanguage} equivalent. Output language: {$targetLanguage}.";
         
     $decodeResult = function (string $text) {
         $trimmed = trim($text);
@@ -605,13 +608,13 @@ Route::middleware(['auth'])->group(function () {
     };
 
     try {
-        $raw = (function () use ($prompt) {
+        $raw = (function () use ($prompt, $targetLanguage) {
             $res = Http::withToken(config('services.deepseek.key'))
                 ->timeout(30)
                 ->post('https://api.deepseek.com/v1/chat/completions', [
                     'model' => 'deepseek-chat',
                     'messages' => [
-                        ['role' => 'system', 'content' => 'You are an expert quiz writer. Always respond with valid JSON only.'],
+                        ['role' => 'system', 'content' => "You are an expert quiz writer. Always respond with valid JSON only. All human-readable text in your response must be written in {$targetLanguage}, regardless of the language used in the study material."],
                         ['role' => 'user', 'content' => $prompt],
                     ],
                     'temperature' => 0.35,
@@ -706,7 +709,7 @@ Route::middleware(['auth'])->group(function () {
         ? "Question: {$postTitle}\n\nContext / Description:\n{$postContent}\n\nBest Answer:\n{$answerContent}"
         : "Question: {$postTitle}\n\nBest Answer:\n{$answerContent}";
 
-    $prompt = "You are an expert tutor helping students understand answers. Respond entirely in {$lang}. Return ONLY valid JSON. No markdown, no code fences, no extra text.\n\n"
+    $prompt = "You are an expert tutor helping students understand answers. Return ONLY valid JSON. No markdown, no code fences, no extra text.\n\n"
         . "Your task:\n"
         . "1. Read the question and the best answer provided.\n"
         . "2. Write a clear, structured, educational explanation of WHY the answer is correct.\n"
@@ -715,7 +718,8 @@ Route::middleware(['auth'])->group(function () {
         . "5. Include any key concepts or principles involved.\n\n"
         . $contextBlock . "\n\n"
         . "Return JSON in this exact shape:\n"
-        . '{"explanation":"string","key_points":["string"],"summary":"string"}';
+        . '{"explanation":"string","key_points":["string"],"summary":"string"}' . "\n\n"
+        . "CRITICAL LANGUAGE REQUIREMENT: The question and answer above may be written in any language, but you MUST write EVERY text field in your JSON output (explanation, every item in key_points, summary) entirely in {$lang}. Do NOT mirror the language of the question or answer. Translate any concepts into {$lang}. The ONLY exception is keeping technical terms or proper nouns that have no natural {$lang} equivalent. Output language: {$lang}.";
 
     $decodeResult = function (string $text) {
         $trimmed = trim($text);
@@ -742,13 +746,13 @@ Route::middleware(['auth'])->group(function () {
     };
 
     try {
-        $raw = (function () use ($prompt) {
+        $raw = (function () use ($prompt, $lang) {
             $res = Http::withToken(config('services.deepseek.key'))
                 ->timeout(25)
                 ->post('https://api.deepseek.com/v1/chat/completions', [
                     'model'       => 'deepseek-chat',
                     'messages'    => [
-                        ['role' => 'system', 'content' => 'You are an expert tutor. Always respond with valid JSON only.'],
+                        ['role' => 'system', 'content' => "You are an expert tutor. Always respond with valid JSON only. All human-readable text in your response must be written in {$lang}, regardless of the language used in the question or answer."],
                         ['role' => 'user',   'content' => $prompt],
                     ],
                     'temperature' => 0.5,
@@ -850,7 +854,8 @@ Route::middleware(['auth'])->group(function () {
             . "Provide a clear, simple explanation that helps the student understand the comment. Keep it student-friendly and concise.\n\n"
             . $contextBlock . "\n\n"
             . "Return JSON in this exact shape:\n"
-            . '{"explanation":"string","guidance":"string"}';
+            . '{"explanation":"string","guidance":"string"}' . "\n\n"
+            . "CRITICAL LANGUAGE REQUIREMENT: The question, comment, and student confusion above may be written in any language, but you MUST write EVERY text field in your JSON output (explanation, guidance) entirely in {$lang}. Do NOT mirror the language of the inputs. Translate any concepts into {$lang}. The ONLY exception is keeping technical terms or proper nouns that have no natural {$lang} equivalent. Output language: {$lang}.";
 
         $decodeResult = function (string $text) {
             $trimmed = trim($text);
@@ -876,13 +881,13 @@ Route::middleware(['auth'])->group(function () {
             throw new \Exception('AI returned invalid JSON');
         };
 
-        $raw = (function () use ($prompt) {
+        $raw = (function () use ($prompt, $lang) {
             $res = Http::withToken(config('services.deepseek.key'))
                 ->timeout(20)
                 ->post('https://api.deepseek.com/v1/chat/completions', [
                     'model'       => 'deepseek-chat',
                     'messages'    => [
-                        ['role' => 'system', 'content' => 'You are a supportive tutor. Always respond with valid JSON only.'],
+                        ['role' => 'system', 'content' => "You are a supportive tutor. Always respond with valid JSON only. All human-readable text in your response must be written in {$lang}, regardless of the language used in the inputs."],
                         ['role' => 'user',   'content' => $prompt],
                     ],
                     'temperature' => 0.4,
@@ -924,13 +929,7 @@ Route::middleware(['auth'])->group(function () {
 
 })->middleware(['web', 'throttle:20,1']);
 
-    /*
-    |----------------------------------------------------------------------
-    | POST /ai-validate-wrong
-    | Validate a user's report that a given answer is wrong.
-    |----------------------------------------------------------------------
-    */
-    Route::post('/ai-validate-wrong', function (Request $request) {
+Route::post('/ai-validate-wrong', function (Request $request) {
     try {
         $validator = Validator::make($request->all(), [
             'post_title'     => ['required', 'string', 'max:300'],
@@ -997,8 +996,9 @@ Route::middleware(['auth'])->group(function () {
             or not evaluable. But the reason should still identify that issue in simple words.\n\n"
             . "Return JSON in this exact shape:\n"
             . '{"is_wrong":true,"category":"nonsense","message":"short user-friendly explanation"}' . "\n\n"
-            . "Allowed category values: nonsense, irrelevant, factual_error, 
+            . "Allowed category values: nonsense, irrelevant, factual_error,
             logical_error, misleading, insufficient_answer, not_wrong.\n\n"
+            . "CRITICAL LANGUAGE REQUIREMENT: The inputs above may be written in any language, but the \"message\" field MUST be written entirely in {$lang}, regardless of the language of the question, comment, or report reason. Do NOT mirror the input language. The \"category\" field MUST stay one of the exact English values listed above. Output language for message: {$lang}.\n\n"
             . $contextBlock . "\n\n"
             . "Decision:";
 
@@ -1036,13 +1036,13 @@ Route::middleware(['auth'])->group(function () {
             'not_wrong',
         ];
 
-        $raw = (function () use ($prompt) {
+        $raw = (function () use ($prompt, $lang) {
             $res = Http::withToken(config('services.deepseek.key'))
                 ->timeout(20)
                 ->post('https://api.deepseek.com/v1/chat/completions', [
                     'model'       => 'deepseek-chat',
                     'messages'    => [
-                        ['role' => 'system', 'content' => 'You are a fair academic evaluator. Always respond with valid JSON only.'],
+                        ['role' => 'system', 'content' => "You are a fair academic evaluator. Always respond with valid JSON only. The human-readable \"message\" field must be written in {$lang} regardless of the input language; the \"category\" field must stay one of the exact English enum values."],
                         ['role' => 'user',   'content' => $prompt],
                     ],
                     'temperature' => 0.2,
