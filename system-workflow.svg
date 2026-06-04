@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">JomStudy System Workflow</title>
+  <desc id="desc">A simple landscape workflow diagram for JomStudy with nine horizontal steps.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font: 700 48px Arial, Helvetica, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 22px Arial, Helvetica, sans-serif; fill: #475569; }
+      .step { fill: #ffffff; stroke: #2563eb; stroke-width: 3; rx: 18; }
+      .step-title { font: 700 22px Arial, Helvetica, sans-serif; fill: #1d4ed8; }
+      .step-main { font: 700 20px Arial, Helvetica, sans-serif; fill: #0f172a; }
+      .step-note { font: 400 15px Arial, Helvetica, sans-serif; fill: #475569; }
+      .arrow { fill: none; stroke: #64748b; stroke-width: 4; }
+    </style>
+    <marker id="arrowhead" markerWidth="16" markerHeight="16" refX="14" refY="8" orient="auto" markerUnits="strokeWidth">
+      <path d="M 2 2 L 14 8 L 2 14 z" fill="#64748b"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1920" height="1080"/>
+
+  <text class="title" x="80" y="120">JomStudy System Workflow</text>
+  <text class="subtitle" x="82" y="160">Simple high-level process flow of the AI-powered learning community platform.</text>
+
+  <rect class="step" filter="url(#shadow)" x="70" y="410" width="180" height="190"/>
+  <text class="step-title" x="105" y="460">Step 1</text>
+  <text class="step-main" x="105" y="505">User</text>
+  <text class="step-main" x="105" y="532">Access</text>
+  <text class="step-note" x="105" y="570">Open website</text>
+
+  <rect class="step" filter="url(#shadow)" x="275" y="410" width="180" height="190"/>
+  <text class="step-title" x="310" y="460">Step 2</text>
+  <text class="step-main" x="310" y="505">Login /</text>
+  <text class="step-main" x="310" y="532">Register</text>
+  <text class="step-note" x="310" y="570">Account check</text>
+
+  <rect class="step" filter="url(#shadow)" x="480" y="410" width="180" height="190"/>
+  <text class="step-title" x="515" y="460">Step 3</text>
+  <text class="step-main" x="515" y="505">Browse</text>
+  <text class="step-main" x="515" y="532">Content</text>
+  <text class="step-note" x="515" y="570">Feed / search</text>
+
+  <rect class="step" filter="url(#shadow)" x="685" y="410" width="180" height="190"/>
+  <text class="step-title" x="720" y="460">Step 4</text>
+  <text class="step-main" x="720" y="505">User</text>
+  <text class="step-main" x="720" y="532">Action</text>
+  <text class="step-note" x="720" y="570">Post / quiz</text>
+
+  <rect class="step" filter="url(#shadow)" x="890" y="410" width="180" height="190"/>
+  <text class="step-title" x="925" y="460">Step 5</text>
+  <text class="step-main" x="925" y="505">System</text>
+  <text class="step-main" x="925" y="532">Process</text>
+  <text class="step-note" x="925" y="570">Validate data</text>
+
+  <rect class="step" filter="url(#shadow)" x="1095" y="410" width="180" height="190"/>
+  <text class="step-title" x="1130" y="460">Step 6</text>
+  <text class="step-main" x="1130" y="505">AI</text>
+  <text class="step-main" x="1130" y="532">Support</text>
+  <text class="step-note" x="1130" y="570">DeepSeek</text>
+
+  <rect class="step" filter="url(#shadow)" x="1300" y="410" width="180" height="190"/>
+  <text class="step-title" x="1335" y="460">Step 7</text>
+  <text class="step-main" x="1335" y="505">Update</text>
+  <text class="step-main" x="1335" y="532">Progress</text>
+  <text class="step-note" x="1335" y="570">Points / badges</text>
+
+  <rect class="step" filter="url(#shadow)" x="1505" y="410" width="180" height="190"/>
+  <text class="step-title" x="1540" y="460">Step 8</text>
+  <text class="step-main" x="1540" y="505">Review</text>
+  <text class="step-main" x="1540" y="532">Content</text>
+  <text class="step-note" x="1540" y="570">Teacher / admin</text>
+
+  <rect class="step" filter="url(#shadow)" x="1710" y="410" width="150" height="190"/>
+  <text class="step-title" x="1738" y="460">Step 9</text>
+  <text class="step-main" x="1738" y="505">Display</text>
+  <text class="step-main" x="1738" y="532">Result</text>
+  <text class="step-note" x="1738" y="570">Updated UI</text>
+
+  <path class="arrow" marker-end="url(#arrowhead)" d="M250 505 H275"/>
+  <path class="arrow" marker-end="url(#arrowhead)" d="M455 505 H480"/>
+  <path class="arrow" marker-end="url(#arrowhead)" d="M660 505 H685"/>
+  <path class="arrow" marker-end="url(#arrowhead)" d="M865 505 H890"/>
+  <path class="arrow" marker-end="url(#arrowhead)" d="M1070 505 H1095"/>
+  <path class="arrow" marker-end="url(#arrowhead)" d="M1275 505 H1300"/>
+  <path class="arrow" marker-end="url(#arrowhead)" d="M1480 505 H1505"/>
+  <path class="arrow" marker-end="url(#arrowhead)" d="M1685 505 H1710"/>
+</svg>
