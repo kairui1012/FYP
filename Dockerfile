@@ -1,17 +1,17 @@
 FROM composer:2 AS vendor
 
 WORKDIR /app
-COPY finalyearproject/composer.json finalyearproject/composer.lock ./
+COPY jomstudy-app/composer.json jomstudy-app/composer.lock ./
 RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader --no-scripts
-COPY finalyearproject/ ./
+COPY jomstudy-app/ ./
 RUN php artisan wayfinder:generate
 
 FROM node:22-alpine AS frontend
 
 WORKDIR /app
-COPY finalyearproject/package.json finalyearproject/package-lock.json* ./
+COPY jomstudy-app/package.json jomstudy-app/package-lock.json* ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
-COPY finalyearproject/ ./
+COPY jomstudy-app/ ./
 COPY --from=vendor /app/resources/js/actions ./resources/js/actions
 COPY --from=vendor /app/resources/js/routes ./resources/js/routes
 COPY --from=vendor /app/resources/js/wayfinder ./resources/js/wayfinder
@@ -37,7 +37,7 @@ RUN apk add --no-cache \
 	zip
 
 COPY --from=vendor /app/vendor ./vendor
-COPY finalyearproject/ ./
+COPY jomstudy-app/ ./
 COPY --from=frontend /app/public/build ./public/build
 RUN rm -f bootstrap/cache/*.php \
 	&& mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs
