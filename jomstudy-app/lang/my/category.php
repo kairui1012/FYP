@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'description' => 'Pilih tag bahasa atau subjek untuk melihat kiriman yang sepadan sahaja.',
+    'total_posts' => 'Jumlah kiriman',
+    'content_type' => 'Jenis kandungan',
+    'clear_all' => 'Kosongkan semua',
+    'view_all_posts' => 'Lihat semua kiriman',
+    'apply_filters' => 'Guna penapis',
+    'language_tags' => 'Tag bahasa',
+    'no_language_tags' => 'Tiada tag bahasa lagi.',
+    'subject_tags' => 'Tag subjek',
+    'no_subject_tags' => 'Tiada tag subjek lagi.',
+    'tap_to_filter' => 'Ketuk untuk menapis kiriman',
+    'type_all' => 'Semua kandungan',
+    'type_all_desc' => 'Semua kandungan di platform',
+    'type_material' => 'Bahan pembelajaran',
+    'type_material_desc' => 'Pelajaran dan sumber berstruktur',
+    'type_question' => 'Forum soal jawab',
+    'type_question_desc' => 'Soalan dan jawapan komuniti',
+    'type_quiz' => 'Kuiz',
+    'type_quiz_desc' => 'Uji pengetahuan anda',
+    'language_name_zh' => '中文',
+    'language_name_en' => 'Bahasa Inggeris',
+    'language_name_my' => 'Bahasa Malaysia',
+];

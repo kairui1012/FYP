@@ -1,0 +1,10 @@
+{
+    "not_found_title": "页面不存在",
+    "not_found_description": "你要访问的页面不存在，链接可能输入错误、已过期，或内容已被移除。",
+    "server_error_title": "系统暂时出现问题",
+    "server_error_description": "我们暂时无法完成这个请求，请稍后再试。",
+    "home_button": "返回首页",
+    "back_button": "返回上一页",
+    "refresh_button": "刷新页面",
+    "support_hint": "如果问题持续出现，请先返回首页，稍后再尝试。"
+}

@@ -1,0 +1,27 @@
+User-agent: *
+Allow: /
+
+# Private/authenticated app areas
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /homePage
+Disallow: /posts/
+Disallow: /bookmarks
+Disallow: /profilePage/
+Disallow: /following
+Disallow: /leaderboard
+Disallow: /learning-materials
+Disallow: /questions
+Disallow: /createPostPage
+Disallow: /achievements
+Disallow: /categories
+Disallow: /search
+Disallow: /teacher/
+
+# Authentication pages generally do not need indexing
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: /sitemap.xml

@@ -1,0 +1,47 @@
+import { Link } from '@inertiajs/react';
+import {
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+} from '@/components/ui/sidebar';
+import { useCurrentUrl } from '@/hooks/use-current-url';
+import { toUrl } from '@/lib/utils';
+import type { NavItem } from '@/types';
+
+type NavMainProps = {
+    items: NavItem[];
+    groupLabel?: string;
+};
+
+export function NavMain({ items = [], groupLabel = 'Platform' }: NavMainProps) {
+    const { isCurrentUrl } = useCurrentUrl();
+
+    return (
+        <SidebarGroup className="px-2 py-0">
+            <SidebarGroupLabel>{groupLabel}</SidebarGroupLabel>
+            <SidebarMenu>
+                {items.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                            asChild
+                            isActive={isCurrentUrl(item.href)}
+                            className="ml-0 mr-auto h-10 w-[87.5%] text-[15px] data-[active=true]:bg-[#e36a8b] data-[active=true]:text-white"
+                            tooltip={{ children: item.title }}
+                        >
+                            <Link
+                                href={toUrl(item.href)}
+                                prefetch
+                                onClick={item.onClick}
+                            >
+                                {item.icon && <item.icon />}
+                                <span>{item.title}</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                ))}
+            </SidebarMenu>
+        </SidebarGroup>
+    );
+}
