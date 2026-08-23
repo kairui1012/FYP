@@ -1,6 +1,6 @@
 import { Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { trans } from '@/components/post-content/post-content-config';
+import { trans } from '@/component-new/config/post-content-config';
 import { cn } from '@/lib/utils';
 import type { PostItem } from '@/types';
 

@@ -1,10 +1,10 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Form, Head } from '@inertiajs/react';
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
+import InputError from '@/component-new/shared/input-error';
+import { Button } from '@/component-new/button/button';
+import { Input } from '@/component-new/ui/input';
+import { Label } from '@/component-new/ui/label';
+import { Spinner } from '@/component-new/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { store } from '@/routes/password/confirm';
 

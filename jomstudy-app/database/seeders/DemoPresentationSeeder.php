@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\BookmarkFolder;
 use App\Models\BookmarkItem;
 use App\Models\Comment;
 use App\Models\CommentLike;
@@ -132,7 +131,6 @@ class DemoPresentationSeeder extends Seeder
                     'Students should highlight sign changes before writing the final simplified expression.',
                     'A two-line checking routine is included to reduce careless sign mistakes.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
                 'image' => 'https://images.unsplash.com/photo-1509228468518-180dd4864904',
                 'created_at' => now()->subDays(9),
             ],
@@ -143,7 +141,6 @@ class DemoPresentationSeeder extends Seeder
                     'Use color-coding during early practice to improve term recognition speed.',
                     'A mini drill is included to build fluency for exam conditions.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=2g811Eo7K8U',
                 'image' => 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40',
                 'created_at' => now()->subDays(8),
             ],
@@ -154,7 +151,6 @@ class DemoPresentationSeeder extends Seeder
                     'Students learn to isolate variables systematically without skipping steps.',
                     'Common misconceptions are listed with quick correction tips.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=3Yv3gR6I2dA',
                 'image' => 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173',
                 'created_at' => now()->subDays(8),
             ],
@@ -165,7 +161,6 @@ class DemoPresentationSeeder extends Seeder
                     'Students practice deciding the fastest approach based on the question type.',
                     'Error checks are included for numerator-denominator confusion.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=HfACrKJ_Y2w',
                 'image' => 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b',
                 'created_at' => now()->subDays(7),
             ],
@@ -176,7 +171,6 @@ class DemoPresentationSeeder extends Seeder
                     'The lesson emphasises difference between percentage points and percent change.',
                     'A short checklist helps avoid inverse-operation mistakes.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=3evj5m8lJ0w',
                 'image' => 'https://images.unsplash.com/photo-1523240795612-9a054b0db644',
                 'created_at' => now()->subDays(7),
             ],
@@ -187,7 +181,6 @@ class DemoPresentationSeeder extends Seeder
                     'Students practise translating text into ratio statements clearly.',
                     'The final section compares direct and inverse proportion patterns.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=X2nYl8Q9L2k',
                 'image' => 'https://images.unsplash.com/photo-1498079022511-d15614cb1c02',
                 'created_at' => now()->subDays(6),
             ],
@@ -198,7 +191,6 @@ class DemoPresentationSeeder extends Seeder
                     'The material teaches annotation habits before solving.',
                     'A quick challenge set builds confidence for structured questions.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=b7LqzH6o8zU',
                 'image' => 'https://images.unsplash.com/photo-1513258496099-48168024aec0',
                 'created_at' => now()->subDays(6),
             ],
@@ -209,7 +201,6 @@ class DemoPresentationSeeder extends Seeder
                     'Students practise plotting points before substituting into formulas.',
                     'A diagnostic section targets common substitution and sign errors.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=QVKj3LADCnA',
                 'image' => 'https://images.unsplash.com/photo-1460518451285-97b6aa326961',
                 'created_at' => now()->subDays(5),
             ],
@@ -220,7 +211,6 @@ class DemoPresentationSeeder extends Seeder
                     'Students evaluate outliers before selecting an answer.',
                     'Realistic school-based examples improve interpretation skills.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=xxpc-HPKN28',
                 'image' => 'https://images.unsplash.com/photo-1551288049-bebda4e38f71',
                 'created_at' => now()->subDays(5),
             ],
@@ -231,7 +221,6 @@ class DemoPresentationSeeder extends Seeder
                     'The lesson reinforces probability values between 0 and 1.',
                     'Checking strategies are included for complete outcome listing.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=SkidyDQuupA',
                 'image' => 'https://images.unsplash.com/photo-1519452575417-564c1401ecc0',
                 'created_at' => now()->subDays(4),
             ],
@@ -242,7 +231,6 @@ class DemoPresentationSeeder extends Seeder
                     '学生将练习把事实例子和观点紧密连接。',
                     '附上常见逻辑跳跃问题与修正方式。',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=5MgBikgcWnY',
                 'image' => 'https://images.unsplash.com/photo-1456324504439-367cee3b3c32',
                 'created_at' => now()->subDays(4),
             ],
@@ -253,7 +241,6 @@ class DemoPresentationSeeder extends Seeder
                     'Pelajar belajar menambah nilai hujah tanpa mengulang ayat yang sama.',
                     'Disertakan latihan ringkas untuk semakan kendiri.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=YQHsXMglC9A',
                 'image' => 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e',
                 'created_at' => now()->subDays(3),
             ],
@@ -264,7 +251,6 @@ class DemoPresentationSeeder extends Seeder
                     'Students allocate time between concept recap and error correction drills.',
                     'A priority matrix helps decide what to revise first.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=ZXsQAXx_ao0',
                 'image' => 'https://images.unsplash.com/photo-1455390582262-044cdead277a',
                 'created_at' => now()->subDays(2),
             ],
@@ -275,7 +261,6 @@ class DemoPresentationSeeder extends Seeder
                     'Students compare wrong and corrected solutions side by side.',
                     'A 60-second final check routine is included.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=R0eQGf_lxA0',
                 'image' => 'https://images.unsplash.com/photo-1484417894907-623942c8ee29',
                 'created_at' => now()->subDays(2),
             ],
@@ -286,7 +271,6 @@ class DemoPresentationSeeder extends Seeder
                     'The reflection section encourages deliberate weekly improvements.',
                     'Teachers can use it to give focused feedback quickly.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=0KSOMA3QBU0',
                 'image' => 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6',
                 'created_at' => now()->subDay(),
             ],
@@ -297,7 +281,6 @@ class DemoPresentationSeeder extends Seeder
                     'Students learn a realistic consistency model instead of last-minute cramming.',
                     'Includes a printable daily tracker format.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=JGwWNGJdvx8',
                 'image' => 'https://images.unsplash.com/photo-1472289065668-ce650ac443d2',
                 'created_at' => now()->subDay(),
             ],
@@ -308,7 +291,6 @@ class DemoPresentationSeeder extends Seeder
                     'Students practise estimation first, then exact calculation.',
                     'The final tip section reduces rushed-answer errors.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=hT_nvWreIhg',
                 'image' => 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570',
                 'created_at' => now()->subDay(),
             ],
@@ -319,7 +301,6 @@ class DemoPresentationSeeder extends Seeder
                     'This lesson separates relevant from distracting information.',
                     'A worked checklist is provided for structured responses.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=fLexgOxsZu0',
                 'image' => 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846',
                 'created_at' => now()->subDay(),
             ],
@@ -330,7 +311,6 @@ class DemoPresentationSeeder extends Seeder
                     'Students connect gradient behavior to real-world interpretation.',
                     'Sentence stems are included for exam-style explanation questions.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=09R8_2nJtjg',
                 'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f',
                 'created_at' => now()->subDay(),
             ],
@@ -341,7 +321,6 @@ class DemoPresentationSeeder extends Seeder
                     'Students choose one corrective set and one mastery set each day.',
                     'The progress tracker links effort directly to measurable outcomes.',
                 ],
-                'video_url' => 'https://www.youtube.com/watch?v=60ItHLz5WEA',
                 'image' => 'https://images.unsplash.com/photo-1509062522246-3755977927d7',
                 'created_at' => now(),
             ],
@@ -358,7 +337,6 @@ class DemoPresentationSeeder extends Seeder
                 true,
                 $material['created_at'],
                 $material['image'],
-                $material['video_url'],
             );
         });
 
@@ -1076,12 +1054,9 @@ class DemoPresentationSeeder extends Seeder
             }
         }
 
-        $defaultFolder = BookmarkFolder::defaultFor($student);
-
         foreach ($commentTargets as $post) {
             BookmarkItem::query()->create([
                 'user_id' => $student->id,
-                'bookmark_folder_id' => $defaultFolder->id,
                 'post_id' => $post->id,
                 'created_at' => now()->subDays(2),
                 'updated_at' => now()->subDays(2),
@@ -1550,7 +1525,6 @@ class DemoPresentationSeeder extends Seeder
             'subject_id' => $subjectId,
             'language_id' => $languageId,
             'image' => null,
-            'video_url' => null,
             'material_improved_from_feedback' => false,
             'created_at' => $createdAt,
             'updated_at' => $createdAt,
@@ -1566,7 +1540,6 @@ class DemoPresentationSeeder extends Seeder
         bool $improvedFromFeedback,
         $createdAt,
         ?string $image = null,
-        ?string $videoUrl = null,
     ): Post {
         return Post::query()->create($this->filterColumns('posts', [
             'user_id' => $teacher->id,
@@ -1583,7 +1556,6 @@ class DemoPresentationSeeder extends Seeder
             'subject_id' => $subjectId,
             'language_id' => $languageId,
             'image' => $image ? [$image] : null,
-            'video_url' => $videoUrl,
             'material_improved_from_feedback' => $improvedFromFeedback,
             'created_at' => $createdAt,
             'updated_at' => $createdAt,
@@ -1613,7 +1585,6 @@ class DemoPresentationSeeder extends Seeder
             'subject_id' => $subjectId,
             'language_id' => $languageId,
             'image' => null,
-            'video_url' => null,
             'material_improved_from_feedback' => false,
             'created_at' => $createdAt,
             'updated_at' => $createdAt,

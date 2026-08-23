@@ -1,7 +1,7 @@
-import { trans } from '@/components/post-content/post-content-config';
+import { trans } from '@/component-new/config/post-content-config';
 import { MaterialLearningPath } from '@/components/post-content/study-material/material-learning-path';
 import { StudyMaterialBlocks } from '@/components/post-content/study-material/study-material-blocks';
-import { MaterialLearningStateBadge } from '@/components/ui/material-learning-state-badge';
+import { MaterialLearningStateBadge } from '@/component-new/badge/material-learning-state-badge';
 import type { MaterialContentBlock, PostItem } from '@/types';
 
 type MaterialPostSectionsProps = {

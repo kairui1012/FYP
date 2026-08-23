@@ -2,14 +2,14 @@ import { reactLang } from '@erag/lang-sync-inertia';
 import { router, usePage } from '@inertiajs/react';
 import { Ban, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/component-new/button/button';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select';
+} from '@/component-new/ui/select';
 import {
     Table,
     TableBody,
@@ -17,8 +17,8 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from '@/components/ui/table';
-import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
+} from '@/component-new/ui/table';
+import { VerifiedTeacherBadge } from '@/component-new/badge/verified-teacher-badge';
 import AdminLayout from '@/layouts/admin/admin-layout';
 import { isVerifiedTeacher } from '@/lib/verified-teacher';
 

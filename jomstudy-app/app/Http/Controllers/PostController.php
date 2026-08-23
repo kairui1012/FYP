@@ -11,9 +11,9 @@ use App\Models\QuizCompletion;
 use App\Models\Subject;
 use App\Services\LearningProgressService;
 use App\Services\MaterialVersionService;
+use App\Services\PointsService;
 use App\Services\PostQueryBuilder;
 use App\Services\PostSerializationService;
-use App\Services\PointsService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -156,8 +156,8 @@ class PostController extends Controller
      * Render home page with paginated posts, filtered by type/language/subject.
      * Attaches learning states and material feedback summaries to posts.
      *
-     * @param string|array|null $forcedPostType Force posts to specific type(s), overriding user filter
-     * @param string $pageContext Page identifier for frontend context (home, questions, materials)
+     * @param  string|array|null  $forcedPostType  Force posts to specific type(s), overriding user filter
+     * @param  string  $pageContext  Page identifier for frontend context (home, questions, materials)
      */
     private function renderHomePage(Request $request, string|array|null $forcedPostType = null, string $pageContext = 'home'): Response
     {
@@ -207,7 +207,7 @@ class PostController extends Controller
         $serializedPosts = $posts
             ->map(fn (Post $post) => $this->serializationService->serialize($post, $followingIds));
 
-        return Inertia::render('HomePage', [
+        return Inertia::render('homePage', [
             'posts' => $serializedPosts,
             'pagination' => $this->paginationMeta($paginator),
             'learningOverview' => $this->learningProgressService->buildLearningOverview($request->user()),
@@ -314,9 +314,8 @@ class PostController extends Controller
                 'title' => ['required', 'string', 'max:150'],
                 'content' => ['nullable', 'string', 'max:2000'],
                 'material_blocks' => ['required', 'array', 'min:1'],
-                'material_blocks.*.type' => ['required_with:material_blocks', 'string', Rule::in(['text', 'image', 'document', 'video'])],
+                'material_blocks.*.type' => ['required_with:material_blocks', 'string', Rule::in(['text', 'image', 'document'])],
                 'material_blocks.*.text' => ['nullable', 'string', 'max:4000'],
-                'material_blocks.*.url' => ['nullable', 'string', 'max:500'],
                 'material_blocks.*.existing_path' => ['nullable', 'string', 'max:500'],
                 'material_blocks.*.existing_name' => ['nullable', 'string', 'max:255'],
                 'material_blocks.*.existing_mime' => ['nullable', 'string', 'max:255'],
@@ -362,7 +361,7 @@ class PostController extends Controller
 
     /**
      * Normalize and validate material blocks from update request.
-     * Handles new file uploads, retains existing file references, and validates video URLs.
+     * Handles new file uploads and retains existing file references.
      */
     private function normalizeMaterialBlocksForUpdate(Request $request, Post $post, array $blocks): array
     {
@@ -379,17 +378,6 @@ class PostController extends Controller
 
                 if ($text !== '') {
                     $normalized[] = ['type' => 'text', 'text' => $text];
-                }
-
-                continue;
-            }
-
-            if ($type === 'video') {
-                $url = trim((string) ($block['url'] ?? ''));
-
-                if ($url !== '') {
-                    $this->validateMaterialVideoUrl($url, $index);
-                    $normalized[] = ['type' => 'video', 'url' => $url];
                 }
 
                 continue;
@@ -439,43 +427,12 @@ class PostController extends Controller
         foreach ($blocks as $block) {
             if (($block['type'] ?? null) === 'text') {
                 $parts[] = (string) ($block['text'] ?? '');
-            } elseif (($block['type'] ?? null) === 'video') {
-                $parts[] = (string) ($block['url'] ?? '');
             } elseif (isset($block['name'])) {
                 $parts[] = (string) $block['name'];
             }
         }
 
         return collect($parts)->flatten()->filter()->implode("\n\n");
-    }
-
-    /**
-     * Validate that material block URL is a valid http/https URL.
-     * Throws ValidationException if invalid.
-     */
-    private function validateMaterialVideoUrl(string $url, int|string $index): void
-    {
-        if ($this->isValidHttpUrl($url)) {
-            return;
-        }
-
-        throw ValidationException::withMessages([
-            "material_blocks.{$index}.url" => 'Enter a valid video URL.',
-        ]);
-    }
-
-    /**
-     * Check if URL is a valid http or https URL.
-     */
-    private function isValidHttpUrl(string $url): bool
-    {
-        if (! filter_var($url, FILTER_VALIDATE_URL)) {
-            return false;
-        }
-
-        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
-
-        return in_array($scheme, ['http', 'https'], true);
     }
 
     /**

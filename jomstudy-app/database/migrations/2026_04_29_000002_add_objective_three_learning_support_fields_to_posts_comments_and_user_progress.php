@@ -28,7 +28,7 @@ return new class extends Migration
             if (! Schema::hasColumn('posts', 'material_improved_from_feedback')) {
                 $table->boolean('material_improved_from_feedback')
                     ->default(false)
-                    ->after('video_url');
+                    ->after('content_blocks');
             }
         });
     }

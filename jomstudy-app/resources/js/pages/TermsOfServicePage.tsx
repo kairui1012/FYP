@@ -1,7 +1,7 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head } from '@inertiajs/react';
 import type { ReactElement, ReactNode } from 'react';
-import { AppHeaderForUnlogin } from '@/components/app-header-for-unlogin';
+import { AppHeaderForUnlogin } from '@/component-new/header/header-for-unlogin';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 

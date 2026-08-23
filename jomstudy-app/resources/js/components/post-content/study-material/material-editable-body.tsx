@@ -3,7 +3,6 @@ import {
     ArrowUp,
     FileText,
     Image,
-    Link as LinkIcon,
     Plus,
     Save,
     Text,
@@ -12,13 +11,12 @@ import {
 } from 'lucide-react';
 import type { PostContentTransFn } from '../types';
 
-export type EditableMaterialBlockType = 'text' | 'image' | 'document' | 'video';
+export type EditableMaterialBlockType = 'text' | 'image' | 'document';
 
 export type EditableMaterialBlock = {
     id: string;
     type: EditableMaterialBlockType;
     text: string;
-    url: string;
     file: File | null;
     preview: string | null;
     existingPath: string | null;
@@ -52,13 +50,11 @@ const blockOptions: Array<{
     labelKey:
         | 'material_text_block'
         | 'material_image_block'
-        | 'material_document_block'
-        | 'material_video_block';
+        | 'material_document_block';
 }> = [
     { type: 'text', icon: Text, labelKey: 'material_text_block' },
     { type: 'image', icon: Image, labelKey: 'material_image_block' },
     { type: 'document', icon: FileText, labelKey: 'material_document_block' },
-    { type: 'video', icon: LinkIcon, labelKey: 'material_video_block' },
 ];
 
 function assetUrl(path: string) {
@@ -142,15 +138,10 @@ export function MaterialEditableBody({
                                                 'createPost.material_image_block',
                                                 page,
                                             )
-                                          : block.type === 'document'
-                                            ? trans(
-                                                  'createPost.material_document_block',
-                                                  page,
-                                              )
-                                            : trans(
-                                                  'createPost.material_video_block',
-                                                  page,
-                                              )}
+                                          : trans(
+                                                'createPost.material_document_block',
+                                                page,
+                                            )}
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <button
@@ -212,24 +203,6 @@ export function MaterialEditableBody({
                                         page,
                                     )}
                                     className="w-full resize-y rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm leading-6 text-zinc-800 transition outline-none placeholder:text-zinc-400 focus:border-violet-300 focus:bg-white focus:ring-2 focus:ring-violet-100 disabled:opacity-70"
-                                />
-                            ) : null}
-
-                            {block.type === 'video' ? (
-                                <input
-                                    type="url"
-                                    value={block.url}
-                                    onChange={(event) =>
-                                        onUpdateBlock(block.id, {
-                                            url: event.target.value,
-                                        })
-                                    }
-                                    disabled={editLoading}
-                                    placeholder={trans(
-                                        'createPost.material_video_placeholder',
-                                        page,
-                                    )}
-                                    className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-800 transition outline-none placeholder:text-zinc-400 focus:border-violet-300 focus:bg-white focus:ring-2 focus:ring-violet-100 disabled:opacity-70"
                                 />
                             ) : null}
 

@@ -4,7 +4,7 @@ import { PostActionFooter } from '@/components/post-content/post-action-footer';
 import { PostAttachmentsSection } from '@/components/post-content/post-attachments-section';
 import { PostBackAuthorHeader } from '@/components/post-content/post-back-author-header';
 import { PostContentCommentsPanel } from '@/components/post-content/post-content-comments-panel';
-import { trans } from '@/components/post-content/post-content-config';
+import { trans } from '@/component-new/config/post-content-config';
 import { PostContentMainSection } from '@/components/post-content/post-content-main-section';
 import { PostDeleteModal } from '@/components/post-content/post-delete-modal';
 import { PostTranslateActions } from '@/components/post-content/post-translate-actions';

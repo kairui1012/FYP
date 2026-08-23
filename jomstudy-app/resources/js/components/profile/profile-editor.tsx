@@ -1,5 +1,5 @@
 import { Camera, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/component-new/button/button';
 import type { TransFn } from './types';
 
 export function ProfileEditor({

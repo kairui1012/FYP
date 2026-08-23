@@ -1,9 +1,9 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { AnonymousToggleSection } from '@/components/create-post/anonymous-toggle-section';
-import { AttachmentsSection } from '@/components/create-post/attachments-section';
-import { ContentComposerSection } from '@/components/create-post/content-composer-section';
+import { AnonymousToggleSection } from '@/component-new/section/anonymous-toggle-section';
+import { AttachmentsSection } from '@/component-new/section/attachments-section';
+import { ContentComposerSection } from '@/component-new/section/content-composer-section';
 import {
     ACCEPTED_FILE_TYPES,
     MAX_CONTENT_LENGTH,
@@ -15,19 +15,17 @@ import {
     pillChoiceIdle,
     pillIconButton,
     pillSubmitButton,
-} from '@/components/create-post/create-post-config';
-import type { LearningMaterialOption } from '@/components/create-post/create-post-config';
-import { CreatePostHeaderSection } from '@/components/create-post/create-post-header-section';
-import { LanguageSection } from '@/components/create-post/language-section';
-import { MaterialLinkSection } from '@/components/create-post/material-link-section';
-import { PostTypeSection } from '@/components/create-post/post-type-section';
-import { QuizSetupSection } from '@/components/create-post/quiz-setup-section';
-import { StudyMaterialBlockEditor } from '@/components/create-post/study-material-block-editor';
-import { SubjectSection } from '@/components/create-post/subject-section';
-import { SubmitPostButton } from '@/components/create-post/submit-post-button';
-import { TitleInputSection } from '@/components/create-post/title-input-section';
-import { useCreatePostForm } from '@/components/create-post/use-create-post-form';
-import { VideoLinkSection } from '@/components/create-post/video-link-section';
+} from '@/component-new/config/create-post-config';
+import type { LearningMaterialOption } from '@/component-new/config/create-post-config';
+import { LanguageSection } from '@/component-new/section/language-section';
+import { MaterialLinkSection } from '@/component-new/section/material-link-section';
+import { PostTypeSection } from '@/component-new/section/post-type-section';
+import { QuizSetupSection } from '@/component-new/section/quiz-setup-section';
+import { StudyMaterialBlockEditor } from '@/component-new/createPost/study-material-block-editor';
+import { SubjectSection } from '@/component-new/section/subject-section';
+import { SubmitPostButton } from '@/component-new/button/btn-submit-created-post';
+import { TitleInputSection } from '@/component-new/section/title-input-section';
+import { useCreatePostForm } from '@/component-new/createPost/use-create-post-form';
 import AppLayout from '@/layouts/app-layout';
 import { homePage } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
@@ -97,24 +95,14 @@ export default function CreatePostPage() {
         selectedLanguage,
         setSelectedLanguage,
         attachments,
-        videoUrl,
-        setVideoUrl,
         isSubmitting,
         isDragging,
         setIsDragging,
         fileError,
         remainingTitleChars,
         remainingContentChars,
-        isMathSubjectSelected,
-        isPhysicsSubjectSelected,
-        isChemistrySubjectSelected,
-        showSymbolPreview,
-        previewContent,
         isQuizSelected,
         isMaterialSelected,
-        mathFormulaPresets,
-        physicsSymbolPresets,
-        chemistrySymbolPresets,
         canSubmit,
         postTypeOptions,
         subjectOptions,
@@ -122,7 +110,6 @@ export default function CreatePostPage() {
         onSelectFiles,
         onDropFiles,
         removeAttachment,
-        insertMathSnippet,
         onSubmit,
     } = useCreatePostForm({
         subjects,
@@ -139,10 +126,14 @@ export default function CreatePostPage() {
             <div className="pb-8">
                 <div className="mx-auto w-full max-w-3xl space-y-2 p-4 md:p-6 md:pb-10">
                     <form onSubmit={onSubmit} className="space-y-7">
-                        <CreatePostHeaderSection
-                            heading={t.heading}
-                            subtitle={t.subtitle}
-                        />
+                        <div className="space-y-2">
+                            <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
+                                {t.heading}
+                            </h1>
+                            <p className="text-base text-zinc-600">
+                                {t.subtitle}
+                            </p>
+                        </div>
 
                         <PostTypeSection
                             postTypeLabel={t.postTypeLabel}
@@ -202,30 +193,9 @@ export default function CreatePostPage() {
                                 quizQuestionPlaceholder={
                                     t.quizQuestionPlaceholder
                                 }
-                                isMathSubjectSelected={isMathSubjectSelected}
-                                isPhysicsSubjectSelected={
-                                    isPhysicsSubjectSelected
-                                }
-                                isChemistrySubjectSelected={
-                                    isChemistrySubjectSelected
-                                }
-                                mathFormulaPresets={mathFormulaPresets}
-                                physicsSymbolPresets={physicsSymbolPresets}
-                                chemistrySymbolPresets={chemistrySymbolPresets}
-                                onInsertSnippet={insertMathSnippet}
-                                showSymbolPreview={showSymbolPreview}
-                                symbolPreviewTitle={t.symbolPreviewTitle}
-                                symbolPreviewHint={t.symbolPreviewHint}
-                                previewContent={previewContent}
                                 helperText={t.helperText}
                                 remainingContentChars={remainingContentChars}
                                 charsLeft={t.charsLeft}
-                                mathToolTitle={t.mathToolTitle}
-                                mathToolHint={t.mathToolHint}
-                                physicsToolTitle={t.physicsToolTitle}
-                                physicsToolHint={t.physicsToolHint}
-                                chemistryToolTitle={t.chemistryToolTitle}
-                                chemistryToolHint={t.chemistryToolHint}
                             />
                         )}
 
@@ -329,12 +299,6 @@ export default function CreatePostPage() {
                                         supportedFormat: t.supportedFormat,
                                         previewAlt: t.previewAlt,
                                     }}
-                                />
-
-                                <VideoLinkSection
-                                    videoUrl={videoUrl}
-                                    onChangeVideoUrl={setVideoUrl}
-                                    pillIconButton={pillIconButton}
                                 />
                             </>
                         ) : null}

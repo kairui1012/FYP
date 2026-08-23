@@ -3,8 +3,6 @@
 use App\Http\Controllers\AchievementsController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\GoogleAuthController;
-use App\Http\Controllers\BookmarkFolderController;
-use App\Http\Controllers\UserFeaturedBadgeController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentLikeController;
 use App\Http\Controllers\CommentReportController;
@@ -13,16 +11,17 @@ use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PostBookmarkController;
+use App\Http\Controllers\PostBookmarkToggleController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostCreateController;
-use App\Http\Controllers\PostQuizController;
 use App\Http\Controllers\PostPopularController;
-use App\Http\Controllers\PostBookmarkToggleController;
+use App\Http\Controllers\PostQuizController;
 use App\Http\Controllers\PostReportController;
 use App\Http\Controllers\ProfilePageController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StudyMaterialFeedbackController;
 use App\Http\Controllers\TeacherMaterialInsightsController;
+use App\Http\Controllers\UserFeaturedBadgeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -40,7 +39,7 @@ Route::get('/', function () {
 
     syncLangFiles('auth');
 
-    return Inertia::render('LandingPage', [
+    return Inertia::render('landingPage', [
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('home');
@@ -97,12 +96,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/users/{user}/follow', [FollowerController::class, 'toggle'])->name('users.follow.toggle');
     Route::post('/users/{user}/featured-badges', [UserFeaturedBadgeController::class, 'update'])->name('users.featured-badges.update');
 
-    // --- Bookmark folders ---
-    Route::post('/bookmarks/folders', [BookmarkFolderController::class, 'store'])->name('bookmarks.folders.store');
-    Route::patch('/bookmarks/folders/{bookmarkFolder}', [BookmarkFolderController::class, 'update'])->name('bookmarks.folders.update');
-    Route::delete('/bookmarks/folders/{bookmarkFolder}', [BookmarkFolderController::class, 'destroy'])->name('bookmarks.folders.destroy');
-    Route::post('/bookmarks/posts/{post}/move', [BookmarkFolderController::class, 'movePost'])->name('bookmarks.posts.move');
-
     // --- Other pages ---
     Route::get('/achievements', [AchievementsController::class, 'index'])->name('achievements');
     Route::get('/categories', [PostController::class, 'categories'])->name('categories');
@@ -125,7 +118,7 @@ Route::get('/login/google/callback', [GoogleAuthController::class, 'handleProvid
 | Static / SEO pages
 |--------------------------------------------------------------------------
 */
-Route::get('/privacy-policy', fn () => Inertia::render('PrivacyPolicyPage'))->name('privacy-policy');
+Route::get('/privacy-policy', fn () => Inertia::render('privacyPolicyPage'))->name('privacy-policy');
 Route::get('/terms-of-service', fn () => Inertia::render('TermsOfServicePage'))->name('terms-of-service');
 
 /*
@@ -204,10 +197,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 Route::middleware(['auth'])->post('/teacher-applications', function (\Illuminate\Http\Request $request) {
     $request->validate(['qualification' => 'required|string|max:255', 'bio' => 'nullable|string|max:2000']);
     \App\Models\TeacherApplication::create([
-        'user_id'       => $request->user()->id,
+        'user_id' => $request->user()->id,
         'qualification' => $request->qualification,
-        'bio'           => $request->bio,
+        'bio' => $request->bio,
     ]);
+
     return back()->with('success', 'Application submitted.');
 })->name('teacher-applications.store');
 

@@ -1,4 +1,4 @@
-import type { BookmarkFolderItem, PostItem } from '@/types';
+import type { PostItem } from '@/types';
 
 export type QuizFolderMode = 'correct' | 'wrong';
 
@@ -19,9 +19,8 @@ export type FolderButtonTone = 'default' | 'quiz' | 'correct' | 'wrong';
 
 export type StudyFolderPageProps = {
     posts?: PostItem[];
-    folders?: BookmarkFolderItem[];
-    activeFolderId?: number | null;
     studyMode?: string;
+    totalSaves?: number;
     completedCount?: number;
     correctCount?: number;
     wrongCount?: number;

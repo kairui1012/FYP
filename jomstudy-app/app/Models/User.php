@@ -9,12 +9,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -42,8 +41,6 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
-        'two_factor_secret',
-        'two_factor_recovery_codes',
         'remember_token',
     ];
 
@@ -58,7 +55,6 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => 'string',
-            'two_factor_confirmed_at' => 'datetime',
             'points' => 'integer',
             'total_points' => 'integer',
             'show_on_leaderboard' => 'boolean',
@@ -97,11 +93,6 @@ class User extends Authenticatable
     public function commentLikes()
     {
         return $this->hasMany(CommentLike::class);
-    }
-
-    public function bookmarkFolders(): HasMany
-    {
-        return $this->hasMany(BookmarkFolder::class);
     }
 
     public function bookmarkItems(): HasMany

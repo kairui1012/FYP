@@ -21,7 +21,6 @@ return new class extends Migration
             $table->unsignedBigInteger('lesson_id')->nullable();
             $table->unsignedBigInteger('language_id');
             $table->json('image')->nullable();
-            $table->string('video_url')->nullable();
             $table->json('content_blocks')->nullable();
             $table->timestamps();
 

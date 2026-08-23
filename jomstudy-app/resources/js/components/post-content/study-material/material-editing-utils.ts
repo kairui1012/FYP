@@ -11,7 +11,6 @@ export function createEditableMaterialBlock(
         id: `${type}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         type,
         text: '',
-        url: '',
         file: null,
         preview: null,
         existingPath: null,
@@ -38,13 +37,6 @@ export function normalizeEditableMaterialBlocks(
             return {
                 ...createEditableMaterialBlock('text'),
                 text: block.text ?? '',
-            };
-        }
-
-        if (block.type === 'video') {
-            return {
-                ...createEditableMaterialBlock('video'),
-                url: block.url ?? '',
             };
         }
 

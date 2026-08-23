@@ -39,33 +39,10 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $lang = array_replace_recursive(
-            syncLangFiles('navigation'),
-            syncLangFiles('home'),
-            syncLangFiles('auth'),
-            syncLangFiles('createPost'),
-            syncLangFiles('language_label'),
-            syncLangFiles('settings'),
-            syncLangFiles('profile'),
-            syncLangFiles('comment'),
-            syncLangFiles('aiTranslate'),
-            syncLangFiles('leaderboard'),
-            syncLangFiles('subjects'),
-            syncLangFiles('category'),
-            syncLangFiles('achievement'),
-            syncLangFiles('bookmark'),
-            syncLangFiles('popular'),
-            syncLangFiles('landing'),
-            syncLangFiles('errors'),
-            syncLangFiles('rules'),
-            syncLangFiles('admin'),
-            syncLangFiles('legal'),
-        );
-
         return [
             ...parent::share($request),
             'name' => config('app.name'),
-            'lang' => $lang,
+            'lang' => $this->langForRoute($request),
             'locale' => app()->getLocale(),
             'availableLocales' => [
                 'en' => 'English',
@@ -77,6 +54,69 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
+    }
+
+    /**
+     * Only share the translation namespaces required by the current page.
+     *
+     * This keeps the Inertia data-page attribute small instead of embedding
+     * every generated language file in every initial HTML response.
+     *
+     * @return array<string, mixed>
+     */
+    private function langForRoute(Request $request): array
+    {
+        $files = ['navigation', 'language_label', 'errors'];
+        $routeName = $request->route()?->getName();
+
+        $pageFiles = match ($routeName) {
+            'home' => ['landing', 'auth'],
+
+            'homePage', 'posts.index', 'questionsPage', 'learningMaterialsPage',
+            'followingPage', 'popularPage', 'posts.show', 'search' => [
+                'home', 'createPost', 'comment', 'aiTranslate', 'profile',
+                'bookmark', 'achievement', 'subjects', 'category', 'popular',
+            ],
+
+            'createPostPage' => [
+                'createPost', 'subjects', 'category', 'aiTranslate',
+            ],
+
+            'profilePage' => [
+                'profile', 'achievement', 'bookmark', 'comment', 'aiTranslate',
+                'createPost', 'subjects', 'category',
+            ],
+
+            'categories' => [
+                'category', 'subjects', 'comment', 'aiTranslate', 'profile',
+                'bookmark', 'achievement', 'createPost',
+            ],
+
+            'achievements' => ['achievement'],
+            'leaderboard' => ['leaderboard', 'achievement', 'profile'],
+            'bookmarks' => [
+                'bookmark', 'comment', 'aiTranslate', 'profile', 'achievement',
+                'createPost', 'subjects', 'category',
+            ],
+            'rules' => ['rules', 'achievement', 'leaderboard'],
+            'privacy-policy', 'terms-of-service' => ['legal'],
+
+            'profile.edit', 'user-password.edit', 'appearance.edit',
+            'teacher-certification.show' => [
+                'settings', 'profile', 'auth', 'achievement',
+            ],
+
+            'teacher.material-insights' => ['admin', 'subjects', 'category'],
+
+            default => str_starts_with((string) $routeName, 'admin.')
+                ? ['admin', 'comment', 'profile', 'achievement', 'subjects', 'category']
+                : ['auth'],
+        };
+
+        return array_replace_recursive(...array_map(
+            static fn (string $file): array => syncLangFiles($file),
+            array_unique([...$files, ...$pageFiles]),
+        ));
     }
 
     private function serializeAuthUser(?User $user): ?array

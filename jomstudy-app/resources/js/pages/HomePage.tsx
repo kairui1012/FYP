@@ -1,16 +1,19 @@
 import { Head, usePage } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { HomeFeedSection } from '@/components/home/home-feed-section';
-import { HomeHeroSection } from '@/components/home/home-hero-section';
+import { PostFeedSection } from '@/component-new/section/post-feed-section';
+import { FeedHeroSection } from '@/component-new/section/feed-hero-section';
 import {
     buildFeedSectionText,
     buildHomeText,
-} from '@/components/home/home-page-text';
-import { StudyHomeDashboard } from '@/components/home/study-home-dashboard';
-import type { StudyHomeOverview } from '@/components/home/study-home-dashboard';
-import { PaginationControls } from '@/components/pagination-controls';
-import { useHomePageState } from '@/hooks/use-home-page-state';
+} from '@/component-new/config/home-page-config';
+import { StudyHomeDashboard } from '@/component-new/dashboard/study-home-dashboard';
+import type { StudyHomeOverview } from '@/component-new/dashboard/study-home-dashboard';
+import { PaginationControls } from '@/component-new/shared/pagination-controls';
+import {
+    useHomePageState,
+    type HomePageContext,
+} from '@/hooks/use-home-page-state';
 import { usePostInteractions } from '@/hooks/use-post-interactions';
 import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
 import AppLayout from '@/layouts/app-layout';
@@ -39,10 +42,9 @@ export default function HomePage({
     const currentUserId = (page.props as { auth?: { user?: { id?: number } } })
         .auth?.user?.id;
     const pageContext =
-        (page.props as { pageContext?: 'home' | 'following' }).pageContext ??
-        'home';
+        (page.props as { pageContext?: HomePageContext }).pageContext ?? 'home';
 
-    const { isHomePage, isFollowingPage, activeTab, setActiveTab } =
+    const { isHomePage, activeTab, setActiveTab } =
         useHomePageState(pageContext);
     const {
         likeStateByPost,
@@ -54,9 +56,7 @@ export default function HomePage({
         handleLike,
         handleSave,
         handleFollowToggle,
-    } = usePostInteractions(posts, {
-        refreshFollowingPage: isFollowingPage,
-    });
+    } = usePostInteractions(posts);
 
     // Only re-fetch the feed on focus (not the whole page) so the learn/feed
     // tab stays put while like/save/follow counts and states stay current.
@@ -69,10 +69,6 @@ export default function HomePage({
 
         if (isHomePage) {
             params.set('tab', activeTab);
-        }
-
-        if (isFollowingPage) {
-            params.set('source', 'following');
         }
 
         if (focus) {
@@ -89,18 +85,12 @@ export default function HomePage({
 
     return (
         <>
-            <Head
-                title={
-                    isFollowingPage
-                        ? homeText.followingTitle
-                        : homeText.pageTitle
-                }
-            />
+            <Head title={homeText.pageTitle} />
             <div className="pb-8">
                 <div className="mx-auto w-full max-w-5xl space-y-4 p-4 md:p-6 md:pb-10">
-                    <HomeHeroSection
+                    <FeedHeroSection
                         isHomePage={isHomePage}
-                        isFollowingPage={isFollowingPage}
+                        isFollowingPage={false}
                         activeTab={activeTab}
                         onChangeTab={setActiveTab}
                         text={{
@@ -121,11 +111,9 @@ export default function HomePage({
                         />
                     ) : (
                         <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200 md:p-5">
-                            <HomeFeedSection
+                            <PostFeedSection
                                 posts={posts}
-                                emptyStateVariant={
-                                    isFollowingPage ? 'following' : 'home'
-                                }
+                                emptyStateVariant="home"
                                 currentUserId={currentUserId}
                                 likeStateByPost={likeStateByPost}
                                 saveStateByPost={saveStateByPost}

@@ -94,13 +94,11 @@ class PostCreateController extends Controller
             'quiz_questions.*.answer_index' => ['required', 'integer', 'min:0'],
             'quiz_questions.*.explanation' => ['nullable', 'string', 'max:700'],
             'material_blocks' => ['nullable', 'array', 'required_if:post_type,material', 'min:1'],
-            'material_blocks.*.type' => ['required_with:material_blocks', 'string', Rule::in(['text', 'image', 'document', 'video'])],
+            'material_blocks.*.type' => ['required_with:material_blocks', 'string', Rule::in(['text', 'image', 'document'])],
             'material_blocks.*.text' => ['nullable', 'string', 'max:4000'],
-            'material_blocks.*.url' => ['nullable', 'string', 'max:500'],
             'material_blocks.*.file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx,xls,xlsx,ppt,pptx', 'max:20480'],
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['file', 'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx,xls,xlsx,ppt,pptx', 'max:20480'],
-            'video_url' => ['nullable', 'string', 'max:500'],
         ]);
 
         /** @var \App\Models\User $user */
@@ -204,7 +202,6 @@ class PostCreateController extends Controller
                 'subject_id' => $subject->id,
                 'language_id' => $language->id,
                 'image' => count($storedAttachments) > 0 ? $storedAttachments : null,
-                'video_url' => $validated['video_url'] ?? null,
             ];
 
             if (Schema::hasColumn('posts', 'parent_material_id')) {
@@ -238,7 +235,7 @@ class PostCreateController extends Controller
 
     /**
      * Normalize and validate material blocks from creation request.
-     * Processes text, video, image, and document blocks. Handles file uploads.
+     * Processes text, image, and document blocks. Handles file uploads.
      */
     private function normalizeMaterialBlocks(Request $request, array $blocks): array
     {
@@ -254,21 +251,6 @@ class PostCreateController extends Controller
                     $normalized[] = [
                         'type' => 'text',
                         'text' => $text,
-                    ];
-                }
-
-                continue;
-            }
-
-            if ($type === 'video') {
-                $url = trim((string) ($block['url'] ?? ''));
-
-                if ($url !== '') {
-                    $this->validateMaterialVideoUrl($url, $index);
-
-                    $normalized[] = [
-                        'type' => 'video',
-                        'url' => $url,
                     ];
                 }
 
@@ -303,8 +285,6 @@ class PostCreateController extends Controller
         foreach ($blocks as $block) {
             if (($block['type'] ?? null) === 'text') {
                 $parts[] = (string) ($block['text'] ?? '');
-            } elseif (($block['type'] ?? null) === 'video') {
-                $parts[] = (string) ($block['url'] ?? '');
             } elseif (isset($block['name'])) {
                 $parts[] = (string) $block['name'];
             }
@@ -316,32 +296,4 @@ class PostCreateController extends Controller
             ->implode("\n\n");
     }
 
-    /**
-     * Validate that material block URL is a valid http/https URL.
-     * Throws ValidationException if invalid.
-     */
-    private function validateMaterialVideoUrl(string $url, int|string $index): void
-    {
-        if ($this->isValidHttpUrl($url)) {
-            return;
-        }
-
-        throw ValidationException::withMessages([
-            "material_blocks.{$index}.url" => 'Enter a valid video URL.',
-        ]);
-    }
-
-    /**
-     * Check if URL is a valid http or https URL.
-     */
-    private function isValidHttpUrl(string $url): bool
-    {
-        if (! filter_var($url, FILTER_VALIDATE_URL)) {
-            return false;
-        }
-
-        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
-
-        return in_array($scheme, ['http', 'https'], true);
-    }
 }

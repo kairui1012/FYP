@@ -3,11 +3,11 @@ import { useEffect, useMemo, useState } from 'react';
 import {
     CONTENT_TYPES,
     hasActiveFilters,
-} from '@/components/categories/categories-config';
+} from '@/component-new/config/categories-config';
 import type {
     CategoriesPageProps,
     ContentTypeKey,
-} from '@/components/categories/types';
+} from '@/component-new/categories/types';
 import type { PaginationMeta, PostItem } from '@/types';
 
 export function useCategoryFilters(props: CategoriesPageProps) {

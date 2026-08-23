@@ -60,7 +60,7 @@ class FollowerController extends Controller
             ]);
         }
 
-        return back()->with('status', $status); 
+        return back()->with('status', $status);
     }
 
     /**
@@ -121,11 +121,10 @@ class FollowerController extends Controller
                 'is_saved' => (bool) ($post->is_saved ?? false),
             ]);
 
-        return inertia('HomePage', [
+        return inertia('FollowingPage', [
             'posts' => $posts,
             'pagination' => $this->paginationMeta($paginator),
             'postTypeFilter' => null,
-            'pageContext' => 'following',
         ]);
     }
 

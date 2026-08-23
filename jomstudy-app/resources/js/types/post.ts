@@ -112,10 +112,6 @@ export type MaterialContentBlock =
           path: string;
           name?: string | null;
           mime?: string | null;
-      }
-    | {
-          type: 'video';
-          url: string;
       };
 
 export type PostItem = {
@@ -129,11 +125,9 @@ export type PostItem = {
     material_improved_from_feedback?: boolean;
     subject?: PostSubject;
     image: string[] | null;
-    video_url?: string | null;
     created_at: string;
     updated_at?: string;
     saved_at?: string | null;
-    bookmark_folder_id?: number | null;
     bookmark_item_id?: number | null;
     is_anonymous?: boolean;
     is_owner?: boolean;
@@ -211,11 +205,4 @@ export type PostItem = {
     } | null;
     linked_quizzes?: PostItem[];
     comments?: CommentItem[] | null;
-};
-
-export type BookmarkFolderItem = {
-    id: number;
-    name: string;
-    is_default: boolean;
-    items_count: number;
 };

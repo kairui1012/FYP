@@ -1,5 +1,4 @@
 import { FileText } from 'lucide-react';
-import { PostVideoEmbed } from '@/components/post-content/post-video-embed';
 import type { MaterialContentBlock } from '@/types';
 
 type StudyMaterialBlocksProps = {
@@ -82,10 +81,6 @@ export function StudyMaterialBlocks({
                             </span>
                         </a>
                     );
-                }
-
-                if (block.type === 'video') {
-                    return <PostVideoEmbed key={index} videoUrl={block.url} />;
                 }
 
                 return null;

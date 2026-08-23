@@ -1,4 +1,4 @@
-import type { QuizAiAnswerPlacement } from '@/components/create-post/create-post-config';
+import type { QuizAiAnswerPlacement } from '@/component-new/config/create-post-config';
 import { postAiJson } from '@/lib/ai-http';
 
 export interface QuizOptionsResult {

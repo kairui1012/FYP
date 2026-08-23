@@ -1,4 +1,4 @@
-import { BtnAiTranslate } from '@/components/ui/btn-ai-translate';
+import { BtnAiTranslate } from '@/component-new/button/btn-ai-translate';
 
 type PostTranslateActionsProps = {
     page: unknown;

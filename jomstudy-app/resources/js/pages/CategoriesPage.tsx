@@ -1,9 +1,9 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { CategoryFiltersPanel } from '@/components/categories/category-filters-panel';
-import { CategoryResultsPanel } from '@/components/categories/category-results-panel';
-import type { CategoriesPageProps } from '@/components/categories/types';
+import { CategoryFiltersPanel } from '@/component-new/categories/category-filters-panel';
+import { CategoryResultsPanel } from '@/component-new/categories/category-results-panel';
+import type { CategoriesPageProps } from '@/component-new/categories/types';
 import { useCategoryFilters } from '@/hooks/use-category-filters';
 import { usePostInteractions } from '@/hooks/use-post-interactions';
 import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';

@@ -1,25 +1,17 @@
 import { Link } from '@inertiajs/react';
 import { ExternalLink } from 'lucide-react';
 import { lazy, Suspense } from 'react';
-import { BtnSave } from '@/components/ui/btn-save';
-import { MaterialLearningStateBadge } from '@/components/ui/material-learning-state-badge';
-import { QuizStatusBadge } from '@/components/ui/quiz-status-badge';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
-import { formatFormulaText } from '@/lib/formula-display';
+import { BtnSave } from '@/component-new/button/btn-save';
+import { MaterialLearningStateBadge } from '@/component-new/badge/material-learning-state-badge';
+import { QuizStatusBadge } from '@/component-new/badge/quiz-status-badge';
+import { VerifiedTeacherBadge } from '@/component-new/badge/verified-teacher-badge';
 import {
     formatTimeAgo,
     getLanguageLabel,
     getSubjectLabel,
 } from '@/lib/post-utils';
 import { isVerifiedTeacher } from '@/lib/verified-teacher';
-import type { BookmarkFolderItem, PostItem } from '@/types';
+import type { PostItem } from '@/types';
 import {
     getFirstQuizQuestion,
     getPostTypeBadgeProps,
@@ -27,36 +19,26 @@ import {
 } from './study-folder-utils';
 import type { TransFn } from './types';
 
-const PostAttachments = lazy(() =>
-    import('@/components/post-attachments').then((m) => ({
-        default: m.PostAttachments,
+const PostAttachmentViewer = lazy(() =>
+    import('@/component-new/shared/post-attachment-viewer').then((m) => ({
+        default: m.PostAttachmentViewer,
     })),
 );
 
 type PostCardProps = {
     post: PostItem;
-    folders: BookmarkFolderItem[];
-    activeFolderId: number | null | undefined;
-    movingPostIds: number[];
     savingPostIds: number[];
-    onMove: (postId: number, folderId: number) => Promise<void>;
     onToggleSave: (postId: number) => void;
     trans: TransFn;
-    showFolderSelect: boolean;
     showQuizPreview?: boolean;
     showQuizStatus?: boolean;
 };
 
 export function PostCard({
     post,
-    folders,
-    activeFolderId,
-    movingPostIds,
     savingPostIds,
-    onMove,
     onToggleSave,
     trans,
-    showFolderSelect,
     showQuizPreview = false,
     showQuizStatus = true,
 }: PostCardProps) {
@@ -122,32 +104,6 @@ export function PostCard({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                    {showFolderSelect && folders.length > 0 ? (
-                        <Select
-                            value={String(
-                                post.bookmark_folder_id ?? activeFolderId ?? '',
-                            )}
-                            disabled={movingPostIds.includes(post.id)}
-                            onValueChange={(value) => {
-                                void onMove(post.id, Number(value));
-                            }}
-                        >
-                            <SelectTrigger className="w-fit">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {folders.map((folder) => (
-                                    <SelectItem
-                                        key={folder.id}
-                                        value={String(folder.id)}
-                                    >
-                                        {folder.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    ) : null}
-
                     <BtnSave
                         count={post.saves_count ?? 0}
                         saved={Boolean(post.is_saved)}
@@ -162,7 +118,7 @@ export function PostCard({
                     {post.title}
                 </h2>
                 <p className="mt-2 line-clamp-2 text-sm leading-6 whitespace-pre-wrap text-zinc-600">
-                    {formatFormulaText(post.content ?? '')}
+                    {post.content ?? ''}
                 </p>
             </Link>
 
@@ -238,7 +194,7 @@ export function PostCard({
             {post.image && post.image.length > 0 ? (
                 <div className="mt-4">
                     <Suspense fallback={null}>
-                        <PostAttachments files={post.image} compact />
+                        <PostAttachmentViewer files={post.image} compact />
                     </Suspense>
                 </div>
             ) : null}

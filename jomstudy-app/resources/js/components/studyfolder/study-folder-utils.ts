@@ -31,9 +31,8 @@ export function getSubjectBadgeProps() {
     return { bg: 'bg-rose-50', text: 'text-rose-700' };
 }
 
-export function toStudyFolderUrl(folderId?: number | null) {
-    if (!folderId) return '/bookmarks';
-    return `/bookmarks?folder_id=${folderId}`;
+export function toStudyFolderUrl() {
+    return '/bookmarks';
 }
 
 export function toQuizFolderUrl(mode: QuizFolderMode) {

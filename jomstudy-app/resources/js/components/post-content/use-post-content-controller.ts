@@ -1,7 +1,10 @@
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { csrfHeaders, scrollCommentsInAppContent } from '@/components/post-content/post-content-utils';
+import {
+    csrfHeaders,
+    scrollCommentsInAppContent,
+} from '@/components/post-content/post-content-utils';
 import { buildQuizData } from '@/components/post-content/quiz/quiz-data';
 import type {
     EditableMaterialBlock,
@@ -17,7 +20,6 @@ import type {
     PostContentProps,
     QuizResultState,
 } from '@/components/post-content/types';
-import { formatFormulaText } from '@/lib/formula-display';
 import like from '@/routes/like';
 import type { MaterialContentBlock, PostItem } from '@/types';
 
@@ -45,9 +47,7 @@ export function usePostContentController({
     );
     const canViewLearningAnalytics = currentUserRole === 'teacher';
     const canManageMaterial =
-        post.post_type === 'material' &&
-        canPublishStudyMaterial &&
-        isOwner;
+        post.post_type === 'material' && canPublishStudyMaterial && isOwner;
     const canManagePost =
         post.post_type === 'material' ? canManageMaterial : isOwner;
     const displayName = isAnonymousPost
@@ -112,9 +112,7 @@ export function usePostContentController({
         setIsEditing,
     });
 
-    const displayedContent = formatFormulaText(
-        translated?.content ?? post.content ?? '',
-    );
+    const displayedContent = translated?.content ?? post.content ?? '';
     const displayedMaterialBlocks = useMemo(() => {
         if (post.post_type !== 'material') {
             return post.content_blocks ?? null;
@@ -176,8 +174,10 @@ export function usePostContentController({
                 .filter(
                     (
                         block,
-                    ): block is Extract<MaterialContentBlock, { type: 'text' }> =>
-                        block.type === 'text',
+                    ): block is Extract<
+                        MaterialContentBlock,
+                        { type: 'text' }
+                    > => block.type === 'text',
                 )
                 .map((block) => block.text),
         [post.content_blocks],

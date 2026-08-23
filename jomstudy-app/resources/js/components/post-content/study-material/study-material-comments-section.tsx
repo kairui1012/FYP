@@ -1,4 +1,4 @@
-import { CommentSection } from '@/components/comment-section';
+import { CommentSection } from '@/component-new/shared/comment-section';
 import { MaterialRatingSection } from '@/components/post-content/study-material/material-rating-section';
 import type { PostItem } from '@/types';
 

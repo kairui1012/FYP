@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BookmarkFolder;
 use App\Models\BookmarkItem;
 use App\Models\Post;
 use App\Models\UserProgress;
@@ -19,14 +18,12 @@ class PostBookmarkToggleController extends Controller
     ) {}
 
     /**
-     * Toggle bookmark (save) status for a post. Saves to user's default folder.
+     * Toggle bookmark (save) status for a post.
      * Awards/revokes points to post owner. Re-evaluates achievements.
      */
     public function toggle(Request $request, Post $post): JsonResponse
     {
         $user = $request->user();
-        $defaultFolder = BookmarkFolder::defaultFor($user);
-
         $existingBookmark = BookmarkItem::query()
             ->where('user_id', $user->id)
             ->where('post_id', $post->id)
@@ -43,7 +40,6 @@ class PostBookmarkToggleController extends Controller
         } else {
             $bookmarkItem = BookmarkItem::query()->create([
                 'user_id' => $user->id,
-                'bookmark_folder_id' => $defaultFolder->id,
                 'post_id' => $post->id,
             ]);
             $isSaved = true;

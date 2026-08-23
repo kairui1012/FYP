@@ -10,21 +10,21 @@ import {
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
-import { AttachmentsSection } from '@/components/create-post/attachments-section';
+import { AttachmentsSection } from '@/component-new/section/attachments-section';
 import {
     pillActionButton,
     pillIconButton,
-} from '@/components/create-post/create-post-config';
-import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+} from '@/component-new/config/create-post-config';
+import Heading from '@/component-new/header/header-for-setting';
+import { Button } from '@/component-new/button/button';
+import { Checkbox } from '@/component-new/ui/checkbox';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+} from '@/component-new/ui/dialog';
+import { Label } from '@/component-new/ui/label';
 import AppLayout from '@/layouts/app-layout';
 
 const ACCEPTED_CERT_TYPES =

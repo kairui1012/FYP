@@ -25,5 +25,8 @@ return [
     |
     */
 
-    'output_lang' => resource_path('js/lang'),
+    // Translations are selected per Inertia route in HandleInertiaRequests.
+    // Keep this path separate so the package does not load every generated JSON
+    // file into the shared `lang` prop on every response.
+    'output_lang' => resource_path('js/lang-runtime'),
 ];

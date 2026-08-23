@@ -1,7 +1,7 @@
-import { BtnComment } from '@/components/ui/btn-comment';
-import { BtnLike } from '@/components/ui/btn-like';
-import { BtnSave } from '@/components/ui/btn-save';
-import { BtnShare } from '@/components/ui/btn-share';
+import { BtnComment } from '@/component-new/button/btn-comment';
+import { BtnLike } from '@/component-new/button/btn-like';
+import { BtnSave } from '@/component-new/button/btn-save';
+import { BtnShare } from '@/component-new/button/btn-share';
 
 type LearningTrendsPostFooterProps = {
     likes: number;

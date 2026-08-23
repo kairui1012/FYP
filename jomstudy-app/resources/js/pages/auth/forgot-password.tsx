@@ -2,11 +2,11 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Form, Head } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import InputError from '@/components/input-error';
-import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import InputError from '@/component-new/shared/input-error';
+import TextLink from '@/component-new/shared/text-link';
+import { Button } from '@/component-new/button/button';
+import { Input } from '@/component-new/ui/input';
+import { Label } from '@/component-new/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import { login } from '@/routes';
 import { email } from '@/routes/password';

@@ -38,4 +38,5 @@ return [
     'bookmarks' => 'My Study Folder',
     'privacy_policy' => 'Privacy Policy',
     'terms_of_service' => 'Terms of Service',
+    'back_to_home' => 'Back to Home',
 ];

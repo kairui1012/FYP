@@ -1,4 +1,4 @@
-import { BtnAiAns } from '@/components/ui/btn-ai-ans';
+import { BtnAiAns } from '@/component-new/button/btn-ai-ans';
 import type { PostContentTransFn, QuizData, QuizResultState } from '../types';
 
 type PostQuizPanelProps = {

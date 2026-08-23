@@ -1,8 +1,8 @@
 import { lazy, Suspense } from 'react';
 
-const PostAttachments = lazy(() =>
-    import('@/components/post-attachments').then((module) => ({
-        default: module.PostAttachments,
+const PostAttachmentViewer = lazy(() =>
+    import('@/component-new/shared/post-attachment-viewer').then((module) => ({
+        default: module.PostAttachmentViewer,
     })),
 );
 
@@ -13,7 +13,7 @@ type PostAttachmentsSectionProps = {
 export function PostAttachmentsSection({ files }: PostAttachmentsSectionProps) {
     return (
         <Suspense fallback={<div className="h-64 rounded-xl bg-zinc-100" />}>
-            <PostAttachments files={files} />
+            <PostAttachmentViewer files={files} />
         </Suspense>
     );
 }

@@ -1,9 +1,9 @@
 import { Link, router } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
-import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { BtnFollow } from '@/components/ui/btn-follow';
-import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
+import { LeaderboardTitleBadge } from '@/component-new/badge/leaderboard-title-badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/component-new/ui/avatar';
+import { BtnFollow } from '@/component-new/button/btn-follow';
+import { VerifiedTeacherBadge } from '@/component-new/badge/verified-teacher-badge';
 import { formatTimeAgo, getSubjectLabelFromPage } from '@/lib/post-utils';
 import { isVerifiedTeacher } from '@/lib/verified-teacher';
 import type { PostItem } from '@/types';
@@ -11,7 +11,7 @@ import {
     getLangBadgeProps,
     getPostTypeBadgeProps,
     getSubjectBadgeProps,
-} from './post-content-config';
+} from '../../component-new/config/post-content-config';
 import type { PostContentTransFn } from './types';
 
 type PostBackAuthorHeaderProps = {

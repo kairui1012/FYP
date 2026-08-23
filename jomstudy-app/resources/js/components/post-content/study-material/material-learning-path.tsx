@@ -1,5 +1,5 @@
 import { CheckCircle2, Circle, Clock3, Lock } from 'lucide-react';
-import { trans } from '@/components/post-content/post-content-config';
+import { trans } from '@/component-new/config/post-content-config';
 import type { PostItem } from '@/types';
 
 type MaterialLearningPathProps = {

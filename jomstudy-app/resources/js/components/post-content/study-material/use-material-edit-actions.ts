@@ -113,11 +113,6 @@ export function useMaterialEditActions({
                     `material_blocks[${index}][text]`,
                     block.text.trim(),
                 );
-            } else if (block.type === 'video') {
-                formData.append(
-                    `material_blocks[${index}][url]`,
-                    block.url.trim(),
-                );
             } else {
                 if (block.file) {
                     formData.append(

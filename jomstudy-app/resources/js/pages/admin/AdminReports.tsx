@@ -3,7 +3,7 @@ import { router } from '@inertiajs/react';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/component-new/button/button';
 import {
     Table,
     TableBody,
@@ -11,7 +11,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from '@/components/ui/table';
+} from '@/component-new/ui/table';
 import AdminLayout from '@/layouts/admin/admin-layout';
 
 type Report = {

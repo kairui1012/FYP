@@ -38,4 +38,5 @@ return [
     'bookmarks' => 'Folder Belajar Saya',
     'privacy_policy' => 'Dasar Privasi',
     'terms_of_service' => 'Terma Perkhidmatan',
+    'back_to_home' => 'Kembali ke Laman Utama',
 ];

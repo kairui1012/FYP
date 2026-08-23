@@ -2,14 +2,14 @@ import { reactLang } from '@erag/lang-sync-inertia';
 import { router } from '@inertiajs/react';
 import { BadgeCheck, Check, Eye, FileText, X } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/component-new/button/button';
 import {
     Dialog,
     DialogContent,
     DialogFooter,
     DialogHeader,
     DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/component-new/ui/dialog';
 import {
     Table,
     TableBody,
@@ -17,8 +17,8 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
+} from '@/component-new/ui/table';
+import { Textarea } from '@/component-new/ui/textarea';
 import AdminLayout from '@/layouts/admin/admin-layout';
 
 type VerificationDocument = {

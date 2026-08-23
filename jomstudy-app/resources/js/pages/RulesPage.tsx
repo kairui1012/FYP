@@ -1,12 +1,17 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head } from '@inertiajs/react';
-import { Award, Crown, Sparkles, Trophy } from 'lucide-react';
-import type { ReactNode } from 'react';
-import { LeaderboardTitleBadges } from '@/components/rules/leaderboard-title-badges';
-import { ManualGuide } from '@/components/rules/manual-guide';
-import { PointsRulesSection } from '@/components/rules/points-rules-section';
-import { RuleSection } from '@/components/rules/rule-section';
+import { Award, BookOpen, ChevronDown, Crown, Sparkles, Trophy } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { LeaderboardTitleBadges } from '@/component-new/badge/leaderboard-title-badges';
+import { PointsRulesSection } from '@/component-new/section/points-rules-section';
+import { RuleSection } from '@/component-new/section/rule-section';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/component-new/ui/collapsible';
 import AppLayout from '@/layouts/app-layout';
+import { cn } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
 
 const ruleRoute = '/rules';
@@ -20,6 +25,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function RulesPage() {
     const { trans } = reactLang();
+    const [manualGuideOpen, setManualGuideOpen] = useState(false);
 
     const achievementRules = [
         trans('rules.achievement_1'),
@@ -131,11 +137,54 @@ export default function RulesPage() {
                     thirdPlaceLabel={trans('leaderboard.title_third_place')}
                 />
 
-                <ManualGuide
-                    title={trans('rules.manual_title')}
-                    summary={trans('rules.manual_summary')}
-                    items={manualGuideItems}
-                />
+                <Collapsible
+                    open={manualGuideOpen}
+                    onOpenChange={setManualGuideOpen}
+                    className="rounded-lg border border-zinc-200 bg-white shadow-xs"
+                >
+                    <CollapsibleTrigger asChild>
+                        <button
+                            type="button"
+                            className="flex w-full items-center gap-3 px-5 py-4 text-left transition hover:bg-zinc-50"
+                        >
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-700">
+                                <BookOpen className="h-5 w-5" />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                                <span className="block text-lg font-semibold text-zinc-950">
+                                    {trans('rules.manual_title')}
+                                </span>
+                                <span className="mt-1 block text-sm leading-6 text-zinc-600">
+                                    {trans('rules.manual_summary')}
+                                </span>
+                            </span>
+                            <ChevronDown
+                                className={cn(
+                                    'h-5 w-5 shrink-0 text-zinc-500 transition-transform',
+                                    manualGuideOpen && 'rotate-180',
+                                )}
+                            />
+                        </button>
+                    </CollapsibleTrigger>
+
+                    <CollapsibleContent>
+                        <div className="border-t border-zinc-200 px-5 py-5">
+                            <ol className="grid gap-3 md:grid-cols-2">
+                                {manualGuideItems.map((item, index) => (
+                                    <li
+                                        key={item}
+                                        className="flex gap-3 rounded-md bg-zinc-50 px-3 py-3 text-sm leading-6 text-zinc-700"
+                                    >
+                                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-[#de6b89] ring-1 ring-zinc-200">
+                                            {index + 1}
+                                        </span>
+                                        <span>{item}</span>
+                                    </li>
+                                ))}
+                            </ol>
+                        </div>
+                    </CollapsibleContent>
+                </Collapsible>
             </div>
         </div>
     );

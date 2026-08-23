@@ -1,12 +1,11 @@
 import { Link } from '@inertiajs/react';
 import { Star } from 'lucide-react';
-import { LeaderboardTitleBadge } from '@/components/LeaderboardTitleBadge';
-import { PostAttachments } from '@/components/post-attachments';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { BtnFollow } from '@/components/ui/btn-follow';
-import { MaterialLearningStateBadge } from '@/components/ui/material-learning-state-badge';
-import { VerifiedTeacherBadge } from '@/components/VerifiedTeacherBadge';
-import { formatFormulaText } from '@/lib/formula-display';
+import { LeaderboardTitleBadge } from '@/component-new/badge/leaderboard-title-badge';
+import { PostAttachmentViewer } from '@/component-new/shared/post-attachment-viewer';
+import { Avatar, AvatarFallback, AvatarImage } from '@/component-new/ui/avatar';
+import { BtnFollow } from '@/component-new/button/btn-follow';
+import { MaterialLearningStateBadge } from '@/component-new/badge/material-learning-state-badge';
+import { VerifiedTeacherBadge } from '@/component-new/badge/verified-teacher-badge';
 import {
     formatTimeAgo,
     getLanguageLabel,
@@ -65,10 +64,6 @@ function getMaterialFirstPreview(post: PostItem): string {
 
     if (firstBlock?.type === 'document') {
         return firstBlock.name ?? 'Document';
-    }
-
-    if (firstBlock?.type === 'video') {
-        return firstBlock.url ?? 'Video resource';
     }
 
     const firstSegment = (post.content ?? '')
@@ -252,10 +247,10 @@ export function LearningTrendsPostCard({
                     {post.title}
                 </h2>
                 <p className="mb-2 text-base leading-6 font-medium whitespace-pre-wrap text-zinc-700">
-                    {formatFormulaText(contentPreview)}
+                    {contentPreview}
                 </p>
 
-                <PostAttachments files={post.image} compact />
+                <PostAttachmentViewer files={post.image} compact />
             </article>
 
             <LearningTrendsPostFooter

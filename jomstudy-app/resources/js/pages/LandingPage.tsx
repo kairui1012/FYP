@@ -1,8 +1,8 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, Link } from '@inertiajs/react';
 import { BookOpen, Brain, MessageSquare, Trophy, Globe, Bookmark } from 'lucide-react';
-import { AppHeaderForUnlogin } from '@/components/app-header-for-unlogin';
-import { Button } from '@/components/ui/button';
+import { AppHeaderForUnlogin } from '@/component-new/header/header-for-unlogin';
+import { Button } from '@/component-new/button/button';
 import { login, register } from '@/routes';
 
 type LandingPageProps = {
@@ -111,6 +111,17 @@ export default function LandingPage({ canRegister }: LandingPageProps) {
                                         <p className="mt-2 text-sm text-zinc-600">{trans(faq.answer)}</p>
                                     </article>
                                 ))}
+                            </div>
+                            <div className="mt-6 flex flex-wrap gap-3">
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    className="border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50"
+                                >
+                                    <a href="/privacy-policy">
+                                        {trans('navigation.privacy_policy')}
+                                    </a>
+                                </Button>
                             </div>
                         </div>
                     </section>

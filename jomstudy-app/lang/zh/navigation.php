@@ -38,4 +38,5 @@ return [
     'bookmarks' => '我的学习夹',
     'privacy_policy' => '隐私政策',
     'terms_of_service' => '服务条款',
+    'back_to_home' => '返回首页',
 ];

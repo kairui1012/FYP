@@ -1,5 +1,4 @@
 import { PostEditableBody } from '@/components/post-content/post-editable-body';
-import { PostVideoEmbed } from '@/components/post-content/post-video-embed';
 import { PostQuizPanel } from '@/components/post-content/quiz/post-quiz-panel';
 import type {
     EditableMaterialBlock,
@@ -126,8 +125,6 @@ export function PostContentMainSection({
                         onSave={onSaveEdit}
                         onCancel={onCancelEdit}
                     />
-
-                    <PostVideoEmbed videoUrl={post.video_url} />
                 </>
             )}
 

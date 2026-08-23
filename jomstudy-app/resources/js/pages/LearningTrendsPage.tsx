@@ -6,7 +6,7 @@ import { LearningTrendsPostList } from '@/components/learning-trends/learning-tr
 import { LearningTrendsToolbar } from '@/components/learning-trends/learning-trends-toolbar';
 import type { LearningTrendsPageProps } from '@/components/learning-trends/types';
 import { useLearningTrendsController } from '@/components/learning-trends/use-learning-trends-controller';
-import { PaginationControls } from '@/components/pagination-controls';
+import { PaginationControls } from '@/component-new/shared/pagination-controls';
 import AppLayout from '@/layouts/app-layout';
 import { popularPage } from '@/routes';
 import type { BreadcrumbItem } from '@/types';

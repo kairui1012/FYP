@@ -1,5 +1,5 @@
 import { Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/component-new/button/button';
 import { BadgeSelectChip } from './badge-select-chip';
 import type { Badge, TransFn } from './types';
 

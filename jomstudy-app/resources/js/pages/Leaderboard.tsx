@@ -2,14 +2,14 @@ import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, usePage } from '@inertiajs/react';
 import { LeaderboardHeaderControls } from '@/components/leaderboard/leaderboard-header-controls';
 import { LeaderboardPointsHistory } from '@/components/leaderboard/leaderboard-points-history';
-import { LeaderboardRankingSection } from '@/components/leaderboard/leaderboard-ranking-section';
+import { LeaderboardRankingSection } from '@/component-new/section/leaderboard-ranking-section';
 import type {
     LeaderboardPayload,
     LeaderboardUser,
     Period,
 } from '@/components/leaderboard/types';
 import { useLeaderboardController } from '@/components/leaderboard/use-leaderboard-controller';
-import { PodiumCard } from '@/components/PodiumCard';
+import { PodiumCard } from '@/components/leaderboard/leaderboard-podium-card';
 import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
 import AppLayout from '@/layouts/app-layout';
 import { leaderboard as leaderboardRoute } from '@/routes';
@@ -69,14 +69,6 @@ export default function Leaderboard({ leaderboard }: LeaderboardProps) {
                                     key={user.rank}
                                     user={user}
                                     isCurrentUser={isCurrentUser(user)}
-                                    rankLabel={trans('leaderboard.rank')}
-                                    pointsLabel={trans('leaderboard.points')}
-                                    anonymousUserLabel={trans(
-                                        'leaderboard.anonymous_user',
-                                    )}
-                                    currentUserLabel={trans(
-                                        'leaderboard.current_user',
-                                    )}
                                 />
                             ))}
                         </section>

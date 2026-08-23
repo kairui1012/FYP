@@ -17,9 +17,6 @@ return new class extends Migration
             $table->string('password');
             $table->unsignedInteger('points')->default(0);
             $table->string('locale', 5)->nullable();
-            $table->text('two_factor_secret')->nullable();
-            $table->text('two_factor_recovery_codes')->nullable();
-            $table->timestamp('two_factor_confirmed_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
             $table->unsignedInteger('total_points')->default(0);

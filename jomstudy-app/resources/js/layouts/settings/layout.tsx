@@ -1,9 +1,9 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Link } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
-import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import Heading from '@/component-new/header/header-for-setting';
+import { Button } from '@/component-new/button/button';
+import { Separator } from '@/component-new/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn, toUrl } from '@/lib/utils';
 import { edit } from '@/routes/profile';
@@ -23,11 +23,6 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
         {
             title: trans('settings.sidebar_password'),
             href: editPassword(),
-            icon: null,
-        },
-        {
-            title: trans('settings.sidebar_two_factor'),
-            href: '/settings/two-factor',
             icon: null,
         },
     ];

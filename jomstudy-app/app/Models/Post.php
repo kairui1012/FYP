@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
@@ -22,7 +21,6 @@ class Post extends Model
         'subject_id',
         'language_id',
         'image',
-        'video_url',
         'material_improved_from_feedback',
     ];
 
@@ -86,15 +84,18 @@ class Post extends Model
         return array_values(array_unique($paths));
     }
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function comments() {
+    public function comments()
+    {
         return $this->hasMany(Comment::class);
     }
 
-    public function likes() {
+    public function likes()
+    {
         return $this->hasMany(Like::class);
     }
 
@@ -103,14 +104,8 @@ class Post extends Model
         return $this->hasMany(BookmarkItem::class);
     }
 
-    public function bookmarkFolders(): BelongsToMany
+    public function language()
     {
-        return $this->belongsToMany(BookmarkFolder::class, 'bookmark_items')
-            ->withPivot(['id', 'user_id', 'created_at', 'updated_at'])
-            ->withTimestamps();
-    }
-
-    public function language() {
         return $this->belongsTo(Language::class);
     }
 

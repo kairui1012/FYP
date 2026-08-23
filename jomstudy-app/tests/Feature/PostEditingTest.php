@@ -19,68 +19,25 @@ function createPostEditingTaxonomy(): array
     ];
 }
 
-test('material update rejects invalid video block url', function () {
+test('material creation rejects video content blocks', function () {
     $teacher = User::factory()->create(['role' => 'teacher']);
     [$language, $subject] = createPostEditingTaxonomy();
 
-    $material = Post::create([
-        'user_id' => $teacher->id,
-        'title' => 'Material with a video block',
-        'content' => 'Existing material body.',
-        'content_blocks' => [
-            [
-                'type' => 'text',
-                'text' => 'Existing material body.',
-            ],
-        ],
-        'post_type' => 'material',
-        'language_id' => $language->id,
-        'subject_id' => $subject->id,
-    ]);
-
-    $response = $this
-        ->actingAs($teacher)
-        ->patch(route('posts.update', $material), [
-            'title' => 'Updated material title',
-            'content' => '',
-            'material_blocks' => [
-                [
-                    'type' => 'video',
-                    'url' => 'not a video url',
-                ],
-            ],
-        ]);
-
-    $response->assertSessionHasErrors(['material_blocks.0.url']);
-    $this->assertDatabaseHas('posts', [
-        'id' => $material->id,
-        'title' => 'Material with a video block',
-    ]);
-});
-
-test('material creation rejects invalid video block url', function () {
-    $teacher = User::factory()->create(['role' => 'teacher']);
-    [$language, $subject] = createPostEditingTaxonomy();
-
-    $response = $this
+    $this
         ->actingAs($teacher)
         ->post(route('posts.store'), [
-            'title' => 'New material with invalid video',
+            'title' => 'Material with a removed content type',
             'post_type' => 'material',
             'subject_id' => $subject->id,
             'language_code' => $language->code,
             'material_blocks' => [
                 [
                     'type' => 'video',
-                    'url' => 'not a video url',
+                    'url' => 'https://example.test/video',
                 ],
             ],
-        ]);
-
-    $response->assertSessionHasErrors(['material_blocks.0.url']);
-    $this->assertDatabaseMissing('posts', [
-        'title' => 'New material with invalid video',
-    ]);
+        ])
+        ->assertSessionHasErrors(['material_blocks.0.type']);
 });
 
 test('anonymous question keeps author hidden while exposing owner state', function () {
