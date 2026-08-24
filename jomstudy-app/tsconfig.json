@@ -118,5 +118,5 @@
         "resources/js/**/*.ts",
         "resources/js/**/*.d.ts",
         "resources/js/**/*.tsx"
-, "../../card.tsx"    ]
+, "resources/js/components/ui/card.tsx"    ]
 }
