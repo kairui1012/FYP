@@ -2,14 +2,16 @@ import { reactLang } from '@erag/lang-sync-inertia';
 import { router, usePage } from '@inertiajs/react';
 import { Ban, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/component-new/button/button';
+import { PaginationControls } from '@/components/shared/pagination-controls';
+import { VerifiedTeacherBadge } from '@/components/shared/verified-teacher-badge';
+import { Button } from '@/components/ui/button';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/component-new/ui/select';
+} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -17,10 +19,10 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from '@/component-new/ui/table';
-import { VerifiedTeacherBadge } from '@/component-new/badge/verified-teacher-badge';
+} from '@/components/ui/table';
 import AdminLayout from '@/layouts/admin/admin-layout';
-import { isVerifiedTeacher } from '@/lib/verified-teacher';
+import { isVerifiedTeacher } from '@/lib/teacher-verification';
+import type { PaginationMeta } from '@/types';
 
 type User = {
     id: number;
@@ -43,7 +45,13 @@ const roleColor: Record<string, string> = {
     student: 'bg-green-100 text-green-700',
 };
 
-export default function AdminUsers({ users }: { users: User[] }) {
+export default function AdminUsers({
+    users,
+    pagination,
+}: {
+    users: User[];
+    pagination: PaginationMeta;
+}) {
     const { auth } = usePage<PageProps>().props;
     const { trans } = reactLang();
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -74,7 +82,7 @@ export default function AdminUsers({ users }: { users: User[] }) {
                 <p className="text-sm text-muted-foreground">
                     {trans('admin.users_total').replace(
                         ':count',
-                        String(users.length),
+                        String(pagination.total),
                     )}
                 </p>
             </div>
@@ -110,7 +118,7 @@ export default function AdminUsers({ users }: { users: User[] }) {
                                     }
                                 >
                                     <TableCell className="text-muted-foreground">
-                                        {i + 1}
+                                        {(pagination.from ?? 1) + i}
                                     </TableCell>
                                     <TableCell>
                                         <span
@@ -260,6 +268,7 @@ export default function AdminUsers({ users }: { users: User[] }) {
                     </TableBody>
                 </Table>
             </div>
+            <PaginationControls pagination={pagination} />
         </AdminLayout>
     );
 }

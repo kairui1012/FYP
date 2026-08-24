@@ -84,18 +84,18 @@ class FortifyServiceProvider extends ServiceProvider
             'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
+        Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/resetPassword', [
             ...syncLangFiles('auth'),
             'email' => $request->email,
             'token' => $request->route('token'),
         ]));
 
-        Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/forgot-password', [
+        Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/forgotPassword', [
             ...syncLangFiles('auth'),
             'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/verify-email', [
+        Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/verifyEmail', [
             ...syncLangFiles('auth'),
             'status' => $request->session()->get('status'),
         ]));
@@ -104,7 +104,7 @@ class FortifyServiceProvider extends ServiceProvider
             ...syncLangFiles('auth'),
         ]));
 
-        Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password', [
+        Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirmPassword', [
             ...syncLangFiles('auth'),
         ]));
     }

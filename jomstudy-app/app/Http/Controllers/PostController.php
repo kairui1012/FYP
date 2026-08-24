@@ -2,45 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Concerns\HandlesPostComments;
-use App\Http\Controllers\Concerns\HandlesStudyMaterials;
-use App\Models\Language;
 use App\Models\Post;
-use App\Models\QuizAttempt;
-use App\Models\QuizCompletion;
-use App\Models\Subject;
 use App\Services\LearningProgressService;
-use App\Services\MaterialVersionService;
-use App\Services\PointsService;
+use App\Services\PostCommentService;
 use App\Services\PostQueryBuilder;
 use App\Services\PostSerializationService;
+use App\Services\PostService;
+use App\Services\StudyMaterialService;
 use Illuminate\Database\QueryException;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class PostController extends Controller
 {
-    use HandlesPostComments;
-    use HandlesStudyMaterials;
-
     private const POST_TYPES = ['material', 'question', 'quiz'];
 
     private const FEED_PER_PAGE = 10;
 
     public function __construct(
-        private readonly MaterialVersionService $materialVersionService,
-        private readonly PostQueryBuilder $queryBuilder,
         private readonly PostSerializationService $serializationService,
         private readonly LearningProgressService $learningProgressService,
-        private readonly PointsService $pointsService,
+        private readonly PostService $postService,
+        private readonly PostCommentService $postCommentService,
+        private readonly StudyMaterialService $studyMaterialService,
     ) {}
 
     /**
@@ -49,35 +37,6 @@ class PostController extends Controller
     public function index(Request $request): Response
     {
         return $this->renderHomePage($request);
-    }
-
-    /**
-     * Display questions feed (questions and quizzes only).
-     * no used
-     */
-    public function questions(Request $request): Response
-    {
-        return $this->renderHomePage($request, ['question', 'quiz'], 'questions');
-    }
-
-    /**
-     * Display learning materials feed (material posts only).
-     * no used
-     */
-    public function learningMaterials(Request $request): Response
-    {
-        return $this->renderHomePage($request, 'material', 'materials');
-    }
-
-    /**
-     * Return learning progress overview (learning paths, completion %) as JSON.
-     * no used
-     */
-    public function learningOverview(Request $request): JsonResponse
-    {
-        return response()->json([
-            'learningOverview' => $this->learningProgressService->buildLearningOverview($request->user()),
-        ]);
     }
 
     /**
@@ -91,35 +50,11 @@ class PostController extends Controller
             'subject_id' => ['nullable', 'integer', Rule::exists('subjects', 'id')],
         ]);
 
-        return Inertia::render('CategoriesPage', [
-            'languages' => Language::query()
-                ->withCount('posts')
-                ->orderByDesc('posts_count')
-                ->orderBy('name')
-                ->get(['id', 'code', 'name'])
-                ->map(fn (Language $language) => [
-                    'id' => $language->id,
-                    'code' => $language->code,
-                    'name' => $language->name,
-                    'posts_count' => (int) $language->posts_count,
-                ])
-                ->values(),
-            'subjects' => Subject::query()
-                ->withCount('posts')
-                ->orderByDesc('posts_count')
-                ->orderBy('name')
-                ->get(['id', 'name'])
-                ->map(fn (Subject $subject) => [
-                    'id' => $subject->id,
-                    'name' => $subject->name,
-                    'posts_count' => (int) $subject->posts_count,
-                ])
-                ->values(),
+        return Inertia::render('categoriesPage', [
+            'languages' => $this->postService->categoryLanguages(),
+            'subjects' => $this->postService->categorySubjects(),
             'filteredPosts' => Inertia::lazy(function () use ($request, $validated) {
-                $followingIds = $request->user()
-                    ?->following()
-                    ->pluck('users.id')
-                    ->all() ?? [];
+                $followingIds = $this->postService->followingIds($request->user());
 
                 $postType = $validated['post_type'] ?? '';
                 $languageCode = $validated['language_code'] ?? '';
@@ -140,7 +75,7 @@ class PostController extends Controller
                     ->withQueryString();
 
                 $posts = $paginator->getCollection();
-                $this->attachMaterialLearningStates($posts, Auth::id());
+                $this->studyMaterialService->attachLearningStates($posts, Auth::id());
 
                 return [
                     'posts' => $posts
@@ -155,16 +90,10 @@ class PostController extends Controller
     /**
      * Render home page with paginated posts, filtered by type/language/subject.
      * Attaches learning states and material feedback summaries to posts.
-     *
-     * @param  string|array|null  $forcedPostType  Force posts to specific type(s), overriding user filter
-     * @param  string  $pageContext  Page identifier for frontend context (home, questions, materials)
      */
-    private function renderHomePage(Request $request, string|array|null $forcedPostType = null, string $pageContext = 'home'): Response
+    private function renderHomePage(Request $request): Response
     {
-        $followingIds = $request->user()
-            ?->following()
-            ->pluck('users.id')
-            ->all() ?? [];
+        $followingIds = $this->postService->followingIds($request->user());
 
         $validated = $request->validate([
             'post_type' => ['nullable', 'string', Rule::in(self::POST_TYPES)],
@@ -173,15 +102,7 @@ class PostController extends Controller
         ]);
 
         $postType = $validated['post_type'] ?? '';
-        $postTypesFilter = [];
-
-        if (is_array($forcedPostType)) {
-            $postTypesFilter = $forcedPostType;
-        } elseif (is_string($forcedPostType) && $forcedPostType !== '') {
-            $postTypesFilter = [$forcedPostType];
-        } elseif ($postType !== '') {
-            $postTypesFilter = [$postType];
-        }
+        $postTypesFilter = $postType !== '' ? [$postType] : [];
 
         $languageCode = $validated['language_code'] ?? '';
         $subjectId = isset($validated['subject_id']) ? (int) $validated['subject_id'] : null;
@@ -201,8 +122,8 @@ class PostController extends Controller
             ->withQueryString();
 
         $posts = $paginator->getCollection();
-        $this->attachMaterialLearningStates($posts, Auth::id());
-        $this->attachMaterialFeedbackSummaries($posts, Auth::id());
+        $this->studyMaterialService->attachLearningStates($posts, Auth::id());
+        $this->studyMaterialService->attachFeedbackSummaries($posts);
 
         $serializedPosts = $posts
             ->map(fn (Post $post) => $this->serializationService->serialize($post, $followingIds));
@@ -212,7 +133,7 @@ class PostController extends Controller
             'pagination' => $this->paginationMeta($paginator),
             'learningOverview' => $this->learningProgressService->buildLearningOverview($request->user()),
             'postTypeFilter' => count($postTypesFilter) === 1 ? $postTypesFilter[0] : null,
-            'pageContext' => $pageContext,
+            'pageContext' => 'home',
             'languageFilter' => $languageCode !== '' ? $languageCode : null,
             'subjectFilter' => $subjectId,
         ]);
@@ -243,50 +164,38 @@ class PostController extends Controller
     public function show(Post $post): Response
     {
         $userId = Auth::id();
-        $followingIds = request()->user()
-            ?->following()
-            ->pluck('users.id')
-            ->all() ?? [];
-        $supportsCommentVotes = $this->supportsCommentVotes();
+        $followingIds = $this->postService->followingIds(request()->user());
+        $supportsCommentVotes = $this->postCommentService->supportsVotes();
 
         try {
-            $this->loadPostWithComments($post, $userId, $supportsCommentVotes);
+            $this->postCommentService->load($post, $userId, $supportsCommentVotes);
         } catch (QueryException $exception) {
-            if (! $supportsCommentVotes || ! $this->isVoteColumnMissingException($exception)) {
+            if (! $supportsCommentVotes || ! $this->postCommentService->isMissingVoteColumn($exception)) {
                 throw $exception;
             }
 
-            $this->loadPostWithComments($post, $userId, false);
+            $this->postCommentService->load($post, $userId, false);
         }
 
-        $post->setAttribute('is_liked', $post->likes()->where('user_id', Auth::id())->exists());
-        $post->setAttribute('is_saved', $post->bookmarkItems()->where('user_id', Auth::id())->exists());
-        $post->setAttribute('is_lesson_completed', false);
-        $post->setAttribute(
-            'is_quiz_completed',
-            $post->post_type === 'quiz' && $userId
-                ? $this->hasCompletedQuiz($userId, $post->id)
-                : false,
-        );
-        $post->setAttribute('quiz_attempts', $userId ? $this->getQuizAttemptsForPost($userId, $post->id) : []);
+        $this->postService->attachViewerFlags($post, $userId);
 
         if ($post->post_type === 'material') {
-            $this->recordMaterialView($post, $userId);
-            $post->setAttribute('material_feedback_summary', $this->buildMaterialFeedbackSummary($post, $userId));
-            $post->setAttribute('material_user_feedback', $this->buildMaterialUserFeedback($post, $userId));
+            $this->studyMaterialService->recordView($post, $userId);
+            $post->setAttribute('material_feedback_summary', $this->studyMaterialService->feedbackSummary($post));
+            $post->setAttribute('material_user_feedback', $this->studyMaterialService->userFeedback($post, $userId));
 
             if ((request()->user()?->role ?? 'student') === 'teacher') {
-                $post->setAttribute('learning_analytics', $this->buildLearningAnalytics($post));
+                $post->setAttribute('learning_analytics', $this->studyMaterialService->analytics($post));
             }
 
-            $post->setAttribute('linked_quizzes', $this->buildLinkedQuizzes($post, $followingIds, $userId));
+            $post->setAttribute('linked_quizzes', $this->studyMaterialService->linkedQuizzes($post, $followingIds, $userId));
 
-            $stateMap = $this->buildMaterialLearningStateMap([$post->id], $userId);
+            $stateMap = $this->studyMaterialService->learningStateMap([$post->id], $userId);
             $post->setAttribute('material_learning_state', $stateMap[$post->id]['state'] ?? 'unread');
             $post->setAttribute('material_learning_path', $stateMap[$post->id]['path'] ?? []);
         }
 
-        return Inertia::render('PostContent', [
+        return Inertia::render('postContent', [
             'post' => $this->serializationService->serialize($post, $followingIds),
         ]);
     }
@@ -340,20 +249,14 @@ class PostController extends Controller
                 'content_blocks' => $materialBlocks,
             ];
 
-            if (Schema::hasColumn('posts', 'material_improved_from_feedback') && $this->materialHasFeedback($post)) {
-                $updateData['material_improved_from_feedback'] = true;
-            }
-
-            $post->update($updateData);
-            $post->refresh();
-            $this->materialVersionService->createSnapshot($post);
+            $this->postService->update($post, $updateData, true);
         } else {
             $validated = $request->validate([
                 'title' => ['required', 'string', 'max:150'],
                 'content' => ['required', 'string', 'max:2000'],
             ]);
 
-            $post->update($validated);
+            $this->postService->update($post, $validated, false);
         }
 
         return redirect()->route('posts.show', $post);
@@ -449,57 +352,8 @@ class PostController extends Controller
             abort(403);
         }
 
-        DB::transaction(function () use ($post): void {
-            $owner = $post->user()->first();
-            $action = $post->post_type === 'material'
-                ? 'resource_uploaded'
-                : 'question_asked';
-
-            if ($owner) {
-                $this->pointsService->revoke($owner, $action, $post);
-            }
-
-            $post->delete();
-        });
+        $this->postService->delete($post);
 
         return redirect()->route('homePage');
-    }
-
-    /**
-     * Check if user has completed a quiz (has entry in quiz_completions table).
-     */
-    private function hasCompletedQuiz(int $userId, int $postId): bool
-    {
-        if (! Schema::hasTable('quiz_completions')) {
-            return false;
-        }
-
-        return QuizCompletion::query()
-            ->where('user_id', $userId)
-            ->where('post_id', $postId)
-            ->exists();
-    }
-
-    /**
-     * @return array<int, array{question_index: int, selected_answer_index: int, is_correct: bool}>
-     */
-    private function getQuizAttemptsForPost(int $userId, int $postId): array
-    {
-        if (! Schema::hasTable('quiz_mistakes')) {
-            return [];
-        }
-
-        return QuizAttempt::query()
-            ->where('user_id', $userId)
-            ->where('post_id', $postId)
-            ->orderBy('question_index')
-            ->get(['question_index', 'selected_answer_index', 'is_correct'])
-            ->map(fn (QuizAttempt $attempt) => [
-                'question_index' => (int) $attempt->question_index,
-                'selected_answer_index' => (int) $attempt->selected_answer_index,
-                'is_correct' => (bool) $attempt->is_correct,
-            ])
-            ->values()
-            ->all();
     }
 }

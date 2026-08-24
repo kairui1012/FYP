@@ -54,9 +54,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // --- Pages / feeds ---
     Route::get('/homePage', [PostController::class, 'index'])->name('homePage');
     Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
-    Route::get('/learning/overview', [PostController::class, 'learningOverview'])->name('learning.overview');
-    Route::get('/questions', [PostController::class, 'questions'])->name('questionsPage');
-    Route::get('/learning-materials', [PostController::class, 'learningMaterials'])->name('learningMaterialsPage');
     Route::get('/following', [FollowerController::class, 'index'])->name('followingPage');
     Route::get('/popularPage', [PostPopularController::class, 'index'])->name('popularPage');
     Route::get('/createPostPage', [PostCreateController::class, 'create'])->name('createPostPage');
@@ -81,10 +78,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/comments/{comment}/report', [CommentReportController::class, 'store'])->name('comments.report');
 
     // --- Lessons / quizzes / material feedback ---
-    Route::post('/posts/{post}/complete', [PostQuizController::class, 'completeLesson'])->name('posts.complete');
     Route::post('/posts/{post}/complete-quiz', [PostQuizController::class, 'completeQuiz'])->name('posts.completeQuiz');
     Route::post('/posts/{post}/material-feedback', [StudyMaterialFeedbackController::class, 'store'])->name('posts.materialFeedback');
-    Route::delete('/posts/{post}/material-feedback', [StudyMaterialFeedbackController::class, 'destroy'])->name('posts.materialFeedback.destroy');
 
     // --- Leaderboard ---
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
@@ -99,7 +94,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // --- Other pages ---
     Route::get('/achievements', [AchievementsController::class, 'index'])->name('achievements');
     Route::get('/categories', [PostController::class, 'categories'])->name('categories');
-    Route::get('/rules', fn () => Inertia::render('RulesPage'))->name('rules');
+    Route::get('/rules', fn () => Inertia::render('rulesPage'))->name('rules');
     Route::get('/teacher/material-insights', [TeacherMaterialInsightsController::class, 'index'])->name('teacher.material-insights');
     Route::get('/bookmarks', [PostBookmarkController::class, 'index'])->name('bookmarks');
     Route::get('/search', [SearchController::class, 'search'])->name('search');
@@ -119,7 +114,7 @@ Route::get('/login/google/callback', [GoogleAuthController::class, 'handleProvid
 |--------------------------------------------------------------------------
 */
 Route::get('/privacy-policy', fn () => Inertia::render('privacyPolicyPage'))->name('privacy-policy');
-Route::get('/terms-of-service', fn () => Inertia::render('TermsOfServicePage'))->name('terms-of-service');
+Route::get('/terms-of-service', fn () => Inertia::render('termsOfServicePage'))->name('terms-of-service');
 
 /*
 |--------------------------------------------------------------------------
@@ -210,5 +205,5 @@ Route::middleware(['auth'])->post('/teacher-applications', function (\Illuminate
 | Additional route files
 |--------------------------------------------------------------------------
 */
-require __DIR__.'/callAI.php';
+require __DIR__.'/ai/routes.php';
 require __DIR__.'/settings.php';

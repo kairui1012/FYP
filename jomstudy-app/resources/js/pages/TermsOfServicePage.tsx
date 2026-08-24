@@ -1,7 +1,7 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head } from '@inertiajs/react';
 import type { ReactElement, ReactNode } from 'react';
-import { AppHeaderForUnlogin } from '@/component-new/header/header-for-unlogin';
+import { PublicLegalLayout } from '@/components/shared/public-legal-layout';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -13,15 +13,6 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: termsRoute,
     },
 ];
-
-function PublicLegalLayout({ children }: { children: ReactNode }) {
-    return (
-        <>
-            <AppHeaderForUnlogin />
-            {children}
-        </>
-    );
-}
 
 export default function TermsOfServicePage() {
     const { trans } = reactLang();

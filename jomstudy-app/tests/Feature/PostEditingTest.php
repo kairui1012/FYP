@@ -60,7 +60,7 @@ test('anonymous question keeps author hidden while exposing owner state', functi
         ->get(route('posts.show', $question))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('PostContent')
+            ->component('postContent')
             ->where('post.id', $question->id)
             ->where('post.is_anonymous', true)
             ->where('post.user', null)
@@ -72,7 +72,7 @@ test('anonymous question keeps author hidden while exposing owner state', functi
         ->get(route('posts.show', $question))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('PostContent')
+            ->component('postContent')
             ->where('post.id', $question->id)
             ->where('post.is_anonymous', true)
             ->where('post.user', null)

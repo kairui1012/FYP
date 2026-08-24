@@ -2,17 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Language;
-use App\Models\Post;
-use App\Models\Subject;
 use App\Services\AchievementService;
 use App\Services\MaterialVersionService;
 use App\Services\PointsService;
+use App\Services\PostCreationService;
 use App\Services\ProgressService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -25,6 +21,7 @@ class PostCreateController extends Controller
     public function __construct(
         private readonly AchievementService $achievementService,
         private readonly MaterialVersionService $materialVersionService,
+        private readonly PostCreationService $postCreationService,
         private readonly PointsService $pointsService,
         private readonly ProgressService $progressService,
     ) {}
@@ -38,32 +35,12 @@ class PostCreateController extends Controller
         /** @var \App\Models\User $user */
         $user = request()->user();
         $canPublishStudyMaterial = $user->canPublishStudyMaterials();
+        $formData = $this->postCreationService->formData();
 
-        return Inertia::render('CreatePostPage', [
-            'subjects' => Subject::query()
-                ->orderBy('name')
-                ->get(['id', 'name']),
+        return Inertia::render('createPostPage', [
+            'subjects' => $formData['subjects'],
             'canPublishStudyMaterial' => $canPublishStudyMaterial,
-            'learningMaterials' => Post::query()
-                ->where('post_type', 'material')
-                ->with(['user:id,name,role', 'subject:id,name'])
-                ->latest('updated_at')
-                ->get(['id', 'user_id', 'title', 'content', 'content_blocks', 'subject_id', 'updated_at'])
-                ->map(fn (Post $post) => [
-                    'id' => $post->id,
-                    'title' => $post->title,
-                    'content' => $post->content,
-                    'publisher' => [
-                        'name' => $post->user?->name ?? 'Unknown publisher',
-                        'role' => $post->user?->role ?? 'teacher',
-                    ],
-                    'subject' => $post->subject ? [
-                        'id' => $post->subject->id,
-                        'name' => $post->subject->name,
-                    ] : null,
-                    'updated_at' => optional($post->updated_at)->toISOString(),
-                ])
-                ->values(),
+            'learningMaterials' => $formData['learningMaterials'],
         ]);
     }
 
@@ -150,24 +127,6 @@ class PostCreateController extends Controller
             $quizData = ['questions' => $questions];
         }
 
-        $subject = Subject::query()->find($validated['subject_id']);
-
-        if (! $subject) {
-            throw ValidationException::withMessages([
-                'subject_id' => 'The selected subject is invalid.',
-            ]);
-        }
-
-        $language = Language::query()
-            ->where('code', $validated['language_code'])
-            ->first();
-
-        if (! $language) {
-            throw ValidationException::withMessages([
-                'language_code' => 'The selected language is invalid.',
-            ]);
-        }
-
         $storedAttachments = [];
 
         foreach ($request->file('attachments', []) as $file) {
@@ -190,26 +149,14 @@ class PostCreateController extends Controller
 
         $isAnonymous = filter_var($validated['is_anonymous'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        $post = DB::transaction(function () use ($request, $validated, $language, $storedAttachments, $subject, $quizData, $isAnonymous, $materialBlocks): Post {
-            $attributes = [
-                'user_id' => $request->user()->id,
-                'is_anonymous' => $isAnonymous,
-                'title' => $validated['title'],
-                'content' => $validated['content'] ?? '',
-                'content_blocks' => $materialBlocks,
-                'post_type' => $validated['post_type'],
-                'quiz_data' => $quizData,
-                'subject_id' => $subject->id,
-                'language_id' => $language->id,
-                'image' => count($storedAttachments) > 0 ? $storedAttachments : null,
-            ];
-
-            if (Schema::hasColumn('posts', 'parent_material_id')) {
-                $attributes['parent_material_id'] = $validated['parent_material_id'] ?? null;
-            }
-
-            return Post::query()->create($attributes);
-        });
+        $post = $this->postCreationService->create(
+            $user,
+            $validated,
+            $quizData,
+            $materialBlocks,
+            $storedAttachments,
+            $isAnonymous,
+        );
 
         if ($post->post_type === 'material') {
             $this->materialVersionService->createSnapshot($post);
@@ -295,5 +242,4 @@ class PostCreateController extends Controller
             ->filter()
             ->implode("\n\n");
     }
-
 }

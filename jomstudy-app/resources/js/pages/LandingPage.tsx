@@ -1,8 +1,8 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, Link } from '@inertiajs/react';
 import { BookOpen, Brain, MessageSquare, Trophy, Globe, Bookmark } from 'lucide-react';
-import { AppHeaderForUnlogin } from '@/component-new/header/header-for-unlogin';
-import { Button } from '@/component-new/button/button';
+import { AppHeaderForUnlogin } from '@/components/shared/guest-header';
+import { Button } from '@/components/ui/button';
 import { login, register } from '@/routes';
 
 type LandingPageProps = {

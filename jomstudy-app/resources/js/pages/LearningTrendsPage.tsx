@@ -1,12 +1,13 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, router, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { LearningTrendsEmptyState } from '@/components/learning-trends/learning-trends-empty-state';
-import { LearningTrendsPostList } from '@/components/learning-trends/learning-trends-post-list';
-import { LearningTrendsToolbar } from '@/components/learning-trends/learning-trends-toolbar';
-import type { LearningTrendsPageProps } from '@/components/learning-trends/types';
-import { useLearningTrendsController } from '@/components/learning-trends/use-learning-trends-controller';
-import { PaginationControls } from '@/component-new/shared/pagination-controls';
+import { LearningTrendsEmptyState } from '@/components/learningTrendsPageComponent/learning-trends-empty-state';
+import { LearningTrendsPostList } from '@/components/learningTrendsPageComponent/learning-trends-post-list';
+import { LearningTrendsToolbar } from '@/components/learningTrendsPageComponent/learning-trends-toolbar';
+import { PaginationControls } from '@/components/shared/pagination-controls';
+import type { LearningTrendsPageProps } from '@/components/ts/features/learning-trends/learning-trends-types';
+import { useLearningTrendsController } from '@/components/ts/features/learning-trends/use-learning-trends-controller';
+import { useAuthenticatedUserId } from '@/hooks/use-authenticated-user-id';
 import AppLayout from '@/layouts/app-layout';
 import { popularPage } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
@@ -22,15 +23,13 @@ export default function LearningTrendsPage() {
     const { trans } = reactLang();
     const page = usePage<LearningTrendsPageProps>();
     const { props } = page;
-    const currentUserId = (page.props as { auth?: { user?: { id?: number } } })
-        .auth?.user?.id;
+    const currentUserId = useAuthenticatedUserId();
 
     const controller = useLearningTrendsController({
         posts: props.posts ?? [],
         activeRange: props.activeRange ?? 'week',
         activeSort: props.activeSort ?? 'hottest',
     });
-
     const goToPost = (postId: number) => {
         router.get(`/posts/${postId}`);
     };
@@ -54,7 +53,7 @@ export default function LearningTrendsPage() {
 
                     {controller.posts.length === 0 ? (
                         <LearningTrendsEmptyState
-                            message={trans('popular.no_posts')}
+                            title={trans('popular.no_posts')}
                         />
                     ) : (
                         <LearningTrendsPostList

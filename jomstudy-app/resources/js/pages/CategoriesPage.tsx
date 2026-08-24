@@ -1,12 +1,13 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { CategoryFiltersPanel } from '@/component-new/categories/category-filters-panel';
-import { CategoryResultsPanel } from '@/component-new/categories/category-results-panel';
-import type { CategoriesPageProps } from '@/component-new/categories/types';
-import { useCategoryFilters } from '@/hooks/use-category-filters';
-import { usePostInteractions } from '@/hooks/use-post-interactions';
-import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
+import { CategoryFiltersPanel } from '@/components/categoriesPageComponent/category-filters-panel';
+import { CategoryResultsPanel } from '@/components/categoriesPageComponent/category-results-panel';
+import type { CategoriesPageProps } from '@/components/ts/features/categories/category-types';
+import { useAuthenticatedUserId } from '@/hooks/use-authenticated-user-id';
+import { useCategoryFilterControls } from '@/hooks/use-category-filter-controls';
+import { usePageRefreshOnFocus } from '@/hooks/use-page-refresh-on-focus';
+import { usePostActionControls } from '@/hooks/use-post-action-controls';
 import AppLayout from '@/layouts/app-layout';
 import { categories as categoriesRoute } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
@@ -14,8 +15,7 @@ import type { BreadcrumbItem } from '@/types';
 export default function CategoriesPage() {
     const { trans } = reactLang();
     const page = usePage<CategoriesPageProps>();
-    const currentUserId = (page.props as { auth?: { user?: { id?: number } } })
-        .auth?.user?.id;
+    const currentUserId = useAuthenticatedUserId();
 
     const {
         languages,
@@ -36,7 +36,7 @@ export default function CategoriesPage() {
         clearAll,
         fetchPosts,
         applyFilters,
-    } = useCategoryFilters(page.props);
+    } = useCategoryFilterControls(page.props);
 
     const {
         likeStateByPost,
@@ -48,11 +48,11 @@ export default function CategoriesPage() {
         handleLike,
         handleSave,
         handleFollowToggle,
-    } = usePostInteractions(localPosts);
+    } = usePostActionControls(localPosts);
 
     // Only re-fetch the result list on focus (not the whole page) so the user's
     // chosen filters and view stay intact while like/save/follow state updates.
-    useRefreshOnFocus(['filteredPosts']);
+    usePageRefreshOnFocus(['filteredPosts']);
 
     return (
         <>

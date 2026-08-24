@@ -2,20 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Concerns\HandlesStudyMaterials;
 use App\Models\Post;
-use App\Models\StudyMaterialFeedback;
-use App\Services\MaterialVersionService;
+use App\Services\StudyMaterialService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class StudyMaterialFeedbackController extends Controller
 {
-    use HandlesStudyMaterials;
-
-    public function __construct(private readonly MaterialVersionService $materialVersionService) {}
+    public function __construct(private readonly StudyMaterialService $studyMaterialService) {}
 
     /**
      * Submit or update feedback (vote and/or rating) on a study material.
@@ -46,59 +41,13 @@ class StudyMaterialFeedbackController extends Controller
             ], 422);
         }
 
-        StudyMaterialFeedback::query()->updateOrCreate(
-            [
-                'user_id' => $request->user()->id,
-                'post_id' => $post->id,
-            ],
-            [
-                'vote' => $validated['vote'] ?? null,
-                'rating' => $validated['rating'] ?? null,
-            ],
-        );
-
-        $this->syncLatestVersionRating($post->id);
+        $this->studyMaterialService->saveFeedback($request->user(), $post, $validated);
 
         return response()->json([
             'status' => 'saved',
-            'summary' => $this->buildMaterialFeedbackSummary($post, $request->user()->id),
-            'user_feedback' => $this->buildMaterialUserFeedback($post, $request->user()->id),
-            'analytics' => $this->buildLearningAnalytics($post),
-        ]);
-    }
-
-    /**
-     * Delete user's feedback on a study material.
-     * Syncs the latest version's rating and returns updated feedback summary.
-     * no used
-     */
-    public function destroy(Request $request, Post $post): JsonResponse
-    {
-        if (! $request->expectsJson()) {
-            abort(404);
-        }
-
-        if ($post->post_type !== 'material') {
-            return response()->json([
-                'status' => 'invalid',
-                'message' => 'Feedback can only be removed for Study Materials.',
-            ], 422);
-        }
-
-        if (Schema::hasTable('study_material_feedback')) {
-            StudyMaterialFeedback::query()
-                ->where('post_id', $post->id)
-                ->where('user_id', $request->user()->id)
-                ->delete();
-        }
-
-        $this->syncLatestVersionRating($post->id);
-
-        return response()->json([
-            'status' => 'deleted',
-            'summary' => $this->buildMaterialFeedbackSummary($post, $request->user()->id),
-            'user_feedback' => $this->buildMaterialUserFeedback($post, $request->user()->id),
-            'analytics' => $this->buildLearningAnalytics($post),
+            'summary' => $this->studyMaterialService->feedbackSummary($post),
+            'user_feedback' => $this->studyMaterialService->userFeedback($post, $request->user()->id),
+            'analytics' => $this->studyMaterialService->analytics($post),
         ]);
     }
 }

@@ -1,14 +1,14 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, router } from '@inertiajs/react';
-import { MaterialInsightsFilterPanel } from '@/component-new/panel/material-insights-filter-panel';
-import { MaterialInsightsHeader } from '@/component-new/header/material-insights-header';
-import { LowRatedMaterialsSection } from '@/component-new/section/low-rated-materials-section';
+import { LowRatedMaterialsSection } from '@/components/teacherMaterialInsightsPageComponent/low-rated-materials-section';
+import { MaterialInsightsFilterPanel } from '@/components/teacherMaterialInsightsPageComponent/material-insights-filter-panel';
+import { MaterialInsightsHeader } from '@/components/teacherMaterialInsightsPageComponent/material-insights-header';
 import type {
     SelectOption,
     TeacherMaterialInsightsData,
     TeacherMaterialInsightsFilters,
-} from '@/component-new/types/teacher-material-insights';
-import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
+} from '@/components/ts/features/teacher-material-insights/teacher-material-insights-types';
+import { usePageRefreshOnFocus } from '@/hooks/use-page-refresh-on-focus';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -33,7 +33,7 @@ export default function TeacherMaterialInsightsPage({
 
     // Insights aggregate student feedback computed server-side; re-fetch on
     // focus to pick up new ratings (filters come from props, so they hold).
-    useRefreshOnFocus();
+    usePageRefreshOnFocus();
 
     const breadcrumbs: BreadcrumbItem[] = [
         {

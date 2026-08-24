@@ -1,21 +1,21 @@
-import { Head, usePage } from '@inertiajs/react';
-import { router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { PostFeedSection } from '@/component-new/section/post-feed-section';
-import { FeedHeroSection } from '@/component-new/section/feed-hero-section';
+import { HomeLearningDashboard } from '@/components/homePageComponent/home-learning-dashboard';
+import { FeedHeroSection } from '@/components/shared/feed-hero-section';
+import { FeedPostsPanel } from '@/components/shared/feed-posts-panel';
 import {
+    buildFeedHeroText,
     buildFeedSectionText,
     buildHomeText,
-} from '@/component-new/config/home-page-config';
-import { StudyHomeDashboard } from '@/component-new/dashboard/study-home-dashboard';
-import type { StudyHomeOverview } from '@/component-new/dashboard/study-home-dashboard';
-import { PaginationControls } from '@/component-new/shared/pagination-controls';
-import {
-    useHomePageState,
-    type HomePageContext,
-} from '@/hooks/use-home-page-state';
-import { usePostInteractions } from '@/hooks/use-post-interactions';
-import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
+} from '@/components/ts/features/home-page/home-page-text';
+import type {
+    HomeLearningOverview,
+    HomePageContext,
+} from '@/components/ts/features/home-page/home-page-types';
+import { useHomePageState } from '@/components/ts/features/home-page/use-home-page-state';
+import { useAuthenticatedUserId } from '@/hooks/use-authenticated-user-id';
+import { usePageRefreshOnFocus } from '@/hooks/use-page-refresh-on-focus';
+import { usePostActionControls } from '@/hooks/use-post-action-controls';
 import AppLayout from '@/layouts/app-layout';
 import { homePage } from '@/routes';
 import type { BreadcrumbItem, PaginationMeta, PostItem } from '@/types';
@@ -23,7 +23,7 @@ import type { BreadcrumbItem, PaginationMeta, PostItem } from '@/types';
 type HomePageProps = {
     posts?: PostItem[];
     pagination?: PaginationMeta;
-    learningOverview?: StudyHomeOverview;
+    learningOverview?: HomeLearningOverview;
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -39,28 +39,17 @@ export default function HomePage({
     learningOverview,
 }: HomePageProps) {
     const page = usePage();
-    const currentUserId = (page.props as { auth?: { user?: { id?: number } } })
-        .auth?.user?.id;
+    const currentUserId = useAuthenticatedUserId();
     const pageContext =
         (page.props as { pageContext?: HomePageContext }).pageContext ?? 'home';
 
     const { isHomePage, activeTab, setActiveTab } =
         useHomePageState(pageContext);
-    const {
-        likeStateByPost,
-        likingPostIds,
-        saveStateByPost,
-        savingPostIds,
-        followStateByUser,
-        followingUserIds,
-        handleLike,
-        handleSave,
-        handleFollowToggle,
-    } = usePostInteractions(posts);
+    const postInteractions = usePostActionControls(posts);
 
     // Only re-fetch the feed on focus (not the whole page) so the learn/feed
     // tab stays put while like/save/follow counts and states stay current.
-    useRefreshOnFocus(['posts', 'pagination']);
+    usePageRefreshOnFocus(['posts', 'pagination']);
 
     const homeText = buildHomeText(page as any);
 
@@ -93,48 +82,29 @@ export default function HomePage({
                         isFollowingPage={false}
                         activeTab={activeTab}
                         onChangeTab={setActiveTab}
-                        text={{
-                            heroTitle: homeText.heroTitle,
-                            heroSubtitle: homeText.heroSubtitle,
-                            followingTitle: homeText.followingTitle,
-                            followingSubtitle: homeText.followingSubtitle,
-                            learnTab: homeText.learnTab,
-                            feedTab: homeText.feedTab,
-                        }}
+                        text={buildFeedHeroText(homeText)}
                     />
 
                     {isHomePage && activeTab === 'learn' ? (
-                        <StudyHomeDashboard
+                        <HomeLearningDashboard
                             overview={learningOverview}
                             text={homeText}
                             onOpenPost={goToPost}
                         />
                     ) : (
-                        <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200 md:p-5">
-                            <PostFeedSection
-                                posts={posts}
-                                emptyStateVariant="home"
-                                currentUserId={currentUserId}
-                                likeStateByPost={likeStateByPost}
-                                saveStateByPost={saveStateByPost}
-                                followStateByUser={followStateByUser}
-                                likingPostIds={likingPostIds}
-                                savingPostIds={savingPostIds}
-                                followingUserIds={followingUserIds}
-                                onOpenPost={goToPost}
-                                onOpenComments={goToPostComments}
-                                onToggleLike={handleLike}
-                                onToggleSave={handleSave}
-                                onToggleFollow={handleFollowToggle}
-                                text={buildFeedSectionText(homeText)}
-                            />
-                            <PaginationControls
-                                pagination={pagination}
-                                appendQuery={
-                                    isHomePage ? { tab: activeTab } : undefined
-                                }
-                            />
-                        </section>
+                        <FeedPostsPanel
+                            posts={posts}
+                            pagination={pagination}
+                            emptyStateVariant="home"
+                            currentUserId={currentUserId}
+                            interactions={postInteractions}
+                            onOpenPost={goToPost}
+                            onOpenComments={goToPostComments}
+                            text={buildFeedSectionText(homeText)}
+                            appendQuery={
+                                isHomePage ? { tab: activeTab } : undefined
+                            }
+                        />
                     )}
                 </div>
             </div>

@@ -1,18 +1,18 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Link } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
-import Heading from '@/component-new/header/header-for-setting';
-import { Button } from '@/component-new/button/button';
-import { Separator } from '@/component-new/ui/separator';
-import { useCurrentUrl } from '@/hooks/use-current-url';
-import { cn, toUrl } from '@/lib/utils';
+import Heading from '@/components/shared/settings-heading';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { useCurrentRoute } from '@/hooks/use-current-route';
+import { cn, toUrl } from '@/lib/common-helpers';
 import { edit } from '@/routes/profile';
 import { edit as editPassword } from '@/routes/user-password';
 import type { NavItem } from '@/types';
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { trans } = reactLang();
-    const { isCurrentOrParentUrl } = useCurrentUrl();
+    const { isCurrentOrParentUrl } = useCurrentRoute();
 
     const sidebarNavItems: NavItem[] = [
         {
@@ -42,7 +42,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             <div className="flex flex-col lg:flex-row lg:space-x-12">
                 <aside className="w-full max-w-xl lg:w-44 lg:border-r lg:border-zinc-200 lg:pr-60">
                     <nav
-                        className="flex flex-col items-start space-x-0 space-y-1"
+                        className="flex flex-col items-start space-y-1 space-x-0"
                         aria-label={trans('settings.page_title')}
                     >
                         {sidebarNavItems.map((item, index) => (
@@ -52,8 +52,9 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                 variant="ghost"
                                 asChild
                                 className={cn(
-                                    'my-0.5 w-fit rounded-xl px-3 py-2.5 outline-none transition-colors focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100',
-                                    isCurrentOrParentUrl(item.href) && 'bg-neutral-100 text-neutral-900',
+                                    'my-0.5 w-fit rounded-xl px-3 py-2.5 transition-colors outline-none focus:bg-neutral-100 focus:text-neutral-900 data-[state=open]:bg-neutral-100',
+                                    isCurrentOrParentUrl(item.href) &&
+                                        'bg-neutral-100 text-neutral-900',
                                 )}
                             >
                                 <Link

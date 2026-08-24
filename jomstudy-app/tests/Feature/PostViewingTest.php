@@ -47,7 +47,7 @@ test('direct quiz detail exposes completed state for current user', function () 
         ->get(route('posts.show', $quiz))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('PostContent')
+            ->component('postContent')
             ->where('post.id', $quiz->id)
             ->where('post.is_quiz_completed', true)
         );
@@ -78,7 +78,7 @@ test('material detail does not expose learning analytics to students', function 
         ->get(route('posts.show', $material))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('PostContent')
+            ->component('postContent')
             ->where('post.id', $material->id)
             ->where('post.learning_analytics', null)
         );
@@ -109,7 +109,7 @@ test('material detail does not expose learning analytics to admins', function ()
         ->get(route('posts.show', $material))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('PostContent')
+            ->component('postContent')
             ->where('post.id', $material->id)
             ->where('post.learning_analytics', null)
         );
@@ -139,7 +139,7 @@ test('material detail exposes learning analytics to teachers', function () {
         ->get(route('posts.show', $material))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('PostContent')
+            ->component('postContent')
             ->where('post.id', $material->id)
             ->has('post.learning_analytics')
             ->where('post.learning_analytics.views', 1)

@@ -31,6 +31,13 @@ class DemoPresentationSeeder extends Seeder
 
     public function run(): void
     {
+        $this->call([
+            SubjectsSeeder::class,
+            LanguagesSeeder::class,
+            BadgesSeeder::class,
+            AchievementsSeeder::class,
+        ]);
+
         $languageIds = DB::table('languages')->pluck('id', 'code');
         $subjectIds = Subject::query()->pluck('id', 'name');
 
@@ -1132,14 +1139,13 @@ class DemoPresentationSeeder extends Seeder
             });
         });
 
-        foreach ($attemptRows as [$user, $quiz, $score, $passed, $createdAt, $questionsCount]) {
+        foreach ($attemptRows as [$user, $quiz, $score, , $createdAt, $questionsCount]) {
             DB::table('material_quiz_attempts')->insert([
                 'user_id' => $user->id,
                 'post_id' => $quiz->id,
                 'material_id' => $quiz->parent_material_id,
                 'score' => $score,
                 'total_questions' => $questionsCount,
-                'passed' => $passed,
                 'created_at' => $createdAt,
                 'updated_at' => $createdAt,
             ]);
@@ -1255,9 +1261,62 @@ class DemoPresentationSeeder extends Seeder
             ]);
         }
 
+        $this->trimDemoPosts($allDemoUsers, 20);
+
         $achievementService = app(AchievementService::class);
         $achievementService->syncUser($student);
         $achievementService->evaluateAchievements($student);
+    }
+
+    private function trimDemoPosts(Collection $users, int $limit): void
+    {
+        $userIds = $users->pluck('id');
+        $quotas = ['material' => 7, 'quiz' => 6, 'question' => 7];
+        $keepIds = collect();
+
+        foreach ($quotas as $postType => $quota) {
+            $keepIds->push(...Post::query()
+                ->whereIn('user_id', $userIds)
+                ->where('post_type', $postType)
+                ->latest('created_at')
+                ->limit($quota)
+                ->pluck('id'));
+        }
+
+        if ($keepIds->count() < $limit) {
+            $keepIds->push(...Post::query()
+                ->whereIn('user_id', $userIds)
+                ->whereNotIn('id', $keepIds)
+                ->latest('created_at')
+                ->limit($limit - $keepIds->count())
+                ->pluck('id'));
+        }
+
+        Post::query()
+            ->whereIn('user_id', $userIds)
+            ->whereNotIn('id', $keepIds->take($limit))
+            ->get()
+            ->each->delete();
+
+        DB::table('points_transactions')
+            ->whereIn('user_id', $userIds)
+            ->where('source_type', Post::class)
+            ->whereNotIn('source_id', $keepIds->take($limit))
+            ->delete();
+
+        foreach ($users as $user) {
+            $points = (int) DB::table('points_transactions')->where('user_id', $user->id)->sum('points');
+            $questionCount = Post::query()->where('user_id', $user->id)->where('post_type', 'question')->count();
+
+            DB::table('users')->where('id', $user->id)->update([
+                'points' => $points,
+                'total_points' => $points,
+            ]);
+            DB::table('user_progress')->where('user_id', $user->id)->update([
+                'total_questions_posted' => $questionCount,
+                'total_post_posted' => Post::query()->where('user_id', $user->id)->count(),
+            ]);
+        }
     }
 
     private function upsertUser(string $email, string $name, string $role): User
@@ -1385,8 +1444,9 @@ class DemoPresentationSeeder extends Seeder
         if (Schema::hasTable('points_transactions')) {
             DB::table('points_transactions')->whereIn('user_id', $userIds)->delete();
         }
-        if (Schema::hasTable('teacher_verification_documents')) {
-            DB::table('teacher_verification_documents')->whereIn('user_id', $userIds)->delete();
+        if (Schema::hasTable('teacher_verification_documents') && Schema::hasTable('teacher_applications')) {
+            $applicationIds = DB::table('teacher_applications')->whereIn('user_id', $userIds)->pluck('id');
+            DB::table('teacher_verification_documents')->whereIn('teacher_application_id', $applicationIds)->delete();
         }
         if (Schema::hasTable('teacher_applications')) {
             DB::table('teacher_applications')->whereIn('user_id', $userIds)->delete();
@@ -1429,8 +1489,6 @@ class DemoPresentationSeeder extends Seeder
                 'qualification' => 'Bachelor of Education with classroom teaching experience',
                 'bio' => 'Demo teacher account seeded for presentation. Applicant agreed to teacher responsibilities and content quality guidelines.',
                 'reason' => 'Demo teacher verification application for seeded learning materials.',
-                'document_path' => $documentPath,
-                'document_original_name' => 'teaching-certificate.pdf',
                 'status' => 'approved',
                 'admin_note' => 'Approved for demo data so teacher material and verification flows are visible.',
                 'created_at' => $createdAt,
@@ -1445,13 +1503,11 @@ class DemoPresentationSeeder extends Seeder
                 [
                     'path' => $documentPath,
                     'original_name' => 'teaching-certificate.pdf',
-                    'document_type' => 'teaching_certificate',
                     'verification_notes' => 'Fake certificate file added for demo verification flow.',
                 ],
                 [
                     'path' => "teacher-verification/demo/{$teacher->id}/education-degree.pdf",
                     'original_name' => 'education-degree.pdf',
-                    'document_type' => 'degree',
                     'verification_notes' => 'Fake degree file added for certified demo teacher.',
                 ],
             ];
@@ -1464,11 +1520,8 @@ class DemoPresentationSeeder extends Seeder
 
                 DB::table('teacher_verification_documents')->insert($this->filterColumns('teacher_verification_documents', [
                     'teacher_application_id' => $applicationId,
-                    'user_id' => $teacher->id,
                     'path' => $document['path'],
                     'original_name' => $document['original_name'],
-                    'file_path' => $document['path'],
-                    'document_type' => $document['document_type'],
                     'status' => 'verified',
                     'verification_notes' => $document['verification_notes'],
                     'verified_at' => $createdAt->copy()->addHours(4 + $docIndex),

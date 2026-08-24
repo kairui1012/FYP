@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\QueuePostReportForModeration;
 use App\Models\Post;
-use App\Models\PostReport;
+use App\Services\ContentReportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
-use Throwable;
 
 class PostReportController extends Controller
 {
+    public function __construct(private readonly ContentReportService $reportService) {}
+
     /**
      * Submit a report on a post. Prevents duplicate reports by same user.
      * Queues report for moderation processing. Handles missing table gracefully.
@@ -22,40 +21,18 @@ class PostReportController extends Controller
             'reason' => ['nullable', 'string', 'max:255'],
         ]);
 
-        if (! Schema::hasTable('post_reports')) {
+        $status = $this->reportService->reportPost(
+            $request->user(),
+            $post,
+            $validated['reason'] ?? null,
+        );
+
+        if ($status === ContentReportService::UNAVAILABLE) {
             return response()->json(['message' => 'Report feature not available.'], 503);
         }
 
-        $alreadyReported = PostReport::query()
-            ->where('user_id', $request->user()->id)
-            ->where('post_id', $post->id)
-            ->exists();
-
-        if ($alreadyReported) {
+        if ($status === ContentReportService::DUPLICATE) {
             return response()->json(['message' => 'Already reported.'], 422);
-        }
-
-        $reportAttributes = [
-            'user_id' => $request->user()->id,
-            'post_id' => $post->id,
-            'reason' => $validated['reason'] ?? 'inappropriate',
-        ];
-
-        if (Schema::hasColumn('post_reports', 'status')) {
-            $reportAttributes['status'] = 'pending';
-        }
-
-        if (Schema::hasColumn('post_reports', 'moderation_queued_at')) {
-            $reportAttributes['moderation_queued_at'] = now();
-        }
-
-        $report = PostReport::query()->create($reportAttributes);
-
-        try {
-            QueuePostReportForModeration::dispatch($report->id);
-        } catch (Throwable $e) {
-            report($e);
-            QueuePostReportForModeration::dispatchSync($report->id);
         }
 
         return response()->json(['message' => 'Report submitted.']);

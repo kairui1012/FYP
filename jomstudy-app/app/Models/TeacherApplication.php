@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TeacherApplication extends Model
 {
-    protected $fillable = ['user_id', 'qualification', 'bio', 'document_path', 'document_original_name', 'status', 'admin_note'];
+    protected $fillable = ['user_id', 'qualification', 'bio', 'status', 'admin_note'];
 
     public function user()
     {

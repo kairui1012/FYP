@@ -2,11 +2,12 @@ import { reactLang } from '@erag/lang-sync-inertia';
 import { Head } from '@inertiajs/react';
 import { Bookmark, BookOpen, CheckCircle2, XCircle } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { QuizReviewList } from '@/components/studyfolder/quiz-review-list';
-import { SavedPostsPanel } from '@/components/studyfolder/saved-posts-panel';
-import { SidebarFolderItem } from '@/components/studyfolder/sidebar-folder-item';
-import { useStudyFolder } from '@/components/studyfolder/use-study-folder';
-import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
+import { PaginationControls } from '@/components/shared/pagination-controls';
+import { QuizReviewList } from '@/components/studyFolderPageComponent/quiz-review-list';
+import { SavedPostsPanel } from '@/components/studyFolderPageComponent/saved-posts-panel';
+import { SidebarFolderItem } from '@/components/studyFolderPageComponent/sidebar-folder-item';
+import { useStudyFolder } from '@/components/ts/features/study-folder/use-study-folder';
+import { usePageRefreshOnFocus } from '@/hooks/use-page-refresh-on-focus';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -21,6 +22,7 @@ export default function StudyFolderPage() {
         correctCount,
         wrongCount,
         quizReviewItems,
+        pagination,
         activeQuizMode,
         isQuizFolder,
         totalSaves,
@@ -33,7 +35,7 @@ export default function StudyFolderPage() {
 
     // Saved-post lists are loaded server-side; re-fetch on focus so saves
     // toggled on other pages show up here without a manual refresh.
-    useRefreshOnFocus();
+    usePageRefreshOnFocus();
 
     return (
         <>
@@ -194,6 +196,7 @@ export default function StudyFolderPage() {
                                     onToggleSave={handleToggleSave}
                                 />
                             )}
+                            <PaginationControls pagination={pagination} />
                         </main>
                     </div>
                 </div>

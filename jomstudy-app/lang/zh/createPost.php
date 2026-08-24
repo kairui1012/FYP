@@ -79,7 +79,6 @@ return [
     'material_select_required' => '请先选择一个学习资料。',
     'material_quiz_error' => '无法根据此资料生成测验。',
     'material_quiz_content_prefix' => '关联到学习资料的测验',
-    'material_reliable_badge' => '可靠教育资源',
     'material_improved_badge' => '已根据用户反馈改进',
     'material_page_label' => '学习资料',
     'material_publisher_label' => '发布者',

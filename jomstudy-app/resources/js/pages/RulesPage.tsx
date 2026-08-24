@@ -1,17 +1,18 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head } from '@inertiajs/react';
 import { Award, BookOpen, ChevronDown, Crown, Sparkles, Trophy } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
-import { LeaderboardTitleBadges } from '@/component-new/badge/leaderboard-title-badges';
-import { PointsRulesSection } from '@/component-new/section/points-rules-section';
-import { RuleSection } from '@/component-new/section/rule-section';
+import { useState  } from 'react';
+import type {ReactNode} from 'react';
+import { LeaderboardTitleBadges } from '@/components/rulesPageComponent/leaderboard-title-badges';
+import { PointsRulesSection } from '@/components/rulesPageComponent/points-rules-section';
+import { RuleSection } from '@/components/rulesPageComponent/rule-section';
 import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
-} from '@/component-new/ui/collapsible';
+} from '@/components/ui/collapsible';
 import AppLayout from '@/layouts/app-layout';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/common-helpers';
 import type { BreadcrumbItem } from '@/types';
 
 const ruleRoute = '/rules';

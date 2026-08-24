@@ -4,7 +4,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Toaster } from 'react-hot-toast';
 import '../css/app.css';
-import { initializeTheme } from '@/hooks/use-appearance';
+import { initializeThemePreference } from '@/hooks/use-theme-preference';
 
 const appName = import.meta.env.VITE_APP_NAME || 'jomstudy';
 
@@ -41,4 +41,4 @@ createInertiaApp({
 });
 
 // This will set light / dark mode on load...
-initializeTheme();
+initializeThemePreference();

@@ -1,9 +1,9 @@
 import { usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
-import { AppContent } from '@/component-new/app/app-content';
-import { AppHeader } from '@/component-new/header/header';
-import { AppShell } from '@/component-new/app/app-shell';
-import { AppSidebar } from '@/component-new/app/app-sidebar';
+import { AppContent } from '@/components/shared/app-content';
+import { AppHeader } from '@/components/shared/app-header';
+import { AppShell } from '@/components/shared/app-shell';
+import { AppSidebar } from '@/components/shared/app-sidebar';
 import type { AppLayoutProps } from '@/types';
 
 export default function AppHeaderLayout({ children }: AppLayoutProps) {

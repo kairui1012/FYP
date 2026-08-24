@@ -54,6 +54,7 @@ class PostPopularController extends Controller
                 'user:id,name,role,is_verified',
                 'user.socialAccounts:id,user_id,avatar',
                 'subject:id,name',
+                'lesson:id,title,sequence',
                 'language:id,code,name',
             ])
             ->withCount([
@@ -106,7 +107,7 @@ class PostPopularController extends Controller
             })
             ->values();
 
-        return Inertia::render('LearningTrendsPage', [
+        return Inertia::render('learningTrendsPage', [
             'posts' => $posts,
             'pagination' => $this->paginationMeta($paginator),
             'activeRange' => $range,
@@ -139,6 +140,7 @@ class PostPopularController extends Controller
 
     /**
      * Resolve time range (today/week/month/all) to start and end Carbon dates.
+     *
      * @return array{0: Carbon|null, 1: Carbon|null}
      */
     private function resolvePopularRange(string $range): array

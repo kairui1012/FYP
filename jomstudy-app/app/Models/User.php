@@ -127,11 +127,6 @@ class User extends Authenticatable
         return $this->hasMany(UserAchievement::class);
     }
 
-    public function pointsTransactions(): HasMany
-    {
-        return $this->hasMany(PointTransaction::class);
-    }
-
     public function canPublishStudyMaterials(): bool
     {
         return in_array($this->role ?? 'student', ['admin', 'teacher'], true);

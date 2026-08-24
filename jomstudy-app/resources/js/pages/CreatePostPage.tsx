@@ -1,9 +1,18 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { AnonymousToggleSection } from '@/component-new/section/anonymous-toggle-section';
-import { AttachmentsSection } from '@/component-new/section/attachments-section';
-import { ContentComposerSection } from '@/component-new/section/content-composer-section';
+import { AnonymousToggleSection } from '@/components/createPostPageComponent/anonymous-toggle-section';
+import { ContentComposerSection } from '@/components/createPostPageComponent/content-composer-section';
+import { LanguageSection } from '@/components/createPostPageComponent/language-section';
+import { MaterialLinkSection } from '@/components/createPostPageComponent/material-link-section';
+import { PostTypeSection } from '@/components/createPostPageComponent/post-type-section';
+import { QuizSetupSection } from '@/components/createPostPageComponent/quiz-setup-section';
+import { StudyMaterialBlockEditor } from '@/components/createPostPageComponent/study-material-block-editor';
+import { SubjectSection } from '@/components/createPostPageComponent/subject-section';
+import { SubmitPostButton } from '@/components/createPostPageComponent/submit-post-button';
+import { TitleInputSection } from '@/components/createPostPageComponent/title-input-section';
+import { AttachmentsSection } from '@/components/shared/attachments-section';
+import type { LearningMaterialOption } from '@/components/ts/features/create-post/create-post-config';
 import {
     ACCEPTED_FILE_TYPES,
     MAX_CONTENT_LENGTH,
@@ -15,17 +24,8 @@ import {
     pillChoiceIdle,
     pillIconButton,
     pillSubmitButton,
-} from '@/component-new/config/create-post-config';
-import type { LearningMaterialOption } from '@/component-new/config/create-post-config';
-import { LanguageSection } from '@/component-new/section/language-section';
-import { MaterialLinkSection } from '@/component-new/section/material-link-section';
-import { PostTypeSection } from '@/component-new/section/post-type-section';
-import { QuizSetupSection } from '@/component-new/section/quiz-setup-section';
-import { StudyMaterialBlockEditor } from '@/component-new/createPost/study-material-block-editor';
-import { SubjectSection } from '@/component-new/section/subject-section';
-import { SubmitPostButton } from '@/component-new/button/btn-submit-created-post';
-import { TitleInputSection } from '@/component-new/section/title-input-section';
-import { useCreatePostForm } from '@/component-new/createPost/use-create-post-form';
+} from '@/components/ts/features/create-post/create-post-config';
+import { useCreatePostForm } from '@/components/ts/features/create-post/use-create-post-form';
 import AppLayout from '@/layouts/app-layout';
 import { homePage } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
@@ -278,29 +278,27 @@ export default function CreatePostPage() {
                         />
 
                         {!isMaterialSelected ? (
-                            <>
-                                <AttachmentsSection
-                                    fileInputRef={fileInputRef}
-                                    acceptedFileTypes={ACCEPTED_FILE_TYPES}
-                                    attachments={attachments}
-                                    fileError={fileError}
-                                    isDragging={isDragging}
-                                    onSelectFiles={onSelectFiles}
-                                    onSetDragging={setIsDragging}
-                                    onDropFiles={onDropFiles}
-                                    onRemoveAttachment={removeAttachment}
-                                    pillActionButton={pillActionButton}
-                                    pillIconButton={pillIconButton}
-                                    text={{
-                                        mediaLabel: t.mediaLabel,
-                                        addFiles: t.addFiles,
-                                        dragDropTitle: t.dragDropTitle,
-                                        dragDropSubtitle: t.dragDropSubtitle,
-                                        supportedFormat: t.supportedFormat,
-                                        previewAlt: t.previewAlt,
-                                    }}
-                                />
-                            </>
+                            <AttachmentsSection
+                                fileInputRef={fileInputRef}
+                                acceptedFileTypes={ACCEPTED_FILE_TYPES}
+                                attachments={attachments}
+                                fileError={fileError}
+                                isDragging={isDragging}
+                                onSelectFiles={onSelectFiles}
+                                onSetDragging={setIsDragging}
+                                onDropFiles={onDropFiles}
+                                onRemoveAttachment={removeAttachment}
+                                pillActionButton={pillActionButton}
+                                pillIconButton={pillIconButton}
+                                text={{
+                                    mediaLabel: t.mediaLabel,
+                                    addFiles: t.addFiles,
+                                    dragDropTitle: t.dragDropTitle,
+                                    dragDropSubtitle: t.dragDropSubtitle,
+                                    supportedFormat: t.supportedFormat,
+                                    previewAlt: t.previewAlt,
+                                }}
+                            />
                         ) : null}
 
                         <div className="pt-4">

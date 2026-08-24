@@ -46,7 +46,7 @@ test('learning trends week range only shows posts created in the current calenda
         ->get(route('popularPage', ['range' => 'week', 'sort' => 'newest']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('LearningTrendsPage')
+            ->component('learningTrendsPage')
             ->has('posts', 1)
             ->where('posts.0.title', 'This week post')
             ->where('activeRange', 'week')
@@ -69,7 +69,7 @@ test('learning trends today range only shows posts created today', function () {
         ->get(route('popularPage', ['range' => 'today', 'sort' => 'newest']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('LearningTrendsPage')
+            ->component('learningTrendsPage')
             ->has('posts', 1)
             ->where('posts.0.title', 'Today post')
             ->where('activeRange', 'today')
@@ -92,7 +92,7 @@ test('learning trends month range only shows posts created in the current calend
         ->get(route('popularPage', ['range' => 'month', 'sort' => 'newest']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('LearningTrendsPage')
+            ->component('learningTrendsPage')
             ->has('posts', 1)
             ->where('posts.0.title', 'This month post')
             ->where('activeRange', 'month')

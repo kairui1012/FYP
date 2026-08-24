@@ -10,7 +10,6 @@ Disallow: /bookmarks
 Disallow: /profilePage/
 Disallow: /following
 Disallow: /leaderboard
-Disallow: /learning-materials
 Disallow: /questions
 Disallow: /createPostPage
 Disallow: /achievements

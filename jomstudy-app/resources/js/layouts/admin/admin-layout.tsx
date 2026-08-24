@@ -3,9 +3,9 @@ import { usePage } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
 import { LayoutDashboard, ShieldAlert, UserCheck, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { AppHeaderAdmin } from '@/component-new/header/header-admin';
-import { AppShell } from '@/component-new/app/app-shell';
-import { cn } from '@/lib/utils';
+import { AppHeaderAdmin } from '@/components/shared/admin-header';
+import { AppShell } from '@/components/shared/app-shell';
+import { cn } from '@/lib/common-helpers';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
     const page = usePage();

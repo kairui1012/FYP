@@ -1,19 +1,10 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { Head, Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { AppHeaderForUnlogin } from '@/component-new/header/header-for-unlogin';
-import { Button } from '@/component-new/button/button';
+import { PublicLegalLayout } from '@/components/shared/public-legal-layout';
+import { Button } from '@/components/ui/button';
 
 const privacyRoute = '/privacy-policy';
-
-function PublicLegalLayout({ children }: { children: ReactNode }) {
-    return (
-        <>
-            <AppHeaderForUnlogin />
-            {children}
-        </>
-    );
-}
 
 export default function PrivacyPolicyPage() {
     const { trans } = reactLang();

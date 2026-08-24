@@ -2,47 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Concerns\HandlesStudyMaterials;
 use App\Models\Post;
-use App\Models\QuizCompletion;
 use App\Services\AchievementService;
 use App\Services\ProgressService;
+use App\Services\StudyMaterialService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PostQuizController extends Controller
 {
-    use HandlesStudyMaterials;
-
     public function __construct(
         private readonly AchievementService $achievementService,
         private readonly ProgressService $progressService,
+        private readonly StudyMaterialService $studyMaterialService,
     ) {}
-
-    /**
-     * Complete a lesson (deprecated - lesson progress tracking removed).
-     * Returns status "removed" as a placeholder.
-     * no used
-     */
-    public function completeLesson(Request $request, Post $post): JsonResponse
-    {
-        if (! $request->expectsJson()) {
-            abort(404);
-        }
-
-        if ($post->post_type !== 'material' || ! $post->lesson_id) {
-            return response()->json([
-                'status' => 'invalid',
-                'message' => 'This post does not have a completable lesson.',
-            ], 422);
-        }
-
-        return response()->json([
-            'status' => 'removed',
-            'lesson_id' => $post->lesson_id,
-            'message' => 'Lesson progress tracking has been removed.',
-        ]);
-    }
 
     /**
      * Submit quiz answers and record completion/attempt.
@@ -100,11 +73,7 @@ class PostQuizController extends Controller
         $isLastQuestion = $questionIndex === $totalQuestions - 1;
 
         if ($isLastQuestion && $isCorrect) {
-            $completion = QuizCompletion::query()->firstOrCreate(
-                ['user_id' => $request->user()->id, 'post_id' => $post->id],
-                ['subject_id' => $post->subject_id, 'completed_at' => now()],
-            );
-            $isFirstCompletion = $completion->wasRecentlyCreated;
+            $isFirstCompletion = $this->studyMaterialService->completeQuiz($request->user(), $post);
         }
 
         return $this->recordQuizResult($request, $post, $questionIndex, $selectedIndex, $isCorrect, $isFirstCompletion);
@@ -133,17 +102,7 @@ class PostQuizController extends Controller
         $isFirstCompletion = false;
 
         if ($isCorrect) {
-            $completion = QuizCompletion::query()->firstOrCreate(
-                [
-                    'user_id' => $request->user()->id,
-                    'post_id' => $post->id,
-                ],
-                [
-                    'subject_id' => $post->subject_id,
-                    'completed_at' => now(),
-                ],
-            );
-            $isFirstCompletion = $completion->wasRecentlyCreated;
+            $isFirstCompletion = $this->studyMaterialService->completeQuiz($request->user(), $post);
         }
 
         return $this->recordQuizResult($request, $post, 0, $selectedIndex, $isCorrect, $isFirstCompletion);
@@ -163,7 +122,7 @@ class PostQuizController extends Controller
     ): JsonResponse {
         /** @var \App\Models\User $user */
         $user = $request->user();
-        $this->recordMaterialQuizAttempt($user, $post, $isCorrect);
+        $this->studyMaterialService->recordQuizAttempt($user, $post, $isCorrect);
         $this->progressService->syncMistakeReview($user, $post, $questionIndex, $selectedIndex, $isCorrect);
         $newlyEarned = $this->progressService->recordQuizAttempt($user, $isCorrect, $isFirstCompletion);
         $this->achievementService->syncUser($user);

@@ -2,12 +2,12 @@ import { reactLang } from '@erag/lang-sync-inertia';
 import { Form, Head, Link } from '@inertiajs/react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
-import { AppHeaderForUnlogin } from '@/component-new/header/header-for-unlogin';
-import { Button } from '@/component-new/button/button';
-import { Input } from '@/component-new/ui/input';
-import { Label } from '@/component-new/ui/label';
-import { Spinner } from '@/component-new/ui/spinner';
-import { Card } from '@/component-new/ui/card';
+import { AppHeaderForUnlogin } from '@/components/shared/guest-header';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 

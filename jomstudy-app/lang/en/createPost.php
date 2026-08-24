@@ -79,7 +79,6 @@ return [
     'material_select_required' => 'Select a Study Material first.',
     'material_quiz_error' => 'Unable to generate a quiz from this material.',
     'material_quiz_content_prefix' => 'Quiz linked to Study Material',
-    'material_reliable_badge' => 'Reliable educational resource',
     'material_improved_badge' => 'Improved based on user feedback',
     'material_page_label' => 'Study Material',
     'material_publisher_label' => 'Publisher',

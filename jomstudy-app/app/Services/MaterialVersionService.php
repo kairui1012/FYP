@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\Schema;
  * for study material posts. A snapshot captures the post content and
  * aggregated feedback metrics at a point in time.
  *
- * Used by controllers and concerns to persist and compute material
+ * Used by controllers and traits to persist and compute material
  * version data (see PostCreateController, PostController,
- * StudyMaterialFeedbackController, and HandlesStudyMaterials).
+ * StudyMaterialFeedbackController, and ManagesStudyMaterials).
  */
 class MaterialVersionService
 {
@@ -88,34 +88,61 @@ class MaterialVersionService
      */
     public function buildFeedbackSnapshot(Post $post): array
     {
-        if (! Schema::hasTable('study_material_feedback')) {
-            return [
-                'average_rating' => 0.0,
-                'rating_count' => 0,
-                'recommended_count' => 0,
-                'not_recommended_count' => 0,
-                'total_votes' => 0,
-                'recommendation_rate' => 0,
-            ];
+        return $this->buildFeedbackSnapshots([$post->id])[$post->id] ?? $this->emptyFeedbackSnapshot();
+    }
+
+    /**
+     * Build feedback snapshots for multiple materials with one aggregate query.
+     *
+     * @param  array<int>  $postIds
+     * @return array<int, array{average_rating: float, rating_count: int, recommended_count: int, not_recommended_count: int, total_votes: int, recommendation_rate: int}>
+     */
+    public function buildFeedbackSnapshots(array $postIds): array
+    {
+        $postIds = collect($postIds)->map(fn ($postId) => (int) $postId)->filter()->unique()->values();
+
+        if ($postIds->isEmpty() || ! Schema::hasTable('study_material_feedback')) {
+            return [];
         }
 
-        $base = StudyMaterialFeedback::query()->where('post_id', $post->id);
-        $averageRating = (float) (clone $base)->whereNotNull('rating')->avg('rating');
-        $ratingCount = (int) (clone $base)->whereNotNull('rating')->count();
-        $recommendedCount = (int) (clone $base)->where('vote', 1)->count();
-        $notRecommendedCount = (int) (clone $base)->where('vote', -1)->count();
-        $totalVotes = $recommendedCount + $notRecommendedCount;
-        $recommendationRate = $totalVotes > 0
-            ? (int) round(($recommendedCount / $totalVotes) * 100)
-            : 0;
+        return StudyMaterialFeedback::query()
+            ->whereIn('post_id', $postIds->all())
+            ->select('post_id')
+            ->selectRaw('AVG(CASE WHEN rating IS NOT NULL THEN rating END) as average_rating')
+            ->selectRaw('COUNT(rating) as rating_count')
+            ->selectRaw('SUM(CASE WHEN vote = 1 THEN 1 ELSE 0 END) as recommended_count')
+            ->selectRaw('SUM(CASE WHEN vote = -1 THEN 1 ELSE 0 END) as not_recommended_count')
+            ->groupBy('post_id')
+            ->get()
+            ->mapWithKeys(function (StudyMaterialFeedback $feedback): array {
+                $recommendedCount = (int) $feedback->recommended_count;
+                $notRecommendedCount = (int) $feedback->not_recommended_count;
+                $totalVotes = $recommendedCount + $notRecommendedCount;
 
+                return [(int) $feedback->post_id => [
+                    'average_rating' => round((float) $feedback->average_rating, 1),
+                    'rating_count' => (int) $feedback->rating_count,
+                    'recommended_count' => $recommendedCount,
+                    'not_recommended_count' => $notRecommendedCount,
+                    'total_votes' => $totalVotes,
+                    'recommendation_rate' => $totalVotes > 0
+                        ? (int) round(($recommendedCount / $totalVotes) * 100)
+                        : 0,
+                ]];
+            })
+            ->all();
+    }
+
+    /** @return array{average_rating: float, rating_count: int, recommended_count: int, not_recommended_count: int, total_votes: int, recommendation_rate: int} */
+    public function emptyFeedbackSnapshot(): array
+    {
         return [
-            'average_rating' => round($averageRating, 1),
-            'rating_count' => $ratingCount,
-            'recommended_count' => $recommendedCount,
-            'not_recommended_count' => $notRecommendedCount,
-            'total_votes' => $totalVotes,
-            'recommendation_rate' => $recommendationRate,
+            'average_rating' => 0.0,
+            'rating_count' => 0,
+            'recommended_count' => 0,
+            'not_recommended_count' => 0,
+            'total_votes' => 0,
+            'recommendation_rate' => 0,
         ];
     }
 }

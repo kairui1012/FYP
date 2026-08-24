@@ -9,11 +9,8 @@ class TeacherVerificationDocument extends Model
 {
     protected $fillable = [
         'teacher_application_id',
-        'user_id',
         'path',
         'original_name',
-        'file_path',
-        'document_type',
     ];
 
     public function application(): BelongsTo

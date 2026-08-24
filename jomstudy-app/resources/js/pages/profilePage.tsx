@@ -1,15 +1,15 @@
 import { Head } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { BadgeEditorPanel } from '@/components/profile/badge-editor-panel';
-import { ProfileBadgesTab } from '@/components/profile/profile-badges-tab';
-import { ProfileEditor } from '@/components/profile/profile-editor';
-import { ProfileHeader } from '@/components/profile/profile-header';
-import { ProfilePostsTab } from '@/components/profile/profile-posts-tab';
-import { ProfileStats } from '@/components/profile/profile-stats';
-import { ProfileTabBar } from '@/components/profile/profile-tab-bar';
-import { useProfilePage } from '@/components/profile/use-profile-page';
-import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
+import { FeaturedBadgeEditor } from '@/components/profilePageComponent/featured-badge-editor';
+import { ProfileBadgesTab } from '@/components/profilePageComponent/profile-badges-tab';
+import { ProfileEditor } from '@/components/profilePageComponent/profile-editor';
+import { ProfileHeader } from '@/components/profilePageComponent/profile-header';
+import { ProfilePostsTab } from '@/components/profilePageComponent/profile-posts-tab';
+import { ProfileStats } from '@/components/profilePageComponent/profile-stats';
+import { ProfileTabBar } from '@/components/profilePageComponent/profile-tab-bar';
+import { useProfilePage } from '@/components/ts/features/profile/use-profile-page';
+import { usePageRefreshOnFocus } from '@/hooks/use-page-refresh-on-focus';
 import AppLayout from '@/layouts/app-layout';
 
 export default function ProfilePage() {
@@ -59,7 +59,7 @@ export default function ProfilePage() {
 
     // Follow state / counts are computed server-side; re-fetch on focus so
     // follows made elsewhere show up without a manual refresh.
-    useRefreshOnFocus();
+    usePageRefreshOnFocus();
 
     return (
         <>
@@ -93,7 +93,9 @@ export default function ProfilePage() {
                     aboutMainText={aboutMainText}
                     profileSaveSuccess={profileSaveSuccess}
                     trans={trans}
-                    onFollowToggle={() => { void handleFollowToggle(); }}
+                    onFollowToggle={() => {
+                        void handleFollowToggle();
+                    }}
                     onOpenProfileEditor={handleOpenProfileEditor}
                     onToggleBadgeEditor={() => setShowBadgeEditor((v) => !v)}
                 />
@@ -112,19 +114,23 @@ export default function ProfilePage() {
                         onNameChange={setProfileNameInput}
                         onAboutChange={setProfileAboutInput}
                         onAvatarFileChange={setProfileAvatarFile}
-                        onSave={() => { void handleSaveProfile(); }}
+                        onSave={() => {
+                            void handleSaveProfile();
+                        }}
                         onCancel={() => setShowProfileEditor(false)}
                     />
                 )}
 
                 {showBadgeEditor && isOwnProfile && earnedBadges.length > 0 && (
-                    <BadgeEditorPanel
+                    <FeaturedBadgeEditor
                         earnedBadges={earnedBadges}
                         featuredBadgeIds={featuredBadgeIds}
                         savingBadges={savingBadges}
                         trans={trans}
                         onBadgeToggle={handleBadgeToggle}
-                        onSave={() => { void handleSaveFeaturedBadges(); }}
+                        onSave={() => {
+                            void handleSaveFeaturedBadges();
+                        }}
                     />
                 )}
 

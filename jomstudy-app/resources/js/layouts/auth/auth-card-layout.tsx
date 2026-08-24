@@ -1,12 +1,12 @@
 import type { PropsWithChildren } from 'react';
-import AppLogoIcon from '@/component-new/app/app-logo-icon';
+import AppLogoIcon from '@/components/shared/app-logo-icon';
 import {
     Card,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/component-new/ui/card';
+} from '@/components/ui/card';
 
 export default function AuthCardLayout({
     children,

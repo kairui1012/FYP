@@ -277,17 +277,16 @@ class PostSerializationService
      */
     private function resolveUserVote(Comment $comment): int
     {
-        $currentUserId = Auth::id();
-        $vote = null;
-
-        if ($comment->relationLoaded('votes') && $currentUserId) {
-            $vote = $comment->votes
-                ->firstWhere('user_id', $currentUserId)
-                ?->vote;
+        if ((bool) ($comment->is_upvoted ?? false)) {
+            return 1;
         }
 
-        if ($vote !== null) {
-            return (int) $vote;
+        if ((bool) ($comment->is_downvoted ?? false)) {
+            return -1;
+        }
+
+        if ((bool) ($comment->is_wrong ?? false)) {
+            return -2;
         }
 
         return (int) ($comment->is_liked ?? 0);

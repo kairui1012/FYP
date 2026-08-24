@@ -1,15 +1,15 @@
 import { Head, usePage } from '@inertiajs/react';
 import type { ReactElement, ReactNode } from 'react';
-import { PostActionFooter } from '@/components/post-content/post-action-footer';
-import { PostAttachmentsSection } from '@/components/post-content/post-attachments-section';
-import { PostBackAuthorHeader } from '@/components/post-content/post-back-author-header';
-import { PostContentCommentsPanel } from '@/components/post-content/post-content-comments-panel';
-import { trans } from '@/component-new/config/post-content-config';
-import { PostContentMainSection } from '@/components/post-content/post-content-main-section';
-import { PostDeleteModal } from '@/components/post-content/post-delete-modal';
-import { PostTranslateActions } from '@/components/post-content/post-translate-actions';
-import type { PostContentProps } from '@/components/post-content/types';
-import { usePostContentController } from '@/components/post-content/use-post-content-controller';
+import { PostActionFooter } from '@/components/postContentPageComponent/post-action-footer';
+import { PostAttachmentsSection } from '@/components/postContentPageComponent/post-attachments-section';
+import { PostBackAuthorHeader } from '@/components/postContentPageComponent/post-back-author-header';
+import { PostContentCommentsPanel } from '@/components/postContentPageComponent/post-content-comments-panel';
+import { PostContentMainSection } from '@/components/postContentPageComponent/post-content-main-section';
+import { PostDeleteModal } from '@/components/postContentPageComponent/post-delete-modal';
+import { PostTranslateActions } from '@/components/postContentPageComponent/post-translate-actions';
+import { trans } from '@/components/ts/features/post-content/post-content-config';
+import type { PostContentProps } from '@/components/ts/features/post-content/post-content-types';
+import { usePostContentController } from '@/components/ts/features/post-content/use-post-content-controller';
 import AppLayout from '@/layouts/app-layout';
 import { followingPage, homePage } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
@@ -33,8 +33,8 @@ export default function PostContent({ post }: PostContentProps) {
         source === 'following'
             ? followingPage().url
             : fromTab === 'feed' || fromTab === 'learn'
-            ? `${homePage().url}?tab=${fromTab}`
-            : homePage().url;
+              ? `${homePage().url}?tab=${fromTab}`
+              : homePage().url;
 
     return (
         <>
@@ -50,7 +50,9 @@ export default function PostContent({ post }: PostContentProps) {
                         displayName={controller.displayName}
                         isAnonymousPost={controller.isAnonymousPost}
                         isFollowingAuthor={controller.isFollowingAuthor}
-                        followingAuthorLoading={controller.followingAuthorLoading}
+                        followingAuthorLoading={
+                            controller.followingAuthorLoading
+                        }
                         trans={trans}
                         onFollowAuthor={controller.handleFollowAuthor}
                     />
@@ -58,7 +60,9 @@ export default function PostContent({ post }: PostContentProps) {
                     <PostContentMainSection
                         page={page}
                         post={post}
-                        translatedTitle={controller.translated?.title ?? post.title}
+                        translatedTitle={
+                            controller.translated?.title ?? post.title
+                        }
                         displayedContent={controller.displayedContent}
                         displayedMaterialBlocks={
                             controller.displayedMaterialBlocks
@@ -83,11 +87,15 @@ export default function PostContent({ post }: PostContentProps) {
                         onSaveEdit={controller.handleEditSave}
                         onCancelEdit={controller.handleEditCancel}
                         onAddMaterialBlock={controller.addMaterialEditBlock}
-                        onUpdateMaterialBlock={controller.updateMaterialEditBlock}
+                        onUpdateMaterialBlock={
+                            controller.updateMaterialEditBlock
+                        }
                         onUpdateMaterialBlockFile={
                             controller.updateMaterialEditBlockFile
                         }
-                        onRemoveMaterialBlock={controller.removeMaterialEditBlock}
+                        onRemoveMaterialBlock={
+                            controller.removeMaterialEditBlock
+                        }
                         onMoveMaterialBlock={controller.moveMaterialEditBlock}
                         onSaveMaterialEdit={controller.handleMaterialEditSave}
                         onAnswerSelect={controller.handleAnswerSelect}

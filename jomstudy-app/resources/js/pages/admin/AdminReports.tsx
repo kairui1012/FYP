@@ -3,7 +3,8 @@ import { router } from '@inertiajs/react';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { Button } from '@/component-new/button/button';
+import { PaginationControls } from '@/components/shared/pagination-controls';
+import { Button } from '@/components/ui/button';
 import {
     Table,
     TableBody,
@@ -11,8 +12,9 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from '@/component-new/ui/table';
+} from '@/components/ui/table';
 import AdminLayout from '@/layouts/admin/admin-layout';
+import type { PaginationMeta } from '@/types';
 
 type Report = {
     id: number;
@@ -26,7 +28,13 @@ type Report = {
     created_at: string;
 };
 
-export default function AdminReports({ reports }: { reports: Report[] }) {
+export default function AdminReports({
+    reports,
+    pagination,
+}: {
+    reports: Report[];
+    pagination: PaginationMeta;
+}) {
     const { trans } = reactLang();
     const t = (key: string, fallbackKey?: string) => {
         const primary = trans(key);
@@ -124,7 +132,7 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                 <p className="text-sm text-muted-foreground">
                     {trans('admin.reports_total').replace(
                         ':count',
-                        String(reports.length),
+                        String(pagination.total),
                     )}
                 </p>
             </div>
@@ -156,9 +164,11 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                     </TableHeader>
                     <TableBody>
                         {reports.map((report, i) => (
-                            <TableRow key={report.id}>
+                            <TableRow
+                                key={`${report.report_type}-${report.id}`}
+                            >
                                 <TableCell className="text-muted-foreground">
-                                    {i + 1}
+                                    {(pagination.from ?? 1) + i}
                                 </TableCell>
                                 <TableCell>
                                     <div className="font-medium">
@@ -251,6 +261,7 @@ export default function AdminReports({ reports }: { reports: Report[] }) {
                     </TableBody>
                 </Table>
             </div>
+            <PaginationControls pagination={pagination} />
         </AdminLayout>
     );
 }

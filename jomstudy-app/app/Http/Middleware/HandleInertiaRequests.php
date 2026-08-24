@@ -72,7 +72,7 @@ class HandleInertiaRequests extends Middleware
         $pageFiles = match ($routeName) {
             'home' => ['landing', 'auth'],
 
-            'homePage', 'posts.index', 'questionsPage', 'learningMaterialsPage',
+            'homePage', 'posts.index',
             'followingPage', 'popularPage', 'posts.show', 'search' => [
                 'home', 'createPost', 'comment', 'aiTranslate', 'profile',
                 'bookmark', 'achievement', 'subjects', 'category', 'popular',

@@ -60,7 +60,6 @@ class PostQueryBuilder
      * saved each post. If $userId is null the currently authenticated
      * user id will be used.
      *
-     * @param int|null $userId
      * @return $this
      */
     public function withUserFlags(?int $userId = null): self
@@ -91,7 +90,6 @@ class PostQueryBuilder
      * Filter posts by post type. Accepts a single type string, an array of
      * types, or null to skip the filter.
      *
-     * @param string|array|null $postType
      * @return $this
      */
     public function filterByPostType(string|array|null $postType): self
@@ -109,7 +107,6 @@ class PostQueryBuilder
      * Filter posts by language code (e.g. 'en', 'zh'). Empty string will
      * skip the filter.
      *
-     * @param string $languageCode
      * @return $this
      */
     public function filterByLanguage(string $languageCode): self
@@ -124,10 +121,9 @@ class PostQueryBuilder
     /**
      * Filter posts by subject id. Passing null skips the filter.
      *
-     * @param int|null $subjectId
      * @return $this
      */
-    public function filterBySubject(int|null $subjectId): self
+    public function filterBySubject(?int $subjectId): self
     {
         if ($subjectId !== null) {
             $this->query->where('subject_id', $subjectId);
@@ -157,25 +153,5 @@ class PostQueryBuilder
     public function getQuery()
     {
         return $this->query;
-    }
-
-    /**
-     * Execute the query and return the resulting collection of Post models.
-     *
-     * @return \Illuminate\Database\Eloquent\Collection
-     */
-    public function get()
-    {
-        return $this->query->get();
-    }
-
-    /**
-     * Execute the query and return the first matching Post or null.
-     *
-     * @return Post|null
-     */
-    public function first()
-    {
-        return $this->query->first();
     }
 }
