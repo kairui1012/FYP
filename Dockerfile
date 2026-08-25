@@ -45,4 +45,4 @@ RUN rm -f bootstrap/cache/*.php \
 RUN chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 9000
-CMD ["sh", "-c", "php artisan config:cache && php-fpm -F"]
+CMD ["sh", "-c", "php artisan migrate --force && php artisan db:seed --class=DemoPresentationSeeder --force && php artisan config:cache && php-fpm -F"]
