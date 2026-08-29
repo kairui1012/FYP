@@ -8,32 +8,35 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Create teacher_applications table
         Schema::create('teacher_applications', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->string('status')->default('pending'); // pending, approved, rejected
+            $table->string('qualification')->nullable();
+            $table->text('bio')->nullable();
+            $table->string('status')->default('pending');
             $table->text('reason')->nullable();
-            $table->string('document_path')->nullable();
+            $table->text('admin_note')->nullable();
             $table->timestamps();
 
             $table->index(['user_id', 'status']);
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
         });
 
-        // Create teacher_verification_documents table
         Schema::create('teacher_verification_documents', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->string('document_type'); // degree, certificate, etc.
-            $table->string('file_path');
-            $table->string('status')->default('pending'); // pending, verified, rejected
+            $table->unsignedBigInteger('teacher_application_id')->nullable();
+            $table->string('path')->nullable();
+            $table->string('original_name')->nullable();
+            $table->string('status')->default('pending');
             $table->text('verification_notes')->nullable();
             $table->timestamp('verified_at')->nullable();
             $table->timestamps();
 
-            $table->index(['user_id', 'status']);
-            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->index('teacher_application_id', 'tvd_teacher_application_id_index');
+            $table->foreign('teacher_application_id', 'tvd_teacher_application_id_fk')
+                ->references('id')
+                ->on('teacher_applications')
+                ->nullOnDelete();
         });
     }
 

@@ -1,7 +1,7 @@
 import { reactLang } from '@erag/lang-sync-inertia';
 import { router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import { homePage } from '@/routes';
+import { index as homePage } from '@/routes/feed';
 import type { Badge, PageProps } from './profile-types';
 
 const MAX_FEATURED = 3;

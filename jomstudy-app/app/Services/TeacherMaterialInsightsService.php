@@ -120,9 +120,9 @@ class TeacherMaterialInsightsService
             ->when($subjectId, fn ($builder) => $builder->where('materials.subject_id', $subjectId))
             ->when($quizId, fn ($builder) => $builder->where('quizzes.id', $quizId))
             ->when($since, fn ($builder) => $builder->where('qm.updated_at', '>=', $since))
-            ->selectRaw('quizzes.id as quiz_id, quizzes.title as quiz_title, materials.id as material_id, materials.title as material_title, subjects.name as subject_name, qm.question_index, SUM(CASE WHEN qm.is_correct = 0 THEN 1 ELSE 0 END) as wrong_count, COUNT(*) as total_attempts')
+            ->selectRaw('quizzes.id as quiz_id, quizzes.title as quiz_title, materials.id as material_id, materials.title as material_title, subjects.name as subject_name, qm.question_index, SUM(CASE WHEN qm.is_correct = ? THEN 1 ELSE 0 END) as wrong_count, COUNT(*) as total_attempts', [false])
             ->groupBy('quizzes.id', 'quizzes.title', 'materials.id', 'materials.title', 'subjects.name', 'qm.question_index')
-            ->havingRaw('SUM(CASE WHEN qm.is_correct = 0 THEN 1 ELSE 0 END) > 0')
+            ->havingRaw('SUM(CASE WHEN qm.is_correct = ? THEN 1 ELSE 0 END) > 0', [false])
             ->orderByDesc('wrong_count')->orderByDesc('total_attempts')
             ->limit(20)->get()
             ->map(function ($row) {

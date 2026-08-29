@@ -89,7 +89,7 @@ class GoogleAuthController extends Controller
     private function redirectAfterLogin(User $user): RedirectResponse
     {
         if ($user->role === 'admin') {
-            return redirect()->route('admin.users')->with('success', 'success verification');
+            return redirect()->route('admin.users.index')->with('success', 'success verification');
         }
 
         return redirect()->intended('/homePage')->with('success', 'success verification');

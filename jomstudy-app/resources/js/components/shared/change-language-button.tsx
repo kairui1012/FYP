@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/common-helpers';
-import { switchMethod as changeLocale } from '@/routes/language';
+import { update as changeLocale } from '@/routes/locale';
 
 const localeLabels: Record<string, string> = {
     en: 'EN',

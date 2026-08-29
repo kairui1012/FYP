@@ -12,7 +12,7 @@ import { useAuthenticatedUserId } from '@/hooks/use-authenticated-user-id';
 import { usePageRefreshOnFocus } from '@/hooks/use-page-refresh-on-focus';
 import { usePostActionControls } from '@/hooks/use-post-action-controls';
 import AppLayout from '@/layouts/app-layout';
-import { followingPage } from '@/routes';
+import { index as followingPage } from '@/routes/following';
 import type { BreadcrumbItem, PaginationMeta, PostItem } from '@/types';
 
 type FollowingPageProps = {

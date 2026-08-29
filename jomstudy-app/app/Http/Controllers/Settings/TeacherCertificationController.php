@@ -40,8 +40,8 @@ class TeacherCertificationController extends Controller
     {
         $request->validate([
             'agree_terms' => ['accepted'],
-            'documents' => ['nullable', 'array', 'max:5'],
-            'documents.*' => ['file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:10240'],
+            'documents' => ['nullable', 'array', 'max:2'],
+            'documents.*' => ['file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:5120'],
         ]);
 
         $this->certificationService->submit($request->user(), $request->file('documents', []));

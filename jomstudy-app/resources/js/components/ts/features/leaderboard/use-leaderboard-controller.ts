@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { leaderboard as leaderboardRoute } from '@/routes';
+import { index as leaderboardRoute } from '@/routes/leaderboard';
 import type { Period } from './leaderboard-types';
 
 type UseLeaderboardControllerParams = {

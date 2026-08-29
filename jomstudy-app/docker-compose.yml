@@ -1,0 +1,30 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: jomstudy-app
+    working_dir: /var/www/html
+
+    ports:
+      - '8000:8080'
+
+    volumes:
+      - .:/var/www/html
+      # Keep Composer dependencies from the image; the source bind mount above
+      # would otherwise hide /var/www/html/vendor on the host.
+      - vendor-data:/var/www/html/vendor
+
+    # Local Docker uses the same environment file as Laravel. Cloud Run does
+    # not use this file; production values are injected by Cloud Run.
+    env_file:
+      - ./.env
+
+    environment:
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      PORT: '8080'
+
+volumes:
+  vendor-data:

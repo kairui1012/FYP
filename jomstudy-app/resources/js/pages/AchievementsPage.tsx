@@ -11,7 +11,7 @@ import { HIDDEN_ACHIEVEMENT_KEYS } from '@/components/ts/features/achievements/a
 import type { PageProps } from '@/components/ts/features/achievements/achievement-types';
 import { usePageRefreshOnFocus } from '@/hooks/use-page-refresh-on-focus';
 import AppLayout from '@/layouts/app-layout';
-import { achievements as achievementsRoute } from '@/routes';
+import { index as achievementsRoute } from '@/routes/achievements';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [

@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { popularPage } from '@/routes';
-import like from '@/routes/like';
+import { index as popularPage } from '@/routes/popular';
+import postsLikes from '@/routes/posts/likes';
 import type { PostItem } from '@/types';
 import type { PopularRange, PopularSort } from './learning-trends-types';
 
@@ -169,7 +169,7 @@ export function useLearningTrendsController({
         }));
 
         router.post(
-            like.toggle.url({ posts: postId }),
+            postsLikes.toggle.url({ posts: postId }),
             {},
             {
                 preserveScroll: true,

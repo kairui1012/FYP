@@ -11,7 +11,8 @@ import { trans } from '@/components/ts/features/post-content/post-content-config
 import type { PostContentProps } from '@/components/ts/features/post-content/post-content-types';
 import { usePostContentController } from '@/components/ts/features/post-content/use-post-content-controller';
 import AppLayout from '@/layouts/app-layout';
-import { followingPage, homePage } from '@/routes';
+import { index as homePage } from '@/routes/feed';
+import { index as followingPage } from '@/routes/following';
 import type { BreadcrumbItem } from '@/types';
 
 export default function PostContent({ post }: PostContentProps) {

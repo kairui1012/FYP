@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
-import like from '@/routes/like';
+import postsLikes from '@/routes/posts/likes';
 import type { PostItem } from '@/types';
 
 type LikeState = Record<number, { liked: boolean; likesCount: number }>;
@@ -121,7 +121,7 @@ export function usePostActionControls(
         }));
 
         router.post(
-            like.toggle.url({ posts: postId }),
+            postsLikes.toggle.url({ posts: postId }),
             {},
             {
                 preserveScroll: true,

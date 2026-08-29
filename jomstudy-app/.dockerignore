@@ -1,0 +1,10 @@
+.git
+.gitignore
+**/node_modules
+**/vendor
+storage
+bootstrap/cache/*.php
+**/.env
+**/.env.*
+npm-debug.log*
+yarn-error.log*

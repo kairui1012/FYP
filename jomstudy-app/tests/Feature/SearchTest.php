@@ -21,7 +21,7 @@ test('post search matches keywords in post content', function () {
 
     $response = $this
         ->actingAs($user)
-        ->getJson(route('search', ['q' => 'factorisation']));
+        ->getJson(route('search.index', ['q' => 'factorisation']));
 
     $response
         ->assertOk()

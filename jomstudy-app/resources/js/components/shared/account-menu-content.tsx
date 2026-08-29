@@ -15,8 +15,9 @@ import {
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { useMobileNavigationCleanup } from '@/hooks/use-mobile-navigation-cleanup';
-import { logout, profilePage } from '@/routes';
+import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
+import { show as profilePage } from '@/routes/profiles';
 import type { User } from '@/types';
 
 type Props = {

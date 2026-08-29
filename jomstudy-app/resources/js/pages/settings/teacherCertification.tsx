@@ -29,8 +29,8 @@ import AppLayout from '@/layouts/app-layout';
 
 const ACCEPTED_CERT_TYPES =
     'application/pdf,image/png,image/jpeg,image/jpg,.doc,.docx';
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-const MAX_FILES = 5;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_FILES = 2;
 
 type LocalAttachment = {
     file: File;

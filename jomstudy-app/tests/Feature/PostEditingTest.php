@@ -95,7 +95,7 @@ test('question creation works without study material link', function () {
             'is_anonymous' => false,
         ]);
 
-    $response->assertRedirect(route('homePage'));
+    $response->assertRedirect(route('feed.index'));
     $this->assertDatabaseHas('posts', [
         'title' => 'Question without material link',
         'post_type' => 'question',
@@ -179,7 +179,7 @@ test('quiz creation can link to study material', function () {
             ],
         ]);
 
-    $response->assertRedirect(route('homePage'));
+    $response->assertRedirect(route('feed.index'));
     $this->assertDatabaseHas('posts', [
         'title' => 'Linked quiz',
         'post_type' => 'quiz',

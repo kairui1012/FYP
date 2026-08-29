@@ -105,7 +105,7 @@ class AdminService
             'status' => $application->status, 'admin_note' => $application->admin_note,
             'documents' => $application->documents->map(fn ($document) => [
                 'id' => $document->id, 'original_name' => $document->original_name,
-                'download_url' => route('admin.verification-document.download', $document->id),
+                'download_url' => route('admin.verification-documents.download', $document->id),
             ])->values()->all(),
             'created_at' => $application->created_at?->toDateString(),
         ]);

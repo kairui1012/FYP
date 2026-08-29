@@ -64,7 +64,7 @@ test('admin users linked to google are redirected to admin users page', function
     $response = $this->get('/login/google/callback');
 
     $this->assertAuthenticatedAs($user);
-    $response->assertRedirect(route('admin.users'));
+    $response->assertRedirect(route('admin.users.index'));
 });
 
 test('non-admin users linked to google are redirected to home page', function () {
@@ -86,4 +86,3 @@ test('non-admin users linked to google are redirected to home page', function ()
     $this->assertAuthenticatedAs($user);
     $response->assertRedirect('/homePage');
 });
-

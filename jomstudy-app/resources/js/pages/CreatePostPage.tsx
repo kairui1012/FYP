@@ -27,7 +27,7 @@ import {
 } from '@/components/ts/features/create-post/create-post-config';
 import { useCreatePostForm } from '@/components/ts/features/create-post/use-create-post-form';
 import AppLayout from '@/layouts/app-layout';
-import { homePage } from '@/routes';
+import { index as homePage } from '@/routes/feed';
 import type { BreadcrumbItem } from '@/types';
 import type { PostSubject } from '@/types';
 

@@ -36,6 +36,7 @@ class DemoPresentationSeeder extends Seeder
             LanguagesSeeder::class,
             BadgesSeeder::class,
             AchievementsSeeder::class,
+            
         ]);
 
         $languageIds = DB::table('languages')->pluck('id', 'code');

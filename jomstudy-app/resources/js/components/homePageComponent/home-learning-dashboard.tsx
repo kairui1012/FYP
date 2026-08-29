@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/card';
 import { cn } from '@/lib/common-helpers';
 import { formatTimeAgo, getSubjectLabelFromPage } from '@/lib/post-display-helpers';
-import { achievements } from '@/routes';
+import { index as achievements } from '@/routes/achievements';
 
 const MILESTONE_META: Record<
     string,

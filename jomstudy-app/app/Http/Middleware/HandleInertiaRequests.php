@@ -72,41 +72,41 @@ class HandleInertiaRequests extends Middleware
         $pageFiles = match ($routeName) {
             'home' => ['landing', 'auth'],
 
-            'homePage', 'posts.index',
-            'followingPage', 'popularPage', 'posts.show', 'search' => [
+            'feed.index', 'posts.index',
+            'following.index', 'popular.index', 'posts.show', 'search.index' => [
                 'home', 'createPost', 'comment', 'aiTranslate', 'profile',
                 'bookmark', 'achievement', 'subjects', 'category', 'popular',
             ],
 
-            'createPostPage' => [
+            'posts.create' => [
                 'createPost', 'subjects', 'category', 'aiTranslate',
             ],
 
-            'profilePage' => [
+            'profiles.show' => [
                 'profile', 'achievement', 'bookmark', 'comment', 'aiTranslate',
                 'createPost', 'subjects', 'category',
             ],
 
-            'categories' => [
+            'categories.index' => [
                 'category', 'subjects', 'comment', 'aiTranslate', 'profile',
                 'bookmark', 'achievement', 'createPost',
             ],
 
-            'achievements' => ['achievement'],
-            'leaderboard' => ['leaderboard', 'achievement', 'profile'],
-            'bookmarks' => [
+            'achievements.index' => ['achievement'],
+            'leaderboard.index' => ['leaderboard', 'achievement', 'profile'],
+            'bookmarks.index' => [
                 'bookmark', 'comment', 'aiTranslate', 'profile', 'achievement',
                 'createPost', 'subjects', 'category',
             ],
-            'rules' => ['rules', 'achievement', 'leaderboard'],
-            'privacy-policy', 'terms-of-service' => ['legal'],
+            'rules.show' => ['rules', 'achievement', 'leaderboard'],
+            'legal.privacy', 'legal.terms' => ['legal'],
 
             'profile.edit', 'user-password.edit', 'appearance.edit',
             'teacher-certification.show' => [
                 'settings', 'profile', 'auth', 'achievement',
             ],
 
-            'teacher.material-insights' => ['admin', 'subjects', 'category'],
+            'teacher.material-insights.index' => ['admin', 'subjects', 'category'],
 
             default => str_starts_with((string) $routeName, 'admin.')
                 ? ['admin', 'comment', 'profile', 'achievement', 'subjects', 'category']

@@ -18,7 +18,7 @@ test('users can authenticate using the login screen', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('homePage', absolute: false));
+    $response->assertRedirect(route('feed.index', absolute: false));
 });
 
 

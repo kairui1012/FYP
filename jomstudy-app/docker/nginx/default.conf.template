@@ -1,0 +1,52 @@
+server {
+    listen ${PORT};
+    listen [::]:${PORT};
+    server_name _;
+    root /var/www/html/public;
+    index index.php index.html;
+
+    access_log /dev/stdout;
+    error_log /dev/stderr warn;
+
+    # Prevent 400 errors when browsers send large Cookie headers.
+    client_header_buffer_size 16k;
+    large_client_header_buffers 4 32k;
+    
+    # Allow up to 50MB uploads (includes all attachments + form data)
+    client_max_body_size 50M;
+
+    location = /pdf.worker.mjs {
+        default_type application/javascript;
+        try_files $uri =404;
+        access_log off;
+        expires 30d;
+    }
+
+    # Serve uploaded files directly from storage without relying on host-specific symlink targets.
+    location ^~ /storage/ {
+        alias /var/www/html/storage/app/public/;
+        try_files $uri $uri/ =404;
+        access_log off;
+        expires 30d;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_index index.php;
+        fastcgi_pass 127.0.0.1:9000;
+        # Avoid 502 "upstream sent too big header" for larger Laravel/Inertia headers/cookies.
+        fastcgi_buffer_size 64k;
+        fastcgi_buffers 16 64k;
+        fastcgi_busy_buffers_size 128k;
+        fastcgi_temp_file_write_size 128k;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}

@@ -20,7 +20,7 @@ import {
     revokeMaterialBlockPreviews,
 } from '@/components/ts/features/post-content/study-material/material-editing-utils';
 import { useMaterialEditActions } from '@/components/ts/features/post-content/study-material/use-material-edit-actions';
-import like from '@/routes/like';
+import postsLikes from '@/routes/posts/likes';
 import type { MaterialContentBlock, PostItem } from '@/types';
 
 type UsePostContentControllerParams = {
@@ -295,7 +295,7 @@ export function usePostContentController({
         );
 
         router.post(
-            like.toggle.url({ posts: postId }),
+            postsLikes.toggle.url({ posts: postId }),
             {},
             {
                 preserveScroll: true,

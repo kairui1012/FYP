@@ -176,7 +176,7 @@ class PostCreateController extends Controller
         }
 
         return redirect()
-            ->route('homePage')
+            ->route('feed.index')
             ->with('success', 'Post created successfully.');
     }
 

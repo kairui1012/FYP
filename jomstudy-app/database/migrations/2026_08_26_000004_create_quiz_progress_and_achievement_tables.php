@@ -8,7 +8,40 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Create badges table
+        Schema::create('quiz_completions', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('post_id');
+            $table->unsignedBigInteger('subject_id')->nullable();
+            $table->timestamp('completed_at')->nullable();
+            $table->timestamps();
+
+            $table->unique(['user_id', 'post_id']);
+            $table->index(['user_id', 'subject_id']);
+            $table->index('user_id');
+            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreign('post_id')->references('id')->on('posts')->cascadeOnDelete();
+            $table->foreign('subject_id')->references('id')->on('subjects')->nullOnDelete();
+        });
+
+        Schema::create('quiz_mistakes', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('post_id');
+            $table->unsignedInteger('question_index')->default(0);
+            $table->unsignedInteger('selected_answer_index');
+            $table->boolean('is_correct')->default(false);
+            $table->timestamp('attempted_at');
+            $table->timestamps();
+
+            $table->unique(['user_id', 'post_id', 'question_index']);
+            $table->index(['user_id', 'attempted_at']);
+            $table->index(['user_id', 'is_correct', 'attempted_at']);
+            $table->index('user_id');
+            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreign('post_id')->references('id')->on('posts')->cascadeOnDelete();
+        });
+
         Schema::create('badges', function (Blueprint $table) {
             $table->id();
             $table->string('key')->unique();
@@ -19,7 +52,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Create badge_user table
         Schema::create('badge_user', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
@@ -33,7 +65,6 @@ return new class extends Migration
             $table->foreign('badge_id')->references('id')->on('badges')->cascadeOnDelete();
         });
 
-        // Create user_featured_badges table
         Schema::create('user_featured_badges', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
@@ -47,7 +78,6 @@ return new class extends Migration
             $table->foreign('badge_id')->references('id')->on('badges')->cascadeOnDelete();
         });
 
-        // Create achievements table
         Schema::create('achievements', function (Blueprint $table) {
             $table->id();
             $table->string('key')->unique();
@@ -58,7 +88,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Create user_achievements table
         Schema::create('user_achievements', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
@@ -70,10 +99,9 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
         });
 
-        // Create user_progress table
         Schema::create('user_progress', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('user_id')->unique();
             $table->unsignedInteger('total_questions_answered')->default(0);
             $table->unsignedInteger('total_questions_posted')->default(0);
             $table->unsignedInteger('quizzes_completed')->default(0);
@@ -84,11 +112,9 @@ return new class extends Migration
             $table->unsignedInteger('total_post_posted')->default(0);
             $table->timestamps();
 
-            $table->unique('user_id');
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
         });
 
-        // Create points_transactions table
         Schema::create('points_transactions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
@@ -113,5 +139,7 @@ return new class extends Migration
         Schema::dropIfExists('user_featured_badges');
         Schema::dropIfExists('badge_user');
         Schema::dropIfExists('badges');
+        Schema::dropIfExists('quiz_mistakes');
+        Schema::dropIfExists('quiz_completions');
     }
 };

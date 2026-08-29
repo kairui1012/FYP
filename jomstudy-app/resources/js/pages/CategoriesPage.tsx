@@ -9,7 +9,7 @@ import { useCategoryFilterControls } from '@/hooks/use-category-filter-controls'
 import { usePageRefreshOnFocus } from '@/hooks/use-page-refresh-on-focus';
 import { usePostActionControls } from '@/hooks/use-post-action-controls';
 import AppLayout from '@/layouts/app-layout';
-import { categories as categoriesRoute } from '@/routes';
+import { index as categoriesRoute } from '@/routes/categories';
 import type { BreadcrumbItem } from '@/types';
 
 export default function CategoriesPage() {

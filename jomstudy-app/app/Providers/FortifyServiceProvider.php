@@ -63,10 +63,10 @@ class FortifyServiceProvider extends ServiceProvider
                 {
                     $user = $request->user();
                     if ($user && $user->role === 'admin') {
-                        return redirect()->route('admin.users');
+                        return redirect()->route('admin.users.index');
                     }
 
-                    return redirect()->intended(route('homePage', absolute: false));
+                    return redirect()->intended(route('feed.index', absolute: false));
                 }
             };
         });

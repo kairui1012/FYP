@@ -6,7 +6,7 @@ import { VerifiedTeacherBadge } from '@/components/shared/verified-teacher-badge
 import type { LeaderboardUser } from '@/components/ts/features/leaderboard/leaderboard-types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { isVerifiedTeacher } from '@/lib/teacher-verification';
-import { profilePage } from '@/routes';
+import { show as profilePage } from '@/routes/profiles';
 
 type PodiumCardProps = {
     user: LeaderboardUser;

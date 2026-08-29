@@ -354,6 +354,6 @@ class PostController extends Controller
 
         $this->postService->delete($post);
 
-        return redirect()->route('homePage');
+        return redirect()->route('feed.index');
     }
 }

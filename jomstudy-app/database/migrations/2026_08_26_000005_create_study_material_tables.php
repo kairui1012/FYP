@@ -8,7 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Create study_material_feedback table
         Schema::create('study_material_feedback', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
@@ -24,7 +23,6 @@ return new class extends Migration
             $table->foreign('post_id')->references('id')->on('posts')->cascadeOnDelete();
         });
 
-        // Create study_material_views table
         Schema::create('study_material_views', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
@@ -39,7 +37,6 @@ return new class extends Migration
             $table->foreign('post_id')->references('id')->on('posts')->cascadeOnDelete();
         });
 
-        // Create material_quiz_attempts table
         Schema::create('material_quiz_attempts', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
@@ -47,9 +44,6 @@ return new class extends Migration
             $table->unsignedBigInteger('material_id')->nullable();
             $table->decimal('score', 5, 2)->nullable();
             $table->unsignedInteger('total_questions')->default(1);
-            $table->json('answers')->nullable();
-            $table->integer('time_taken')->nullable();
-            $table->boolean('passed')->default(false);
             $table->timestamps();
 
             $table->index(['user_id', 'material_id']);
@@ -59,12 +53,16 @@ return new class extends Migration
             $table->foreign('material_id')->references('id')->on('posts')->cascadeOnDelete();
         });
 
-        // Create study_material_versions table
         Schema::create('study_material_versions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('post_id');
             $table->unsignedBigInteger('user_id');
             $table->string('title');
+            $table->decimal('average_rating', 3, 1)->default(0);
+            $table->unsignedInteger('rating_count')->default(0);
+            $table->unsignedInteger('recommended_count')->default(0);
+            $table->unsignedInteger('total_votes')->default(0);
+            $table->unsignedTinyInteger('recommendation_rate')->default(0);
             $table->text('content');
             $table->json('content_blocks')->nullable();
             $table->integer('version_number');

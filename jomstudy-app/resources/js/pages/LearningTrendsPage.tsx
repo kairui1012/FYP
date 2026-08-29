@@ -9,7 +9,7 @@ import type { LearningTrendsPageProps } from '@/components/ts/features/learning-
 import { useLearningTrendsController } from '@/components/ts/features/learning-trends/use-learning-trends-controller';
 import { useAuthenticatedUserId } from '@/hooks/use-authenticated-user-id';
 import AppLayout from '@/layouts/app-layout';
-import { popularPage } from '@/routes';
+import { index as popularPage } from '@/routes/popular';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [

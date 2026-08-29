@@ -12,7 +12,7 @@ import type {
 import { useLeaderboardController } from '@/components/ts/features/leaderboard/use-leaderboard-controller';
 import { usePageRefreshOnFocus } from '@/hooks/use-page-refresh-on-focus';
 import AppLayout from '@/layouts/app-layout';
-import { leaderboard as leaderboardRoute } from '@/routes';
+import { index as leaderboardRoute } from '@/routes/leaderboard';
 import type { Auth, BreadcrumbItem } from '@/types';
 
 type LeaderboardProps = {

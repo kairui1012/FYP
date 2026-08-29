@@ -34,7 +34,7 @@ test('admin can delete another users material post', function () {
         ->actingAs($admin)
         ->delete(route('posts.destroy', $post));
 
-    $response->assertRedirect(route('homePage'));
+    $response->assertRedirect(route('feed.index'));
     $this->assertDatabaseMissing('posts', ['id' => $post->id]);
 });
 

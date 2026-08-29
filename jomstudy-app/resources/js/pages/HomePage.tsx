@@ -17,7 +17,7 @@ import { useAuthenticatedUserId } from '@/hooks/use-authenticated-user-id';
 import { usePageRefreshOnFocus } from '@/hooks/use-page-refresh-on-focus';
 import { usePostActionControls } from '@/hooks/use-post-action-controls';
 import AppLayout from '@/layouts/app-layout';
-import { homePage } from '@/routes';
+import { index as homePage } from '@/routes/feed';
 import type { BreadcrumbItem, PaginationMeta, PostItem } from '@/types';
 
 type HomePageProps = {

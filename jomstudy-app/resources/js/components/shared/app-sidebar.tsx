@@ -28,8 +28,8 @@ import {
 } from '@/components/ui/sidebar';
 import { useCurrentRoute } from '@/hooks/use-current-route';
 import { cn, toUrl } from '@/lib/common-helpers';
-import { homePage } from '@/routes';
-import { popularPage } from '@/routes';
+import { index as homePage } from '@/routes/feed';
+import { index as popularPage } from '@/routes/popular';
 import type { NavItem } from '@/types';
 
 type AppSidebarProps = {

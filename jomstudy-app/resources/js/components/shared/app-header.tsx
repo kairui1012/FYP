@@ -42,7 +42,8 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { useNameInitials } from '@/hooks/use-name-initials';
-import { homePage, popularPage } from '@/routes';
+import { index as homePage } from '@/routes/feed';
+import { index as popularPage } from '@/routes/popular';
 import type { NavItem } from '@/types';
 import { AccountMenuContent } from './account-menu-content';
 
