@@ -9,7 +9,7 @@ RUN mkdir -p \
 	storage/framework/sessions \
 	storage/framework/views \
 	storage/logs \
-	&& php artisan wayfinder:generate
+	&& php artisan wayfinder:generate --with-form
 
 FROM node:22-alpine AS frontend
 
