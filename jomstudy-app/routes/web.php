@@ -42,7 +42,7 @@ Route::get('/', function () {
 
     syncLangFiles('auth');
 
-    return Inertia::render('landingPage', [
+    return Inertia::render('LandingPage', [
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('home');
