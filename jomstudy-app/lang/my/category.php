@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'no_posts_title' => 'Tiada hantaran ditemui',
+    'no_posts_hint' => 'Cuba ubah penapis atau layari kategori lain.',
     'description' => 'Pilih tag bahasa atau subjek untuk melihat kiriman yang sepadan sahaja.',
     'total_posts' => 'Jumlah kiriman',
     'content_type' => 'Jenis kandungan',

@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'file_preview_unavailable' => 'Pratonton fail :extension tidak tersedia. Buka atau muat turun fail tersebut.',
+    'file_type_preview_unavailable' => 'Jenis fail ini tidak boleh dipratonton.',
+    'pdf_load_failed' => 'Gagal memuatkan fail PDF.',
+    'docx_load_failed' => 'Gagal memuatkan fail DOCX.',
+    'generic' => 'Sesuatu telah berlaku. Sila cuba lagi.',
     'not_found_title' => 'Halaman tidak dijumpai',
     'not_found_description' => 'Halaman yang anda cari tidak wujud. Pautan mungkin salah, sudah lapuk, atau kandungan telah dialihkan.',
     'server_error_title' => 'Sesuatu telah berlaku',

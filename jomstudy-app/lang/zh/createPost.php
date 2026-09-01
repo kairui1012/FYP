@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'material_image_fallback' => '图片',
+    'material_document_fallback' => '文档',
+    'material_file_fallback' => '学习资料文件',
+    'material_download_resource' => '下载资源',
+    'role_teacher' => '教师',
+    'role_admin' => '管理员',
+    'role_student' => '学生',
     'page_title' => '创建帖子',
     'heading' => '创建新帖子',
     'subtitle' => '填写标题和内容，然后添加图片、PDF或 Office 文件。',
@@ -66,7 +73,7 @@ return [
     'material_anonymous_hint' => '学习资料会显示发布者，方便学生识别可靠的教育资源。',
     'student_post_hint' => '学习资料由教师和管理员发布。学生可以提问，并贡献与资料关联的测验。',
     'material_link_title' => '将此帖子关联到学习资料',
-    'material_link_hint' => '问题和学生测验可以连接到可靠的教师/管理员学习资源。',
+    'material_link_hint' => '测验可以连接到可靠的教师/管理员学习资源。',
     'material_link_none' => '不关联学习资料',
     'material_attach_quiz_title' => '为此资料创建或附加测验',
     'material_attach_existing_quiz_hint' => '对于新学习资料，你现在就可以附加现有测验。关联后的测验会显示在资料页面。',

@@ -1,10 +1,13 @@
 <?php
 
 return [
+    'unknown_user' => 'Unknown User',
+    'anonymous_user' => 'Anonymous User',
+    'user_avatar_alt' => 'User avatar',
     'page_title' => 'Home',
     'hero_title' => 'Learning Dashboard',
     'hero_subtitle' => 'Focus on your next best step and keep daily momentum.',
-    'following_subtitle' => 'Review learning updates from learners in your study network.',
+    'following_subtitle' => 'Review the latest learning updates from learners you follow.',
     'materials_subtitle' => 'Browse course materials, notes, and lessons by subject.',
     'questions_subtitle' => 'Ask and answer questions from the learning community.',
     'learn_tab' => 'Learning',
@@ -21,8 +24,8 @@ return [
     'empty_feed_title' => 'No posts yet',
     'empty_feed_subtitle' => 'Fresh questions, notes, and study materials will appear here.',
     'empty_feed_action' => 'Browse categories',
-    'following_empty_title' => 'No study network updates yet',
-    'following_empty_subtitle' => 'Add learners to your study network, then their newest learning posts will appear here.',
+    'following_empty_title' => 'No updates from learners you follow yet',
+    'following_empty_subtitle' => 'Follow learners and their newest learning posts will appear here.',
     'following_empty_action' => 'Explore learning posts',
     'following_empty_secondary_action' => 'View trends',
     'today_score' => 'Mastery Points',

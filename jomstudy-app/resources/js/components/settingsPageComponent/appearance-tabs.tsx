@@ -1,3 +1,4 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Sun } from 'lucide-react';
 import type { HTMLAttributes } from 'react';
 import { useThemePreference } from '@/hooks/use-theme-preference';
@@ -8,6 +9,7 @@ export default function AppearanceTabs({
     ...props
 }: HTMLAttributes<HTMLDivElement>) {
     const { appearance, updateAppearance } = useThemePreference();
+    const { trans } = reactLang();
 
     return (
         <div
@@ -28,7 +30,9 @@ export default function AppearanceTabs({
                 )}
             >
                 <Sun className="-ml-1 h-4 w-4" />
-                <span className="ml-1.5 text-sm">Light</span>
+                <span className="ml-1.5 text-sm">
+                    {trans('settings.theme_light')}
+                </span>
             </button>
         </div>
     );

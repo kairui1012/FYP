@@ -2,161 +2,161 @@
 
 return [
     // ── Page header ──────────────────────────────────────────────────────────
-    'description'          => '追踪你的成就与里程碑',
-    'your_achievements'    => '你的成就',
-    'no_achievements'      => '暂时还没有成就',
-    'earn_achievements'    => '通过回答测验、发布问题和获得点赞来解锁成就',
-    'earned_badges'        => '已获得徽章',
-    'achieved'             => '已达成',
-    'locked'               => '未解锁',
-    'unlocked'             => '已解锁',
-    'achievements_earned'  => '个成就已解锁',
+    'description' => '追踪你的成就与里程碑',
+    'your_achievements' => '你的成就',
+    'no_achievements' => '暂时还没有成就',
+    'earn_achievements' => '通过回答测验、发布问题和获得点赞来解锁成就',
+    'earned_badges' => '已获得徽章',
+    'achieved' => '已达成',
+    'locked' => '未解锁',
+    'unlocked' => '已解锁',
+    'achievements_earned' => '个成就已解锁',
 
     // ── Summary stats ─────────────────────────────────────────────────────────
-    'points'          => '积分',
-    'posts_created'   => '发帖数',
-    'likes_received'  => '获赞数',
-    'quizzes_done'    => '测验完成',
-    'accuracy'        => '正确率',
+    'points' => '积分',
+    'posts_created' => '发帖数',
+    'likes_received' => '获赞数',
+    'quizzes_done' => '测验完成',
+    'accuracy' => '正确率',
     'correct_answers' => '正确回答',
-    'improvement'     => '进步分数',
-    'comments_count'  => '评论数',
-    'saves_count'     => '收藏数',
+    'improvement' => '进步分数',
+    'comments_count' => '评论数',
+    'saves_count' => '收藏数',
 
     // ── Badge progress ────────────────────────────────────────────────────────
-    'next_badge'       => '下一个徽章',
+    'next_badge' => '下一个徽章',
     'points_to_unlock' => '积分可解锁',
-    'points_badges'    => '积分徽章',
-    'required'         => '所需',
+    'points_badges' => '积分徽章',
+    'required' => '所需',
 
     // ── Tooltip ───────────────────────────────────────────────────────────────
-    'how_to_unlock'  => '如何解锁',
+    'how_to_unlock' => '如何解锁',
     'progress_label' => '当前进度',
-    'remaining'      => '还差',
+    'remaining' => '还差',
 
     // ── Filter ────────────────────────────────────────────────────────────────
     'filter_all' => '全部',
 
     // ── Category labels ───────────────────────────────────────────────────────
-    'category_question'    => '问题类',
+    'category_question' => '问题类',
     'category_performance' => '表现类',
     'category_improvement' => '进步类',
-    'category_community'   => '社区类',
-    'category_posting'     => '发帖类',
-    'category_commenting'  => '评论类',
-    'category_saving'      => '收藏类',
-    'category_mistakes'    => '错题复习',
+    'category_community' => '社区类',
+    'category_posting' => '发帖类',
+    'category_commenting' => '评论类',
+    'category_saving' => '收藏类',
+    'category_mistakes' => '错题复习',
 
     // ── Units ─────────────────────────────────────────────────────────────────
-    'unit_attempts'  => '次',
-    'unit_posts'     => '篇',
-    'unit_correct'   => '次正确',
-    'unit_percent'   => '%',
-    'unit_likes'     => '个赞',
-    'unit_comments'  => '条评论',
-    'unit_saves'     => '次收藏',
-    'unit_mistakes'  => '道错题',
-    'unit_quizzes'   => '次测验',
+    'unit_attempts' => '次',
+    'unit_posts' => '篇',
+    'unit_correct' => '次正确',
+    'unit_percent' => '%',
+    'unit_likes' => '个赞',
+    'unit_comments' => '条评论',
+    'unit_saves' => '次收藏',
+    'unit_mistakes' => '道错题',
+    'unit_quizzes' => '次测验',
 
     // ── Achievement: Active Learner ───────────────────────────────────────────
     'active_learner_title' => '积极学习者',
-    'active_learner_desc'  => '回答 10 道测验题，证明你正在积极学习。',
+    'active_learner_desc' => '回答 10 道测验题，证明你正在积极学习。',
 
     // ── Achievement: Curious Mind ─────────────────────────────────────────────
-    'curious_mind_title'   => '好奇心强',
-    'curious_mind_desc'    => '发布 5 个问题，展示你的求知精神。',
+    'curious_mind_title' => '好奇心强',
+    'curious_mind_desc' => '发布 5 个问题，展示你的求知精神。',
 
     // ── Achievement: Quiz Master ──────────────────────────────────────────────
-    'quiz_master_title'    => '测验达人',
-    'quiz_master_desc'     => '获得 20 次正确答案，证明你对知识有深刻理解。',
+    'quiz_master_title' => '测验达人',
+    'quiz_master_desc' => '获得 20 次正确答案，证明你对知识有深刻理解。',
 
     // ── Achievement: High Accuracy ────────────────────────────────────────────
-    'high_accuracy_title'  => '高准确率',
-    'high_accuracy_desc'   => '在至少 5 次测验中保持 80% 以上的正确率。',
+    'high_accuracy_title' => '高准确率',
+    'high_accuracy_desc' => '在至少 5 次测验中保持 80% 以上的正确率。',
 
     // ── Achievement: Fast Improver ────────────────────────────────────────────
-    'fast_improver_title'  => '快速进步者',
-    'fast_improver_desc'   => '与早期测验相比，准确率提升 20%。',
+    'fast_improver_title' => '快速进步者',
+    'fast_improver_desc' => '与早期测验相比，准确率提升 20%。',
 
     // ── Achievement: Consistent Growth ───────────────────────────────────────
     'consistent_growth_title' => '持续成长',
-    'consistent_growth_desc'  => '在 10 次以上的测验中稳步提升至少 10%。',
+    'consistent_growth_desc' => '在 10 次以上的测验中稳步提升至少 10%。',
 
     // ── Achievement: Helpful Contributor ──────────────────────────────────────
     'helpful_contributor_title' => '热心贡献者',
-    'helpful_contributor_desc'  => '在你的帖子上收到 10 个社区点赞。',
+    'helpful_contributor_desc' => '在你的帖子上收到 10 个社区点赞。',
 
     // ── Achievement: Top Contributor ──────────────────────────────────────────
     'top_contributor_title' => '顶尖贡献者',
-    'top_contributor_desc'  => '获得 50 个点赞，彰显卓越的社区影响力。',
+    'top_contributor_desc' => '获得 50 个点赞，彰显卓越的社区影响力。',
 
     // ── Achievement: First Post ───────────────────────────────────────────────
     'first_post_title' => '初次发帖',
-    'first_post_desc'  => '向社区发布你的第一个问题或学习资料。',
+    'first_post_desc' => '向社区发布你的第一个问题或学习资料。',
 
     // ── Achievement: Active Author ────────────────────────────────────────────
     'active_author_title' => '活跃作者',
-    'active_author_desc'  => '发布 20 篇帖子，持续分享知识！',
+    'active_author_desc' => '发布 20 篇帖子，持续分享知识！',
 
     // ── Achievement: Prolific Poster ──────────────────────────────────────────
     'prolific_poster_title' => '高产创作者',
-    'prolific_poster_desc'  => '发布 50 篇帖子，成为平台上真正的内容创作者。',
+    'prolific_poster_desc' => '发布 50 篇帖子，成为平台上真正的内容创作者。',
 
     // ── Achievement: First Comment ────────────────────────────────────────────
     'first_comment_title' => '首次评论',
-    'first_comment_desc'  => '发表你的第一条评论，加入讨论。',
+    'first_comment_desc' => '发表你的第一条评论，加入讨论。',
 
     // ── Achievement: Discussion Starter ──────────────────────────────────────
     'discussion_starter_title' => '话题发起者',
-    'discussion_starter_desc'  => '发表 10 条评论，引发有意义的讨论。',
+    'discussion_starter_desc' => '发表 10 条评论，引发有意义的讨论。',
 
     // ── Achievement: Community Voice ──────────────────────────────────────────
     'community_voice_title' => '社区之声',
-    'community_voice_desc'  => '发表 50 条评论，你的声音让学习社区更丰富。',
+    'community_voice_desc' => '发表 50 条评论，你的声音让学习社区更丰富。',
 
     // ── Achievement: Collector ────────────────────────────────────────────────
     'collector_title' => '收藏家',
-    'collector_desc'  => '收藏 5 篇帖子——好内容值得保存。',
+    'collector_desc' => '收藏 5 篇帖子——好内容值得保存。',
 
     // ── Achievement: Bookworm ─────────────────────────────────────────────────
     'bookworm_title' => '书虫',
-    'bookworm_desc'  => '建立一个包含 20 篇收藏帖子的知识库。',
+    'bookworm_desc' => '建立一个包含 20 篇收藏帖子的知识库。',
 
     // ── Achievement: Mistake Hunter ───────────────────────────────────────────
     'mistake_hunter_title' => '错题猎人',
-    'mistake_hunter_desc'  => '复习 5 道错题——从错误中学习是掌握知识的关键。',
+    'mistake_hunter_desc' => '复习 5 道错题——从错误中学习是掌握知识的关键。',
 
     // ── Achievement: Deep Learner ─────────────────────────────────────────────
     'deep_learner_title' => '深度学习者',
-    'deep_learner_desc'  => '复习 25 道错题，将每一次错误都转化为智慧。',
+    'deep_learner_desc' => '复习 25 道错题，将每一次错误都转化为智慧。',
 
     // ── Achievement: Quiz Veteran ─────────────────────────────────────────────
     'quiz_veteran_title' => '测验老将',
-    'quiz_veteran_desc'  => '回答 50 道测验题——永不停止学习的资深学习者。',
+    'quiz_veteran_desc' => '回答 50 道测验题——永不停止学习的资深学习者。',
 
     // ── Achievement: Quiz Legend ──────────────────────────────────────────────
     'quiz_legend_title' => '测验传奇',
-    'quiz_legend_desc'  => '回答 100 道测验题，成就传奇地位。',
+    'quiz_legend_desc' => '回答 100 道测验题，成就传奇地位。',
 
     // ── Achievement: Perfect Scorer ───────────────────────────────────────────
     'perfect_scorer_title' => '完美得分者',
-    'perfect_scorer_desc'  => '在至少 5 次测验中达到 90% 以上的准确率。',
+    'perfect_scorer_desc' => '在至少 5 次测验中达到 90% 以上的准确率。',
 
     // ── Achievement: Quiz Completionist ──────────────────────────────────────
     'quiz_completionist_title' => '测验完成达人',
-    'quiz_completionist_desc'  => '完整完成 10 次测验，从头到尾不放弃。',
+    'quiz_completionist_desc' => '完整完成 10 次测验，从头到尾不放弃。',
 
     // ── Achievement: Community Star ───────────────────────────────────────────
     'community_star_title' => '社区之星',
-    'community_star_desc'  => '获得 200 个点赞——你是这个社区闪耀的明星。',
+    'community_star_desc' => '获得 200 个点赞——你是这个社区闪耀的明星。',
 
     // ── Badge translations ────────────────────────────────────────────────────
-    'badge_rookie_author_name'  => '新手作者',
-    'badge_rookie_author_desc'  => '通过发帖和获得点赞累计 50 积分。',
-    'badge_rising_star_name'    => '新星作者',
-    'badge_rising_star_desc'    => '通过发帖和获得点赞累计 150 积分。',
+    'badge_rookie_author_name' => '新手作者',
+    'badge_rookie_author_desc' => '通过发帖和获得点赞累计 50 积分。',
+    'badge_rising_star_name' => '新星作者',
+    'badge_rising_star_desc' => '通过发帖和获得点赞累计 150 积分。',
     'badge_community_hero_name' => '社区英雄',
     'badge_community_hero_desc' => '通过发帖和获得点赞累计 300 积分。',
-    'badge_legend_name'         => '传奇作者',
-    'badge_legend_desc'         => '通过发帖和获得点赞累计 600 积分。',
+    'badge_legend_name' => '传奇作者',
+    'badge_legend_desc' => '通过发帖和获得点赞累计 600 积分。',
 ];

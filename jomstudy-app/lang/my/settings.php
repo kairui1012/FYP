@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'appearance_heading' => 'Tetapan penampilan',
+    'appearance_description' => 'Kemas kini tetapan penampilan akaun anda',
+    'theme_light' => 'Cerah',
     'page_title' => 'Tetapan',
     'page_description' => 'Urus profil pelajar dan tetapan akaun anda',
     'sidebar_profile' => 'Profil Pelajar',

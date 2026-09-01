@@ -24,6 +24,7 @@ export function useProfilePage() {
         comments: trans('profile.comments'),
         attachmentSingle: trans('profile.attachment_single'),
         attachmentPlural: trans('profile.attachment_plural'),
+        back: trans('navigation.back'),
     };
 
     const currentUserId = usePage<{ auth?: { user?: { id?: number } } }>().props

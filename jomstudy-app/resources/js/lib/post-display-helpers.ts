@@ -2,7 +2,7 @@ export function getLanguageLabel(code?: string) {
     if (code === 'en') return 'English';
     if (code === 'zh') return '中文';
     if (code === 'bm') return 'Bahasa Malaysia';
-    return code ?? 'Unknown';
+    return code ?? '';
 }
 
 export function getSubjectLabel(

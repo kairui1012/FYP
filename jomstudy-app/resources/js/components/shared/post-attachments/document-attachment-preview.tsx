@@ -1,3 +1,4 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { renderAsync } from 'docx-preview';
 import { useEffect, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
@@ -11,6 +12,8 @@ export function DocumentAttachmentPreview({
     src: string;
     filename: string;
 }) {
+    const { trans } = reactLang();
+
     if (filename.toLowerCase().endsWith('.pdf')) {
         return <PdfPreview src={src} />;
     }
@@ -29,8 +32,10 @@ export function DocumentAttachmentPreview({
                 {filename}
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                {extension} file preview is not available. Open or download the
-                file.
+                {trans('errors.file_preview_unavailable').replace(
+                    ':extension',
+                    extension,
+                )}
             </div>
             <div className="flex gap-2">
                 <a
@@ -39,14 +44,14 @@ export function DocumentAttachmentPreview({
                     rel="noreferrer"
                     className="inline-flex items-center rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
-                    Open
+                    {trans('navigation.open')}
                 </a>
                 <a
                     href={src}
                     download
                     className="inline-flex items-center rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
-                    Download
+                    {trans('navigation.download')}
                 </a>
             </div>
         </div>
@@ -54,17 +59,20 @@ export function DocumentAttachmentPreview({
 }
 
 function PdfPreview({ src }: { src: string }) {
+    const { trans } = reactLang();
     const [numPages, setNumPages] = useState(0);
 
     return (
         <Document
             file={src}
             loading={
-                <div className="p-4 text-sm text-zinc-400">Loading PDF...</div>
+                <div className="p-4 text-sm text-zinc-400">
+                    {trans('navigation.loading')}
+                </div>
             }
             error={
                 <div className="p-4 text-sm text-red-400">
-                    Failed to load PDF file.
+                    {trans('errors.pdf_load_failed')}
                 </div>
             }
             onLoadSuccess={({ numPages }) => setNumPages(numPages)}
@@ -83,6 +91,7 @@ function PdfPreview({ src }: { src: string }) {
 }
 
 function DocxPreview({ src }: { src: string }) {
+    const { trans } = reactLang();
     const ref = useRef<HTMLDivElement>(null);
     const [hasError, setHasError] = useState(false);
 
@@ -112,7 +121,7 @@ function DocxPreview({ src }: { src: string }) {
 
     return hasError ? (
         <div className="p-4 text-sm text-red-400">
-            Failed to load DOCX file.
+            {trans('errors.docx_load_failed')}
         </div>
     ) : (
         <div ref={ref} className="p-4" />

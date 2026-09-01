@@ -58,6 +58,8 @@ function SidebarBoundaryToggle({
     onToggle,
     onHoverOpen,
 }: SidebarBoundaryToggleProps) {
+    const { trans } = reactLang();
+
     return (
         <div className="pointer-events-none absolute inset-y-0 right-(--sidebar-toggle-edge-offset) z-40 hidden md:block">
             <div
@@ -68,7 +70,7 @@ function SidebarBoundaryToggle({
 
             <button
                 type="button"
-                aria-label="Toggle sidebar"
+                aria-label={trans('navigation.toggle_sidebar')}
                 onClick={onToggle}
                 className={cn(
                     'pointer-events-auto absolute top-(--sidebar-toggle-top) -right-2 z-50 flex size-10 translate-x-1/2 items-center justify-center rounded-full border-2 shadow-lg ring-2 ring-background transition-all hover:scale-105',

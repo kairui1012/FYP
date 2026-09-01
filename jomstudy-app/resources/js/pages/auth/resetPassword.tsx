@@ -48,7 +48,9 @@ export default function ResetPassword({ token, email }: Props) {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="password">{trans('auth.password')}</Label>
+                            <Label htmlFor="password">
+                                {trans('auth.password')}
+                            </Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -56,7 +58,7 @@ export default function ResetPassword({ token, email }: Props) {
                                 autoComplete="new-password"
                                 className="mt-1 block w-full"
                                 autoFocus
-                                placeholder="Password"
+                                placeholder={trans('auth.password')}
                             />
                             <InputError message={errors.password} />
                         </div>
@@ -71,7 +73,7 @@ export default function ResetPassword({ token, email }: Props) {
                                 name="password_confirmation"
                                 autoComplete="new-password"
                                 className="mt-1 block w-full"
-                                placeholder="Confirm password"
+                                placeholder={trans('auth.confirm_password')}
                             />
                             <InputError
                                 message={errors.password_confirmation}

@@ -1,4 +1,7 @@
 {
+    "anonymous_user": "Pengguna Tanpa Nama",
+    "unknown_user": "Pengguna Tidak Diketahui",
+    "user_avatar_alt": "Avatar pengguna",
     "page_title": "Profil Pelajar",
     "default_user_name": "Pelajar",
     "cover_alt_suffix": "kulit profil",
@@ -20,7 +23,8 @@
     "comments": "komen",
     "points": "Mata Penguasaan",
     "badges": "Lencana Pembelajaran",
-    "followers": "Rangkaian Belajar",
+    "followers": "Pengikut",
+    "following": "Mengikuti",
     "no_badges_yet": "Belum ada lencana.",
     "attachment_single": "lampiran",
     "attachment_plural": "lampiran",

@@ -1,4 +1,9 @@
 {
+    "file_preview_unavailable": "无法预览 :extension 文件，请打开或下载该文件。",
+    "file_type_preview_unavailable": "此文件类型无法预览。",
+    "pdf_load_failed": "PDF 文件加载失败。",
+    "docx_load_failed": "DOCX 文件加载失败。",
+    "generic": "发生错误，请重试。",
     "not_found_title": "页面不存在",
     "not_found_description": "你要访问的页面不存在，链接可能输入错误、已过期，或内容已被移除。",
     "server_error_title": "系统暂时出现问题",

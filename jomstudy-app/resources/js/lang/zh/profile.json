@@ -1,4 +1,7 @@
 {
+    "anonymous_user": "匿名用户",
+    "unknown_user": "未知用户",
+    "user_avatar_alt": "用户头像",
     "page_title": "学习档案",
     "default_user_name": "学习者",
     "cover_alt_suffix": "封面",
@@ -20,7 +23,8 @@
     "comments": "评论",
     "points": "掌握积分",
     "badges": "学习徽章",
-    "followers": "学习圈",
+    "followers": "关注者",
+    "following": "正在关注",
     "no_badges_yet": "还没有徽章。",
     "attachment_single": "个附件",
     "attachment_plural": "个附件",

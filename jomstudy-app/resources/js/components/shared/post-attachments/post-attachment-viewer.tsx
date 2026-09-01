@@ -1,3 +1,4 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { useEffect, useState } from 'react';
 import {
     isDocumentFile,
@@ -20,6 +21,7 @@ function Lightbox({
     initialIndex: number;
     onClose: () => void;
 }) {
+    const { trans } = reactLang();
     const [current, setCurrent] = useState(initialIndex);
     const total = images.length;
 
@@ -55,7 +57,7 @@ function Lightbox({
             <button
                 className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
                 onClick={onClose}
-                aria-label="Close"
+                aria-label={trans('navigation.close')}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -80,7 +82,10 @@ function Lightbox({
             >
                 <img
                     src={toAssetUrl(images[current])}
-                    alt={`Attachment ${current + 1}`}
+                    alt={trans('navigation.attachment_number').replace(
+                        ':number',
+                        String(current + 1),
+                    )}
                     className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain shadow-2xl"
                 />
             </div>
@@ -94,7 +99,7 @@ function Lightbox({
                             e.stopPropagation();
                             setCurrent((c) => (c - 1 + total) % total);
                         }}
-                        aria-label="Previous"
+                        aria-label={trans('navigation.previous')}
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -117,7 +122,7 @@ function Lightbox({
                             e.stopPropagation();
                             setCurrent((c) => (c + 1) % total);
                         }}
-                        aria-label="Next"
+                        aria-label={trans('navigation.next')}
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -145,7 +150,9 @@ function Lightbox({
                                     setCurrent(i);
                                 }}
                                 className={`h-1.5 rounded-full transition-all ${i === current ? 'w-4 bg-white' : 'w-1.5 bg-white/40'}`}
-                                aria-label={`Go to image ${i + 1}`}
+                                aria-label={trans(
+                                    'navigation.go_to_image',
+                                ).replace(':number', String(i + 1))}
                             />
                         ))}
                     </div>
@@ -169,6 +176,7 @@ function SingleImage({
     compact: boolean;
     onClick: () => void;
 }) {
+    const { trans } = reactLang();
     return (
         <div
             className={`relative mx-auto w-full max-w-[95%] cursor-zoom-in overflow-hidden bg-zinc-200 sm:max-w-[760px] ${
@@ -188,7 +196,7 @@ function SingleImage({
             />
             <img
                 src={toAssetUrl(src)}
-                alt="Post attachment"
+                alt={trans('navigation.attachment_alt')}
                 className="relative z-10 mx-auto block h-full w-full object-contain"
                 style={{ maxHeight: compact ? 320 : 480, maxWidth: '100%' }}
             />
@@ -205,6 +213,7 @@ function ImageCarousel({
     compact: boolean;
     onImageClick: (index: number) => void;
 }) {
+    const { trans } = reactLang();
     const [current, setCurrent] = useState(0);
     const total = images.length;
     const displayHeight = compact ? 320 : 480;
@@ -235,7 +244,10 @@ function ImageCarousel({
                     <img
                         key={src}
                         src={toAssetUrl(src)}
-                        alt={`Post attachment ${index + 1}`}
+                        alt={trans('navigation.attachment_number').replace(
+                            ':number',
+                            String(index + 1),
+                        )}
                         className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-300 ${
                             index === current
                                 ? 'opacity-100'
@@ -249,7 +261,7 @@ function ImageCarousel({
             <button
                 onClick={prev}
                 className="absolute top-1/2 left-2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 shadow transition hover:bg-white"
-                aria-label="Previous image"
+                aria-label={trans('navigation.previous_image')}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -270,7 +282,7 @@ function ImageCarousel({
             <button
                 onClick={next}
                 className="absolute top-1/2 right-2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 shadow transition hover:bg-white"
-                aria-label="Next image"
+                aria-label={trans('navigation.next_image')}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -297,7 +309,10 @@ function ImageCarousel({
                             setCurrent(index);
                         }}
                         className={`h-1.5 rounded-full transition-all ${index === current ? 'w-4 bg-zinc-700' : 'w-1.5 bg-zinc-400/70'}`}
-                        aria-label={`Go to image ${index + 1}`}
+                        aria-label={trans('navigation.go_to_image').replace(
+                            ':number',
+                            String(index + 1),
+                        )}
                     />
                 ))}
             </div>

@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'appearance_heading' => '外观设置',
+    'appearance_description' => '更新你的账号外观设置',
+    'theme_light' => '浅色',
     'page_title' => '设置',
     'page_description' => '管理你的学习档案与账号设置',
     'sidebar_profile' => '学习档案',

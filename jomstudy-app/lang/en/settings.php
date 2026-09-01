@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'appearance_heading' => 'Appearance settings',
+    'appearance_description' => 'Update your account appearance settings',
+    'theme_light' => 'Light',
     'page_title' => 'Settings',
     'page_description' => 'Manage your learner profile and account settings',
     'sidebar_profile' => 'Learner Profile',

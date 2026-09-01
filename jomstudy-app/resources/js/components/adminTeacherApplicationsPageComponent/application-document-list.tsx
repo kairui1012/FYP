@@ -1,3 +1,4 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Eye, FileText } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -41,6 +42,7 @@ function DocumentPreviewDialog({
     document: PreviewDocument | null;
     onClose: () => void;
 }) {
+    const { trans } = reactLang();
     const type = document ? getDocumentType(document.name) : null;
 
     return (
@@ -78,14 +80,14 @@ function DocumentPreviewDialog({
                         <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
                             <FileText className="h-10 w-10" />
                             <p className="text-sm">
-                                This file type cannot be previewed.
+                                {trans('errors.file_type_preview_unavailable')}
                             </p>
                             <a
                                 href={document.url}
                                 download={document.name}
                                 className="text-sm font-medium text-[#e36a8b] hover:underline"
                             >
-                                Download instead
+                                {trans('navigation.download')}
                             </a>
                         </div>
                     ) : null}
@@ -136,9 +138,7 @@ export function ApplicationDocumentList({
                     : legacyDocument && (
                           <button
                               type="button"
-                              onClick={() =>
-                                  setPreviewDocument(legacyDocument)
-                              }
+                              onClick={() => setPreviewDocument(legacyDocument)}
                               className="inline-flex items-center gap-1.5 rounded-lg border border-[#f090aa]/40 bg-[#fff5f8] px-3 py-1.5 text-sm font-medium text-[#e36a8b] transition-colors hover:bg-[#ffe8f0]"
                           >
                               <Eye className="h-3.5 w-3.5 shrink-0" />

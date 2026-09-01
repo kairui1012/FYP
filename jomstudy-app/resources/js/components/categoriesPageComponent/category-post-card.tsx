@@ -105,7 +105,8 @@ export function CategoryPostCard({
                                         <AvatarImage
                                             src={post.user.avatar}
                                             alt={
-                                                post.user?.name ?? 'User avatar'
+                                                post.user?.name ??
+                                                trans('profile.user_avatar_alt')
                                             }
                                         />
                                     )}
@@ -121,7 +122,7 @@ export function CategoryPostCard({
                             <div className="mb-3 flex items-center gap-1.5 text-base">
                                 {post.is_anonymous ? (
                                     <span className="font-semibold text-zinc-500">
-                                        Anonymous User
+                                        {trans('profile.anonymous_user')}
                                     </span>
                                 ) : (
                                     <Link
@@ -135,7 +136,8 @@ export function CategoryPostCard({
                                             event.stopPropagation()
                                         }
                                     >
-                                        {post.user?.name ?? 'Unknown User'}
+                                        {post.user?.name ??
+                                            trans('profile.unknown_user')}
                                     </Link>
                                 )}
                                 {!post.is_anonymous &&

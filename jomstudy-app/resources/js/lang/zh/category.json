@@ -1,4 +1,6 @@
 {
+    "no_posts_title": "未找到贴文",
+    "no_posts_hint": "请调整筛选条件，或浏览其他分类。",
     "description": "选择语言或科目标签，只查看匹配的帖子。",
     "total_posts": "帖子总数",
     "content_type": "内容类型",

@@ -1,3 +1,4 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -32,6 +33,7 @@ export function usePostContentController({
     post,
     pageProps,
 }: UsePostContentControllerParams) {
+    const { trans } = reactLang();
     const currentUserId = (pageProps as { auth?: { user?: { id?: number } } })
         .auth?.user?.id;
     const currentUserRole =
@@ -51,8 +53,8 @@ export function usePostContentController({
     const canManagePost =
         post.post_type === 'material' ? canManageMaterial : isOwner;
     const displayName = isAnonymousPost
-        ? 'Anonymous User'
-        : (post.user?.name ?? 'Unknown User');
+        ? trans('profile.anonymous_user')
+        : (post.user?.name ?? trans('profile.unknown_user'));
 
     const [translated, setTranslated] = useState<{
         title: string;
@@ -504,9 +506,9 @@ export function usePostContentController({
 
             if (response.ok || payload?.message === 'Already reported.') {
                 setReported(true);
-                toast.success('Report submitted. Thank you.');
+                toast.success(trans('comment.report_sent'));
             } else {
-                toast.error('Failed to submit report. Please try again.');
+                toast.error(trans('comment.report_failed'));
             }
         } finally {
             setReportLoading(false);

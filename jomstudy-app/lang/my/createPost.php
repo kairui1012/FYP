@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'material_image_fallback' => 'Imej',
+    'material_document_fallback' => 'Dokumen',
+    'material_file_fallback' => 'Fail bahan pembelajaran',
+    'material_download_resource' => 'Muat turun sumber',
+    'role_teacher' => 'Guru',
+    'role_admin' => 'Pentadbir',
+    'role_student' => 'Pelajar',
     'page_title' => 'Cipta Pos',
     'heading' => 'Cipta Pos Baharu',
     'subtitle' => 'Isi tajuk dan kandungan, kemudian tambah imej, PDF, atau fail Office.',
@@ -66,7 +73,7 @@ return [
     'material_anonymous_hint' => 'Bahan Pembelajaran memaparkan penerbit supaya pelajar dapat mengenal pasti sumber pendidikan yang boleh dipercayai.',
     'student_post_hint' => 'Bahan Pembelajaran diterbitkan oleh guru dan pentadbir. Pelajar boleh bertanya soalan dan menyumbang kuiz yang dipautkan kepada bahan tersebut.',
     'material_link_title' => 'Pautkan pos ini kepada Bahan Pembelajaran',
-    'material_link_hint' => 'Soalan dan kuiz pelajar boleh disambungkan kepada sumber guru/pentadbir yang boleh dipercayai.',
+    'material_link_hint' => 'Kuiz boleh disambungkan kepada bahan pembelajaran guru/pentadbir yang boleh dipercayai.',
     'material_link_none' => 'Tiada Bahan Pembelajaran dipautkan',
     'material_attach_quiz_title' => 'Cipta atau lampirkan Kuiz kepada bahan ini',
     'material_attach_existing_quiz_hint' => 'Untuk Bahan Pembelajaran baharu, anda boleh lampirkan kuiz sedia ada sekarang. Kuiz dipautkan akan muncul pada halaman bahan.',

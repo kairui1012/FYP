@@ -106,7 +106,7 @@ class HandleInertiaRequests extends Middleware
                 'settings', 'profile', 'auth', 'achievement',
             ],
 
-            'teacher.material-insights.index' => ['admin', 'subjects', 'category'],
+            'teacher.material-insights.index' => ['admin', 'subjects', 'category', 'createPost'],
 
             default => str_starts_with((string) $routeName, 'admin.')
                 ? ['admin', 'comment', 'profile', 'achievement', 'subjects', 'category']

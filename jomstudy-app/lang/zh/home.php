@@ -1,10 +1,13 @@
 <?php
 
 return [
+    'unknown_user' => '未知用户',
+    'anonymous_user' => '匿名用户',
+    'user_avatar_alt' => '用户头像',
     'page_title' => '首页',
     'hero_title' => '学习面板',
     'hero_subtitle' => '专注下一步，把每天的学习节奏保持住。',
-    'following_subtitle' => '查看学习圈中学习者的最新学习动态。',
+    'following_subtitle' => '查看你所关注的学习者的最新学习动态。',
     'materials_subtitle' => '按科目浏览课程资料、笔记和课节内容。',
     'questions_subtitle' => '在学习社区中提问、回答和交流。',
     'learn_tab' => '学习',
@@ -21,8 +24,8 @@ return [
     'empty_feed_title' => '暂时还没有帖子',
     'empty_feed_subtitle' => '新的问题、笔记和学习资料会显示在这里。',
     'empty_feed_action' => '浏览分类',
-    'following_empty_title' => '还没有学习圈动态',
-    'following_empty_subtitle' => '把学习者加入学习圈，之后他们的新学习帖子就会出现在这里。',
+    'following_empty_title' => '还没有关注动态',
+    'following_empty_subtitle' => '关注学习者后，他们的新学习帖子就会出现在这里。',
     'following_empty_action' => '浏览学习帖子',
     'following_empty_secondary_action' => '查看热点',
     'today_score' => '掌握积分',

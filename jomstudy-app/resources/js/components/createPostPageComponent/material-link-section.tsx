@@ -94,7 +94,11 @@ export function MaterialLinkSection({
                         {selectedMaterial.publisher.name}
                     </span>{' '}
                     <span className="capitalize">
-                        ({selectedMaterial.publisher.role ?? 'teacher'})
+                        (
+                        {trans(
+                            `createPost.role_${selectedMaterial.publisher.role ?? 'teacher'}`,
+                        )}
+                        )
                     </span>
                     {selectedMaterial.subject?.name ? (
                         <span> - {selectedMaterial.subject.name}</span>

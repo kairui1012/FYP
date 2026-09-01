@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'file_preview_unavailable' => ':extension file preview is not available. Open or download the file.',
+    'file_type_preview_unavailable' => 'This file type cannot be previewed.',
+    'pdf_load_failed' => 'Failed to load PDF file.',
+    'docx_load_failed' => 'Failed to load DOCX file.',
+    'generic' => 'Something went wrong. Please try again.',
     'not_found_title' => 'Page not found',
     'not_found_description' => 'The page you are looking for does not exist. The link may be incorrect, outdated, or the content may have been removed.',
     'server_error_title' => 'Something went wrong',

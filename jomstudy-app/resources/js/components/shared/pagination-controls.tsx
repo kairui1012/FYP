@@ -1,3 +1,4 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { Link } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { PaginationMeta } from '@/types';
@@ -13,6 +14,8 @@ export function PaginationControls({
     only,
     appendQuery,
 }: PaginationControlsProps) {
+    const { trans } = reactLang();
+
     if (!pagination || pagination.last_page <= 1) {
         return null;
     }
@@ -91,14 +94,26 @@ export function PaginationControls({
     return (
         <nav className="mt-4 flex flex-col gap-3 border-t border-zinc-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-zinc-500">
-                Showing {rangeLabel} of {pagination.total}
+                {trans('navigation.pagination_showing')
+                    .replace(':range', rangeLabel)
+                    .replace(':total', String(pagination.total))}
             </p>
             <div className="flex items-center gap-2">
-                {renderLink(pagination.prev_page_url, 'Previous', 'previous')}
+                {renderLink(
+                    pagination.prev_page_url,
+                    trans('navigation.previous'),
+                    'previous',
+                )}
                 <span className="rounded-lg bg-zinc-100 px-3 py-2 text-sm font-semibold text-zinc-600">
-                    Page {pagination.current_page} of {pagination.last_page}
+                    {trans('navigation.pagination_page')
+                        .replace(':current', String(pagination.current_page))
+                        .replace(':last', String(pagination.last_page))}
                 </span>
-                {renderLink(pagination.next_page_url, 'Next', 'next')}
+                {renderLink(
+                    pagination.next_page_url,
+                    trans('navigation.next'),
+                    'next',
+                )}
             </div>
         </nav>
     );

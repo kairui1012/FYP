@@ -1,3 +1,4 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { AlertCircleIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -8,10 +9,12 @@ export default function AlertError({
     errors: string[];
     title?: string;
 }) {
+    const { trans } = reactLang();
+
     return (
         <Alert variant="destructive">
             <AlertCircleIcon />
-            <AlertTitle>{title || 'Something went wrong.'}</AlertTitle>
+            <AlertTitle>{title || trans('errors.generic')}</AlertTitle>
             <AlertDescription>
                 <ul className="list-inside list-disc text-sm">
                     {Array.from(new Set(errors)).map((error, index) => (

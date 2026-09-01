@@ -6,7 +6,13 @@ import { ApplicationDocumentList } from '@/components/adminTeacherApplicationsPa
 import type { VerificationDocument } from '@/components/adminTeacherApplicationsPageComponent/application-document-list';
 import { PaginationControls } from '@/components/shared/pagination-controls';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import {
     Table,
     TableBody,

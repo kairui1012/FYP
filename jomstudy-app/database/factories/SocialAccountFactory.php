@@ -28,7 +28,7 @@ class SocialAccountFactory extends Factory
         return [
             'user_id' => User::factory(),
             'provider' => 'google',
-            'provider_id' => (string) $this->faker->unique()->numberBetween(1000000000000000000, 9999999999999999999),
+            'provider_id' => $this->faker->unique()->numerify('####################'),
             'avatar' => $this->faker->imageUrl(200, 200, 'people'),
         ];
     }

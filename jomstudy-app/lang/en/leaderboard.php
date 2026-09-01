@@ -36,7 +36,7 @@ return [
     'action_best_answer_marked' => 'Best answer marked',
     'action_resource_uploaded' => 'Uploaded resource',
     'action_resource_bookmarked' => 'Resource bookmarked',
-    'action_follower_gained' => 'Added to a study network',
+    'action_follower_gained' => 'Gained a follower',
     'action_content_downvoted' => 'Content marked less helpful',
     'community_title' => 'Learning Contribution Board',
     'community_subtitle' => 'Top contributors based on learning support and knowledge sharing',

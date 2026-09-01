@@ -68,7 +68,7 @@ export default function ProfilePage() {
             <div className="mx-auto w-full max-w-4xl space-y-5 px-4 pt-6 pb-24 md:px-6 md:pt-8">
                 <button
                     type="button"
-                    aria-label="Back"
+                    aria-label={t.back}
                     onClick={handleBack}
                     className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-2 border-sidebar-border bg-background from-[#ef99b0] to-[#e27193] text-foreground transition hover:border-2 hover:border-[#e27193] hover:bg-linear-to-r hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e27193]/40"
                 >

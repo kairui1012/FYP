@@ -1,4 +1,7 @@
 {
+    "anonymous_user": "Anonymous User",
+    "unknown_user": "Unknown User",
+    "user_avatar_alt": "User avatar",
     "page_title": "Learner Profile",
     "default_user_name": "Learner",
     "cover_alt_suffix": "cover",
@@ -20,7 +23,8 @@
     "comments": "comments",
     "points": "Mastery Points",
     "badges": "Learning Badges",
-    "followers": "Study Network",
+    "followers": "Followers",
+    "following": "Following",
     "no_badges_yet": "No badges yet.",
     "attachment_single": "attachment",
     "attachment_plural": "attachments",

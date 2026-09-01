@@ -1,7 +1,8 @@
 <?php
 
 return [
-    'description' => 'Susun kiriman yang disimpan ke dalam folder tersuai supaya lebih mudah dirujuk semula.',
+    'view_quiz' => 'Lihat Kuiz',
+    'description' => 'Simpan dan rujuk semula kiriman anda pada bila-bila masa.',
     'saved_items' => 'Kiriman disimpan',
     'saved_quizzes' => 'Kuiz disimpan',
     'total_saves' => 'Jumlah simpanan',

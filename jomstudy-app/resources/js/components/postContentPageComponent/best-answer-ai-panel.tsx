@@ -46,6 +46,8 @@ export function BestAnswerAiPanel({
         collapse: trans(page, 'comment.ai_explain_collapse'),
         expand: trans(page, 'comment.ai_explain_expand'),
         disclaimer: trans(page, 'comment.ai_explain_disclaimer'),
+        keyPoints: trans(page, 'comment.ai_key_points'),
+        summary: trans(page, 'comment.ai_summary'),
     };
 
     const generate = async () => {
@@ -157,7 +159,7 @@ export function BestAnswerAiPanel({
                     {result.key_points.length > 0 ? (
                         <div className="rounded-xl border border-emerald-200 bg-white/80 p-4">
                             <p className="mb-2 text-xs font-semibold tracking-wide text-emerald-700 uppercase">
-                                Key Points
+                                {t.keyPoints}
                             </p>
                             <ul className="space-y-1.5">
                                 {result.key_points.map((point, i) => (
@@ -176,7 +178,7 @@ export function BestAnswerAiPanel({
                     {result.summary ? (
                         <div className="rounded-xl border border-teal-200 bg-teal-50/60 p-3">
                             <p className="mb-1 text-xs font-semibold tracking-wide text-teal-700 uppercase">
-                                Summary
+                                {t.summary}
                             </p>
                             <p className="text-sm leading-relaxed text-zinc-700">
                                 {result.summary}

@@ -77,7 +77,7 @@ export function PostCard({
                 <div className="flex min-w-0 items-center gap-2 text-sm text-zinc-500">
                     {post.is_anonymous ? (
                         <span className="truncate font-semibold text-zinc-500">
-                            Anonymous User
+                            {trans('profile.anonymous_user')}
                         </span>
                     ) : (
                         <>

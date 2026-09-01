@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'ai_key_points' => 'Key Points',
+    'ai_summary' => 'Summary',
     'title' => 'Comments',
     'qna_title' => 'Q&A Comments',
     'quiz_title' => 'Quiz Discussion',

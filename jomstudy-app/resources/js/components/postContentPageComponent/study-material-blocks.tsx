@@ -1,3 +1,4 @@
+import { reactLang } from '@erag/lang-sync-inertia';
 import { FileText } from 'lucide-react';
 import type { MaterialContentBlock } from '@/types';
 
@@ -18,6 +19,8 @@ export function StudyMaterialBlocks({
     blocks,
     fallbackContent,
 }: StudyMaterialBlocksProps) {
+    const { trans } = reactLang();
+
     if (!blocks || blocks.length === 0) {
         return (
             <div className="text-base leading-8 whitespace-pre-wrap text-zinc-800">
@@ -73,10 +76,16 @@ export function StudyMaterialBlocks({
                             </span>
                             <span className="min-w-0">
                                 <span className="block truncate font-semibold">
-                                    {block.name ?? 'Document'}
+                                    {block.name ??
+                                        trans(
+                                            'createPost.material_document_fallback',
+                                        )}
                                 </span>
                                 <span className="text-sm text-zinc-500">
-                                    {block.mime ?? 'Download resource'}
+                                    {block.mime ??
+                                        trans(
+                                            'createPost.material_download_resource',
+                                        )}
                                 </span>
                             </span>
                         </a>

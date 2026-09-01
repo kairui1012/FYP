@@ -54,7 +54,7 @@ function MaterialRecommendationBadge({ post }: { post: PostItem }) {
     );
 }
 
-function getMaterialFirstPreview(post: PostItem): string {
+function getMaterialFirstPreview(post: PostItem, trans: TransFn): string {
     const firstBlock = post.content_blocks?.[0];
 
     if (firstBlock?.type === 'text') {
@@ -62,11 +62,13 @@ function getMaterialFirstPreview(post: PostItem): string {
     }
 
     if (firstBlock?.type === 'image') {
-        return firstBlock.name ?? 'Image';
+        return firstBlock.name ?? trans('createPost.material_image_fallback');
     }
 
     if (firstBlock?.type === 'document') {
-        return firstBlock.name ?? 'Document';
+        return (
+            firstBlock.name ?? trans('createPost.material_document_fallback')
+        );
     }
 
     const firstSegment = (post.content ?? '')
@@ -114,7 +116,7 @@ export function LearningTrendsPostCard({
     const subjectLabel = getSubjectLabel(post.subject?.name, trans);
     const contentPreview =
         post.post_type === 'material'
-            ? getMaterialFirstPreview(post)
+            ? getMaterialFirstPreview(post, trans)
             : (post.content ?? '');
 
     return (
@@ -154,7 +156,8 @@ export function LearningTrendsPostCard({
                                         <AvatarImage
                                             src={post.user.avatar}
                                             alt={
-                                                post.user?.name ?? 'User avatar'
+                                                post.user?.name ??
+                                                trans('profile.user_avatar_alt')
                                             }
                                         />
                                     ) : null}
@@ -170,7 +173,7 @@ export function LearningTrendsPostCard({
                             <div className="mb-3 flex items-center gap-1.5 text-base">
                                 {post.is_anonymous ? (
                                     <span className="font-semibold text-zinc-500">
-                                        Anonymous User
+                                        {trans('profile.anonymous_user')}
                                     </span>
                                 ) : (
                                     <Link
@@ -184,7 +187,8 @@ export function LearningTrendsPostCard({
                                             event.stopPropagation()
                                         }
                                     >
-                                        {post.user?.name ?? 'Unknown User'}
+                                        {post.user?.name ??
+                                            trans('profile.unknown_user')}
                                     </Link>
                                 )}
                                 {!post.is_anonymous &&

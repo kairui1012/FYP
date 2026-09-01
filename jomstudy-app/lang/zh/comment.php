@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'ai_key_points' => '重点',
+    'ai_summary' => '总结',
     'title' => '评论',
     'qna_title' => 'Q&A 评论区',
     'quiz_title' => '测验讨论区',

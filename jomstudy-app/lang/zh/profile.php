@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'anonymous_user' => '匿名用户',
+    'unknown_user' => '未知用户',
+    'user_avatar_alt' => '用户头像',
     'page_title' => '学习档案',
     'default_user_name' => '学习者',
     'cover_alt_suffix' => '封面',
@@ -22,7 +25,8 @@ return [
     'comments' => '评论',
     'points' => '掌握积分',
     'badges' => '学习徽章',
-    'followers' => '学习圈',
+    'followers' => '关注者',
+    'following' => '正在关注',
     'no_badges_yet' => '还没有徽章。',
     'attachment_single' => '个附件',
     'attachment_plural' => '个附件',
@@ -38,16 +42,16 @@ return [
 
     // ── Badge showcase ────────────────────────────────────────────────────────
     'no_featured_badges_hint' => '提示：点击"编辑展示徽章"来展示你已解锁的徽章。',
-    'close_badge_editor'      => '关闭徽章编辑器',
-    'edit_displayed_badges'   => '编辑展示徽章',
-    'badges_saved'            => '徽章已保存',
-    'choose_featured_badges'  => '选择展示徽章',
-    'select_up_to'            => '最多选择 :max 个徽章展示在你的主页。',
-    'selected'                => '已选',
-    'max_badges_reached'      => '已达到展示徽章上限。',
-    'saving'                  => '保存中…',
-    'save'                    => '保存',
-    'earn_badges_hint'        => '发帖、答题、与社区互动即可获得徽章。',
-    'featured'                => '已展示',
-    'verified_teacher'        => '认证教师',
+    'close_badge_editor' => '关闭徽章编辑器',
+    'edit_displayed_badges' => '编辑展示徽章',
+    'badges_saved' => '徽章已保存',
+    'choose_featured_badges' => '选择展示徽章',
+    'select_up_to' => '最多选择 :max 个徽章展示在你的主页。',
+    'selected' => '已选',
+    'max_badges_reached' => '已达到展示徽章上限。',
+    'saving' => '保存中…',
+    'save' => '保存',
+    'earn_badges_hint' => '发帖、答题、与社区互动即可获得徽章。',
+    'featured' => '已展示',
+    'verified_teacher' => '认证教师',
 ];

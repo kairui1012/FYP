@@ -10,7 +10,10 @@ import {
 } from '@/components/ts/features/post-content/post-content-config';
 import type { PostContentTransFn } from '@/components/ts/features/post-content/post-content-types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatTimeAgo, getSubjectLabelFromPage } from '@/lib/post-display-helpers';
+import {
+    formatTimeAgo,
+    getSubjectLabelFromPage,
+} from '@/lib/post-display-helpers';
 import { isVerifiedTeacher } from '@/lib/teacher-verification';
 import type { PostItem } from '@/types';
 
@@ -152,7 +155,13 @@ export function PostBackAuthorHeader({
                                 {post.user?.avatar ? (
                                     <AvatarImage
                                         src={post.user.avatar}
-                                        alt={post.user?.name ?? 'User avatar'}
+                                        alt={
+                                            post.user?.name ??
+                                            trans(
+                                                'profile.user_avatar_alt',
+                                                page,
+                                            )
+                                        }
                                     />
                                 ) : null}
                                 <AvatarFallback className="bg-zinc-200 text-base font-bold text-zinc-700">

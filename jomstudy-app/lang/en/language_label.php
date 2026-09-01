@@ -1,4 +1,5 @@
 <?php
+
 return [
     'en' => 'EN',
     'zh' => 'Chinese',

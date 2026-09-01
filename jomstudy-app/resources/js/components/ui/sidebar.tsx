@@ -1,4 +1,5 @@
 import { Slot } from "@radix-ui/react-slot"
+import { reactLang } from "@erag/lang-sync-inertia"
 import type { VariantProps} from "class-variance-authority";
 import { cva } from "class-variance-authority"
 import { PanelLeftCloseIcon, PanelLeftOpenIcon } from "lucide-react"
@@ -165,6 +166,7 @@ function Sidebar({
   boundaryControl?: React.ReactNode
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  const { trans } = reactLang()
 
   if (collapsible === "none") {
     return (
@@ -185,8 +187,8 @@ function Sidebar({
     return (
       <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
         <SheetHeader className="sr-only">
-          <SheetTitle>Sidebar</SheetTitle>
-          <SheetDescription>Displays the mobile sidebar.</SheetDescription>
+          <SheetTitle>{trans("navigation.sidebar_title")}</SheetTitle>
+          <SheetDescription>{trans("navigation.sidebar_description")}</SheetDescription>
         </SheetHeader>
         <SheetContent
           data-sidebar="sidebar"
@@ -262,6 +264,7 @@ function SidebarTrigger({
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { toggleSidebar, isMobile, state } = useSidebar()
+  const { trans } = reactLang()
 
   return (
     <Button
@@ -277,22 +280,23 @@ function SidebarTrigger({
       {...props}
     >
       {isMobile || state === "collapsed" ? <PanelLeftOpenIcon /> : <PanelLeftCloseIcon />}
-      <span className="sr-only">Toggle sidebar</span>
+      <span className="sr-only">{trans("navigation.toggle_sidebar")}</span>
     </Button>
   )
 }
 
 function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   const { toggleSidebar } = useSidebar()
+  const { trans } = reactLang()
 
   return (
     <button
       data-sidebar="rail"
       data-slot="sidebar-rail"
-      aria-label="Toggle sidebar"
+      aria-label={trans("navigation.toggle_sidebar")}
       tabIndex={-1}
       onClick={toggleSidebar}
-      title="Toggle sidebar"
+      title={trans("navigation.toggle_sidebar")}
       // className={cn(
       //   "hover:after:bg-sidebar-border absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-0.5 sm:flex",
       //   "in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize",

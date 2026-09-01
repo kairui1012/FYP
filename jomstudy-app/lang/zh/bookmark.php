@@ -1,7 +1,8 @@
 <?php
 
 return [
-    'description' => '把已收藏的帖子分到自定义收藏夹里，方便按主题整理和回看。',
+    'view_quiz' => '查看测验',
+    'description' => '集中查看已收藏的帖子，方便随时回看。',
     'saved_items' => '已收藏帖子',
     'saved_quizzes' => '已收藏测验',
     'total_saves' => '收藏总数',

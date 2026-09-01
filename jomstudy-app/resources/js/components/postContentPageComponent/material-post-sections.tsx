@@ -115,7 +115,12 @@ export function MaterialPostSections({
                     {trans('createPost.material_publisher_label', page)}:{' '}
                     {post.user?.name ??
                         trans('createPost.material_unknown_user', page)}{' '}
-                    ({post.user?.role ?? 'teacher'})
+                    (
+                    {trans(
+                        `createPost.role_${post.user?.role ?? 'teacher'}`,
+                        page,
+                    )}
+                    )
                 </p>
                 <p className="text-sm text-zinc-500">
                     {trans('createPost.material_last_updated_label', page)}:{' '}

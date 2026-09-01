@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'login_illustration_alt' => '登录插图',
+    'registration_illustration_alt' => '注册插图',
     'failed' => '账号或密码不正确。',
     'blocked' => '你的账号已被封禁，请联系管理员。',
     'login_title' => '登录',
@@ -39,5 +41,7 @@ return [
     'confirm_password_title' => '确认你的密码',
     'confirm_password_description' => '这是应用程序的安全区域。请先确认密码再继续。',
     'confirm_password_button' => '确认密码',
+    'reset_password_title' => '重置密码',
+    'reset_password_description' => '输入并确认你的新密码。',
     'reset_password_button' => '重置密码',
 ];

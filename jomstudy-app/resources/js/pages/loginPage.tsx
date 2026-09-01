@@ -131,7 +131,9 @@ export default function Login({
                                                             required
                                                             tabIndex={2}
                                                             autoComplete="current-password"
-                                                            placeholder="Password"
+                                                            placeholder={trans(
+                                                                'auth.password',
+                                                            )}
                                                             className="pr-9"
                                                         />
                                                         <button
@@ -254,7 +256,7 @@ export default function Login({
                         <div className="relative hidden bg-slate-100 lg:block">
                             <img
                                 src="/images/login-visual.png"
-                                alt="Login illustration"
+                                alt={trans('auth.login_illustration_alt')}
                                 className="h-full w-full object-cover"
                             />
                         </div>

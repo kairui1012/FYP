@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'no_posts_title' => 'No posts found',
+    'no_posts_hint' => 'Try adjusting your filters or browse a different category.',
     'description' => 'Choose language or subject tags to view matching posts only.',
     'total_posts' => 'Total posts',
     'content_type' => 'Content type',

@@ -97,6 +97,7 @@ export function buildHomeText(page: PageLike) {
         langZh: transFromPage('language_label.zh', page),
         langBm: transFromPage('language_label.bm', page),
         unknownUser: transFromPage('home.unknown_user', page),
+        anonymousUser: transFromPage('home.anonymous_user', page),
         userAvatarAlt: transFromPage('home.user_avatar_alt', page),
     };
 }
@@ -156,6 +157,11 @@ export function buildFeedSectionText(
             'home.unknown_user',
             'Unknown User',
         ),
+        anonymousUser: fallback(
+            homeText.anonymousUser,
+            'home.anonymous_user',
+            'Anonymous User',
+        ),
         userAvatarAlt: fallback(
             homeText.userAvatarAlt,
             'home.user_avatar_alt',
@@ -171,9 +177,7 @@ export function buildFeedSectionText(
     };
 }
 
-export function buildFeedHeroText(
-    homeText: ReturnType<typeof buildHomeText>,
-) {
+export function buildFeedHeroText(homeText: ReturnType<typeof buildHomeText>) {
     return {
         heroTitle: homeText.heroTitle,
         heroSubtitle: homeText.heroSubtitle,

@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'material_image_fallback' => 'Image',
+    'material_document_fallback' => 'Document',
+    'material_file_fallback' => 'Study material file',
+    'material_download_resource' => 'Download resource',
+    'role_teacher' => 'Teacher',
+    'role_admin' => 'Admin',
+    'role_student' => 'Student',
     'page_title' => 'Create Post',
     'heading' => 'Create New Post',
     'subtitle' => 'Fill in title and content, then add images, PDF, or Office files.',
@@ -66,7 +73,7 @@ return [
     'material_anonymous_hint' => 'Study Materials show the publisher so students can identify reliable educational resources.',
     'student_post_hint' => 'Study Materials are published by teachers and admins. Students can ask questions and contribute quizzes linked to those materials.',
     'material_link_title' => 'Link this post to a Study Material',
-    'material_link_hint' => 'Questions and student quizzes can be connected to a reliable teacher/admin resource.',
+    'material_link_hint' => 'Quizzes can be connected to a reliable teacher/admin study resource.',
     'material_link_none' => 'No linked Study Material',
     'material_attach_quiz_title' => 'Create or attach a Quiz to this material',
     'material_attach_existing_quiz_hint' => 'For a new Study Material, you can attach existing quizzes now. Linked quizzes will appear on the material page.',

@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'ai_key_points' => 'Isi Penting',
+    'ai_summary' => 'Ringkasan',
     'title' => 'Komen',
     'qna_title' => 'Komen Q&A',
     'quiz_title' => 'Perbincangan Kuiz',

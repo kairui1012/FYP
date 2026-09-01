@@ -82,7 +82,9 @@ export default function RegisterPage() {
                                                     tabIndex={1}
                                                     autoComplete="name"
                                                     name="name"
-                                                    placeholder="Full name"
+                                                    placeholder={trans(
+                                                        'auth.name',
+                                                    )}
                                                 />
                                             </div>
 
@@ -119,7 +121,9 @@ export default function RegisterPage() {
                                                         tabIndex={3}
                                                         autoComplete="new-password"
                                                         name="password"
-                                                        placeholder="Password"
+                                                        placeholder={trans(
+                                                            'auth.password',
+                                                        )}
                                                         className="pr-10"
                                                     />
                                                     <button
@@ -173,7 +177,9 @@ export default function RegisterPage() {
                                                         tabIndex={4}
                                                         autoComplete="new-password"
                                                         name="password_confirmation"
-                                                        placeholder="Confirm password"
+                                                        placeholder={trans(
+                                                            'auth.confirm_password',
+                                                        )}
                                                         className="pr-10"
                                                     />
                                                     <button
@@ -242,7 +248,9 @@ export default function RegisterPage() {
                         <div className="relative hidden bg-slate-100 lg:block">
                             <img
                                 src="/images/login-visual.png"
-                                alt="Registration illustration"
+                                alt={trans(
+                                    'auth.registration_illustration_alt',
+                                )}
                                 className="h-full w-full object-cover"
                             />
                         </div>

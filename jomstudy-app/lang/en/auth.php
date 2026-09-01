@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'login_illustration_alt' => 'Login illustration',
+    'registration_illustration_alt' => 'Registration illustration',
     'failed' => 'These credentials do not match our records.',
     'blocked' => 'Your account has been blocked. Please contact an administrator.',
     'login_title' => 'Log in',
@@ -39,5 +41,7 @@ return [
     'confirm_password_title' => 'Confirm your password',
     'confirm_password_description' => 'This is a secure area of the application. Please confirm your password before continuing.',
     'confirm_password_button' => 'Confirm password',
+    'reset_password_title' => 'Reset password',
+    'reset_password_description' => 'Enter and confirm your new password.',
     'reset_password_button' => 'Reset password',
 ];

@@ -84,9 +84,7 @@ export default function AdminReports({
                 toast.success(trans('admin.delete_reported_post'));
             },
             onError: () => {
-                toast.error(
-                    trans('errors.generic') || 'Failed to delete post.',
-                );
+                toast.error(trans('errors.generic'));
             },
             onFinish: () => {
                 setArmedDeletePostId(null);
@@ -113,9 +111,7 @@ export default function AdminReports({
                 toast.success(trans('admin.delete_reported_comment'));
             },
             onError: () => {
-                toast.error(
-                    trans('errors.generic') || 'Failed to delete comment.',
-                );
+                toast.error(trans('errors.generic'));
             },
             onFinish: () => {
                 setArmedDeleteCommentId(null);

@@ -1,7 +1,8 @@
 <?php
 
 return [
-    'description' => 'Organize saved posts into custom folders and keep track of the posts you want to revisit.',
+    'view_quiz' => 'View Quiz',
+    'description' => 'Keep track of saved posts and revisit them whenever you need.',
     'saved_items' => 'Saved posts',
     'saved_quizzes' => 'Saved quizzes',
     'total_saves' => 'Total saves',

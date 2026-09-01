@@ -32,6 +32,7 @@ type FeedText = {
     askQuestion: string;
     shareMaterial: string;
     unknownUser: string;
+    anonymousUser: string;
     userAvatarAlt: string;
     langEn: string;
     langZh: string;
@@ -129,6 +130,7 @@ function MaterialRecommendationBadge({ post }: { post: PostItem }) {
 }
 
 function MaterialPreview({ post }: { post: PostItem }) {
+    const { trans } = reactLang();
     const firstBlock = post.content_blocks?.[0];
 
     if (!firstBlock) {
@@ -176,10 +178,12 @@ function MaterialPreview({ post }: { post: PostItem }) {
                 </span>
                 <div className="min-w-0">
                     <p className="truncate font-semibold text-zinc-900">
-                        {firstBlock.name ?? 'Document'}
+                        {firstBlock.name ??
+                            trans('createPost.material_document_fallback')}
                     </p>
                     <p className="text-sm text-zinc-500">
-                        {firstBlock.mime ?? 'Study material file'}
+                        {firstBlock.mime ??
+                            trans('createPost.material_file_fallback')}
                     </p>
                 </div>
             </div>
@@ -322,7 +326,7 @@ export function PostFeedSection({
                                     <div className="mb-3 flex items-center gap-1.5 text-base">
                                         {post.is_anonymous ? (
                                             <span className="font-semibold text-zinc-500">
-                                                Anonymous
+                                                {text.anonymousUser}
                                             </span>
                                         ) : (
                                             <>

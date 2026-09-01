@@ -136,7 +136,7 @@ function QuizReviewCard({ item, mode, trans }: QuizReviewCardProps) {
                     className="inline-flex items-center gap-2 rounded-2xl border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-50"
                 >
                     <ExternalLink className="h-4 w-4" />
-                    View Quiz
+                    {trans('bookmark.view_quiz')}
                 </Link>
             </div>
         </article>

@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'login_illustration_alt' => 'Ilustrasi log masuk',
+    'registration_illustration_alt' => 'Ilustrasi pendaftaran',
     'failed' => 'Maklumat log masuk ini tidak sepadan dengan rekod kami.',
     'blocked' => 'Akaun anda telah disekat. Sila hubungi pentadbir.',
     'login_title' => 'Log masuk',
@@ -39,5 +41,7 @@ return [
     'confirm_password_title' => 'Sahkan kata laluan anda',
     'confirm_password_description' => 'Ini adalah kawasan selamat aplikasi. Sila sahkan kata laluan anda sebelum meneruskan.',
     'confirm_password_button' => 'Sahkan kata laluan',
+    'reset_password_title' => 'Tetapkan semula kata laluan',
+    'reset_password_description' => 'Masukkan dan sahkan kata laluan baharu anda.',
     'reset_password_button' => 'Tetapkan semula kata laluan',
 ];
